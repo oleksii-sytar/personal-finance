@@ -1,135 +1,198 @@
-import Link from 'next/link';
-import { ArrowRight, DollarSign, PieChart, Target, TrendingUp } from 'lucide-react';
+'use client';
+
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
+import { ClientThemeToggle, ClientThemeToggleCompact } from '@/components/ui/ClientThemeToggle';
+import { TrendingUp, DollarSign, Target, PieChart } from 'lucide-react';
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-peat-charcoal">
-      {/* Header */}
-      <header className="glass-card mx-4 mt-4 mb-8">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <DollarSign className="h-8 w-8 text-single-malt" />
-              <span className="ml-3 text-xl font-space-grotesk font-semibold text-white">
-                Personal Finance
-              </span>
-            </div>
-            <div className="flex space-x-4">
-              <Link
-                href="/auth/login"
-                className="secondary-button px-6 py-3"
-              >
-                Sign In
-              </Link>
-              <Link
-                href="/auth/signup"
-                className="primary-button px-6 py-3"
-              >
-                Get Started
-              </Link>
-            </div>
-          </div>
+    <main className="min-h-screen p-6 lg:p-8">
+      {/* Header with Theme Toggle */}
+      <header className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="heading-primary text-3xl lg:text-4xl text-accent-primary mb-2">
+            Executive Finance Suite
+          </h1>
+          <p className="body-text text-lg">
+            Distilled control over your financial landscape
+          </p>
+        </div>
+        <div className="flex items-center gap-4">
+          <ClientThemeToggleCompact />
+          <ClientThemeToggle />
         </div>
       </header>
 
-      {/* Hero Section */}
-      <main className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
-        <div className="text-center mb-20">
-          <h1 className="text-5xl md:text-7xl font-space-grotesk font-bold text-white mb-6">
-            Take Control of Your
-            <span className="text-single-malt block mt-2">Finances</span>
-          </h1>
-          <p className="mt-6 max-w-3xl mx-auto text-lg text-white/70 font-inter leading-relaxed">
-            Track expenses, manage budgets, and gain insights into your financial habits with our intuitive personal finance management tool designed for the modern executive.
-          </p>
-          <div className="mt-10">
-            <Link
-              href="/auth/signup"
-              className="primary-button px-10 py-4 text-lg inline-flex items-center"
-            >
-              Start Managing Your Money
-              <ArrowRight className="ml-3 h-5 w-5" />
-            </Link>
-          </div>
-        </div>
-
-        {/* Features */}
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="glass-card p-8 text-center group hover:bg-white/8 transition-all duration-300">
-            <div className="flex justify-center mb-6">
-              <div className="p-4 rounded-full bg-growth-emerald/20">
-                <TrendingUp className="h-8 w-8 text-growth-emerald" />
+      {/* Demo Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {/* Net Worth Card */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-3">
+              <TrendingUp className="w-6 h-6 text-accent-primary" />
+              Net Worth Overview
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <p className="text-text-muted text-sm mb-1">Total Net Worth</p>
+                <p className="heading-primary text-3xl text-accent-primary">$247,850</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="glass-card p-4">
+                  <p className="text-text-muted text-sm">Assets</p>
+                  <p className="heading-primary text-xl text-accent-success">$312,400</p>
+                </div>
+                <div className="glass-card p-4">
+                  <p className="text-text-muted text-sm">Liabilities</p>
+                  <p className="heading-primary text-xl text-red-400">$64,550</p>
+                </div>
               </div>
             </div>
-            <h3 className="text-xl font-space-grotesk font-semibold text-white mb-4">
-              Expense Tracking
-            </h3>
-            <p className="text-white/60 font-inter leading-relaxed">
-              Monitor your spending with detailed categorization and intelligent insights.
-            </p>
-          </div>
+          </CardContent>
+        </Card>
 
-          <div className="glass-card p-8 text-center group hover:bg-white/8 transition-all duration-300">
-            <div className="flex justify-center mb-6">
-              <div className="p-4 rounded-full bg-single-malt/20">
-                <Target className="h-8 w-8 text-single-malt" />
+        {/* Quick Actions */}
+        <Card variant="leather">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-3">
+              <DollarSign className="w-6 h-6 text-accent-primary" />
+              Quick Actions
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <button className="primary-button w-full py-3 px-4">
+                Add Transaction
+              </button>
+              <button className="secondary-button w-full py-3 px-4">
+                View Reports
+              </button>
+              <button className="secondary-button w-full py-3 px-4">
+                Set Budget Goal
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Budget Progress */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-3">
+              <Target className="w-6 h-6 text-accent-primary" />
+              Monthly Budget
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <div className="flex justify-between text-sm mb-2">
+                  <span className="text-text-secondary">Spent</span>
+                  <span className="text-text-primary">$2,840 / $4,000</span>
+                </div>
+                <div className="w-full bg-background-secondary rounded-pill h-3 overflow-hidden">
+                  <div 
+                    className="progress-liquid h-full rounded-pill"
+                    style={{ width: '71%' }}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <p className="text-text-muted">Remaining</p>
+                  <p className="text-accent-success font-medium">$1,160</p>
+                </div>
+                <div>
+                  <p className="text-text-muted">Days Left</p>
+                  <p className="text-text-primary font-medium">12 days</p>
+                </div>
               </div>
             </div>
-            <h3 className="text-xl font-space-grotesk font-semibold text-white mb-4">
-              Budget Planning
-            </h3>
-            <p className="text-white/60 font-inter leading-relaxed">
-              Set intelligent budgets and track your progress toward financial goals.
-            </p>
-          </div>
+          </CardContent>
+        </Card>
 
-          <div className="glass-card p-8 text-center group hover:bg-white/8 transition-all duration-300">
-            <div className="flex justify-center mb-6">
-              <div className="p-4 rounded-full bg-aged-oak/40">
-                <PieChart className="h-8 w-8 text-aged-oak" />
+        {/* Recent Transactions */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-3">
+              <PieChart className="w-6 h-6 text-accent-primary" />
+              Recent Transactions
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {[
+                { name: 'Whole Foods Market', amount: '-$127.45', category: 'Groceries', time: '2 hours ago' },
+                { name: 'Salary Deposit', amount: '+$4,200.00', category: 'Income', time: '1 day ago' },
+                { name: 'Netflix Subscription', amount: '-$15.99', category: 'Entertainment', time: '2 days ago' },
+                { name: 'Gas Station', amount: '-$52.30', category: 'Transportation', time: '3 days ago' },
+              ].map((transaction, index) => (
+                <div key={index} className="glass-card p-4 hover:bg-background-glass">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-text-primary font-medium">{transaction.name}</p>
+                      <p className="text-text-muted text-sm">{transaction.category} • {transaction.time}</p>
+                    </div>
+                    <p className={`font-semibold ${
+                      transaction.amount.startsWith('+') ? 'text-accent-success' : 'text-red-400'
+                    }`}>
+                      {transaction.amount}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Theme Demo Section */}
+      <Card variant="glass" className="mb-8">
+        <CardHeader>
+          <CardTitle>Design System Demo</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <h4 className="heading-primary text-lg mb-3">Typography</h4>
+              <div className="space-y-2">
+                <p className="heading-primary text-xl">Executive Heading</p>
+                <p className="body-text">Professional body text with perfect readability</p>
+                <p className="text-text-muted text-sm">Subtle muted text for secondary information</p>
               </div>
             </div>
-            <h3 className="text-xl font-space-grotesk font-semibold text-white mb-4">
-              Analytics & Reports
-            </h3>
-            <p className="text-white/60 font-inter leading-relaxed">
-              Visualize your financial data with comprehensive, liquid-style reports.
-            </p>
-          </div>
-
-          <div className="glass-card p-8 text-center group hover:bg-white/8 transition-all duration-300">
-            <div className="flex justify-center mb-6">
-              <div className="p-4 rounded-full bg-single-malt/20">
-                <DollarSign className="h-8 w-8 text-single-malt" />
+            <div>
+              <h4 className="heading-primary text-lg mb-3">Buttons</h4>
+              <div className="space-y-3">
+                <button className="primary-button px-6 py-2">Primary Action</button>
+                <button className="secondary-button px-6 py-2">Secondary Action</button>
               </div>
             </div>
-            <h3 className="text-xl font-space-grotesk font-semibold text-white mb-4">
-              Multi-Account Support
-            </h3>
-            <p className="text-white/60 font-inter leading-relaxed">
-              Manage multiple accounts and get a complete financial picture.
-            </p>
+            <div>
+              <h4 className="heading-primary text-lg mb-3">Input Fields</h4>
+              <div className="space-y-3">
+                <input 
+                  type="text" 
+                  placeholder="Glass input field"
+                  className="input-glass w-full px-4 py-3"
+                />
+                <input 
+                  type="number" 
+                  placeholder="Amount"
+                  className="input-glass w-full px-4 py-3"
+                />
+              </div>
+            </div>
           </div>
-        </div>
+        </CardContent>
+      </Card>
 
-        {/* CTA Section */}
-        <div className="mt-20 text-center">
-          <div className="glass-card p-12 max-w-4xl mx-auto">
-            <h2 className="text-3xl font-space-grotesk font-bold text-white mb-6">
-              Ready to Transform Your Financial Life?
-            </h2>
-            <p className="text-lg text-white/70 font-inter mb-8 leading-relaxed">
-              Join thousands of users who have taken control of their finances with our executive-grade platform.
-            </p>
-            <Link
-              href="/auth/signup"
-              className="primary-button px-8 py-4 text-lg"
-            >
-              Get Started Today
-            </Link>
-          </div>
-        </div>
-      </main>
-    </div>
+      {/* Footer */}
+      <footer className="text-center text-text-muted">
+        <p>Forma Design System • Executive Finance Suite</p>
+        <p className="text-sm mt-1">Experience the luxury of financial clarity</p>
+      </footer>
+    </main>
   );
 }
