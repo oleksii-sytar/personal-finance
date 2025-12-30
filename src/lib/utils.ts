@@ -1,26 +1,17 @@
-import { type ClassValue, clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { type ClassValue, clsx } from 'clsx'
+import { twMerge } from 'tailwind-merge'
 
+/**
+ * Combines class names using clsx and tailwind-merge
+ * Following code-quality.md utility function patterns
+ * 
+ * @param inputs - Class values to combine
+ * @returns Merged class string
+ */
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+  return twMerge(clsx(inputs))
 }
 
-export function formatCurrency(amount: number, currency: string = 'USD'): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency,
-  }).format(amount);
-}
-
-export function formatDate(date: string | Date): string {
-  return new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  }).format(new Date(date));
-}
-
-export function calculatePercentage(value: number, total: number): number {
-  if (total === 0) return 0;
-  return Math.round((value / total) * 100);
-}
+// Re-export formatting utilities for backward compatibility
+export { formatCurrency, formatDate, calculatePercentage, formatNumber } from './utils/format'
+export { convertCurrency, getSupportedCurrencies, isValidCurrencyCode } from './utils/currency'

@@ -1,111 +1,80 @@
-# Design System: Forma (Project VZ)
-
-**Version:** 1.0  
-**Aesthetic Core:** "The Executive Lounge" / "Digital Ambient"
-
-## 1. Design Philosophy
-
-The UI is not just a tool; it is a **prolongation of the physical workspace**. It bridges the gap between the tactile world (leather, wood, plants, warm light) and the digital world (precision, glass, fluid data).
-
-* **The Vibe:** Sitting in a Cupra Formentor VZ at night, parked outside a high-end whiskey bar.
-* **The Approach:** Apple's frosted glass minimalism meets the warmth of aged saddle leather.
-* **The feeling:** "Distilled Control."
-
+---
+inclusion: always
 ---
 
-## 2. Color System
+# Design System: Forma (Executive Lounge Aesthetic)
 
-### A. Dark Mode (The "Night Cockpit")
-*Default State. Designed to reduce eye strain and merge seamlessly with a dark room environment.*
+## Core Design Philosophy
 
-| Token Name | Hex Code | Usage | Visual Rationale |
-| :--- | :--- | :--- | :--- |
-| **Peat Charcoal** | `#1C1917` | Main Background | Softer than pure black. Mimics the matte dashboard of a luxury car. |
-| **Deep Leather** | `#2A1D15` | Sidebar / Nav | Connects to the physical desk mat. Adds grounding. |
-| **Single Malt** | `#E6A65D` | **Primary Accent** | Used for CTA buttons, active states, and "profit" highlights. Like backlit liquid gold. |
-| **Aged Oak** | `#5C3A21` | Secondary Accent | Used for less urgent tags or background shapes. |
-| **Growth Emerald**| `#4E7A58` | Success / Data | A natural, leafy green (not neon). Connects to the office plants. |
-| **Glass Surface** | `rgba(255,255,255, 0.04)` | Card Backgrounds | **Requires `backdrop-filter: blur(20px)`**. Creates depth. |
+**CRITICAL:** All UI components must embody the "Executive Lounge" aesthetic - a fusion of Apple's frosted glass minimalism with warm luxury materials. Never use flat, corporate colors or harsh geometries.
 
-### B. Light Mode (The "Day Studio")
-*Secondary State. Designed for high-contrast visibility while maintaining the "warm luxury" signature. No harsh blue-whites.*
+**Design Principles:**
+- Warmth over sterility (warm grays, not cool blues)
+- Depth over flatness (glass materials, not solid colors)
+- Curves over sharp edges (20px+ border radius)
+- Generous spacing (luxury = space)
+- Colored shadows (never pure black/gray)
 
-| Token Name | Hex Code | Usage | Visual Rationale |
-| :--- | :--- | :--- | :--- |
-| **Warm Alabaster**| `#F5F5F4` | Main Background | A "Stone" white. Feels like heavy stationery paper, not a lightbulb. |
-| **Latte Leather** | `#E7E5E4` | Secondary/Sidebar | A subtle shift from the background to define structure without borders. |
-| **Burnt Copper** | `#B45309` | **Primary Accent** | A darker, richer version of the "Single Malt" to stand out against light backgrounds. |
-| **Ink Grey** | `#1C1917` | Primary Text | High contrast but softer than `#000000`. |
-| **Pure White** | `#FFFFFF` | Card Surfaces | Used with a warm drop shadow (see "Shadows"). |
+## Color Tokens (MANDATORY)
 
----
+### Dark Mode (Default - "Night Cockpit")
+**USE THESE EXACT HEX VALUES:**
 
-## 3. Typography
+```css
+/* Background Colors */
+--bg-primary: #1C1917;      /* Peat Charcoal - main background */
+--bg-secondary: #2A1D15;    /* Deep Leather - sidebar/nav */
+--bg-glass: rgba(255,255,255,0.04); /* Glass Surface - cards (requires backdrop-filter) */
 
-We mix technical precision with human readability.
+/* Accent Colors */
+--accent-primary: #E6A65D;   /* Single Malt - CTA buttons, active states */
+--accent-secondary: #5C3A21; /* Aged Oak - secondary elements */
+--success: #4E7A58;          /* Growth Emerald - success states */
 
-### Primary Headings: **Space Grotesk**
-* **Why:** It has a "dashboard" technical feel. It looks like the speedometer font in a modern EV.
-* **Usage:** H1, H2, Big Numbers (Net Worth).
-* **Tracking:** Tight (`-0.02em`) for a compact, modern look.
+/* Text Colors */
+--text-primary: rgba(255,255,255,0.9);
+--text-secondary: rgba(255,255,255,0.6);
+```
 
-### Body Text: **Inter** (or San Francisco)
-* **Why:** The standard for "Apple Minimalism." Invisible, highly legible, professional.
-* **Usage:** Paragraphs, labels, button text, lists.
+### Light Mode ("Day Studio")
+```css
+/* Background Colors */
+--bg-primary: #F5F5F4;      /* Warm Alabaster */
+--bg-secondary: #E7E5E4;    /* Latte Leather */
+--bg-glass: #FFFFFF;        /* Pure White cards */
 
----
+/* Accent Colors */
+--accent-primary: #B45309;   /* Burnt Copper */
+--text-primary: #1C1917;    /* Ink Grey */
+```
 
-## 4. UI Components & Materials
+## Typography System
 
-### The "Glass & Leather" Hierarchy
-Do not use flat colors for containers. Use **Materials**.
+**REQUIRED FONTS:**
+- **Headings:** Space Grotesk (technical, dashboard feel)
+- **Body Text:** Inter (clean, professional)
 
-1. **Level 1 (Background):** Matte `Peat Charcoal`.
-2. **Level 2 (Sidebar/Static):** Subtle `Deep Leather` gradient. It implies texture without being skeuomorphic.
-3. **Level 3 (Content Cards):** **Frosted Glass**.
-   * *CSS:* `background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08);`
-   * *Effect:* The background colors should bleed through slightly.
+**Implementation Rules:**
+```css
+/* Headings - Use for H1, H2, financial numbers */
+.heading {
+  font-family: 'Space Grotesk', sans-serif;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
 
-### Buttons & Actions
-* **Primary Button:**
-  * Background: Linear Gradient (`Single Malt` to a slightly lighter Gold).
-  * Shape: Fully rounded pills (`border-radius: 999px`).
-  * Glow: `box-shadow: 0 4px 20px -5px rgba(230, 166, 93, 0.4)`.
+/* Body text - Use for paragraphs, labels, buttons */
+.body-text {
+  font-family: 'Inter', sans-serif;
+  color: var(--text-primary);
+}
+```
 
-* **Secondary Button:**
-  * Background: Transparent.
-  * Border: 1px solid `rgba(255,255,255,0.1)`.
-  * Hover: Background fills with `White/5%`.
+## Component Materials (CRITICAL)
 
-### Data Visualization (The "Liquid" Charts)
-Charts should look like flowing liquid, not rigid geometry.
+**NEVER use flat colors for containers. Always use these material patterns:**
 
-* **Line Style:** Bezier curves (smooth), not jagged.
-* **Fill:** Vertical Gradient.
-  * *Top:* `Single Malt` (100% opacity).
-  * *Bottom:* Transparent (0% opacity).
-* **Animation:** Lines should "draw" themselves slowly from left to right.
-
----
-
-## 5. Lighting & Atmosphere (Crucial)
-
-To achieve the "Prolongation of Desktop" feel, lighting is more important than layout.
-
-* **The Ambient Glow:**
-  * Place a large, highly blurred radial gradient (`radial-gradient`) in the top-right corner of the screen.
-  * *Color:* `rgba(230, 166, 93, 0.15)` (Amber).
-  * *Concept:* This mimics the desk lamp casting light onto the screen.
-
-* **Shadows:**
-  * Do not use black shadows. Use **colored shadows**.
-  * Example: A copper button should cast a copper-tinted shadow, not a grey one.
-
----
-
-## 6. Implementation Guidelines for Components
-
-### Card Components
+### Glass Cards (Primary Pattern)
 ```css
 .glass-card {
   background: rgba(255, 255, 255, 0.05);
@@ -116,64 +85,149 @@ To achieve the "Prolongation of Desktop" feel, lighting is more important than l
 }
 ```
 
-### Primary Button
+### Primary Buttons
 ```css
 .primary-button {
   background: linear-gradient(135deg, #E6A65D 0%, #F4B76D 100%);
-  border-radius: 999px;
+  border-radius: 999px; /* Full pill shape */
   box-shadow: 0 4px 20px -5px rgba(230, 166, 93, 0.4);
   border: none;
   padding: 12px 24px;
+  color: #1C1917;
   font-family: 'Inter', sans-serif;
   font-weight: 500;
-  color: #1C1917;
 }
 ```
 
-### Typography Classes
+### Secondary Buttons
 ```css
-.heading-primary {
-  font-family: 'Space Grotesk', sans-serif;
-  letter-spacing: -0.02em;
-  font-weight: 600;
+.secondary-button {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 999px;
+  padding: 12px 24px;
+  color: var(--text-primary);
+  transition: background 0.2s ease;
 }
 
-.body-text {
-  font-family: 'Inter', sans-serif;
-  color: rgba(255, 255, 255, 0.9);
+.secondary-button:hover {
+  background: rgba(255,255,255,0.05);
 }
 ```
 
----
+## Financial Data Visualization
 
-## 7. Do's and Don'ts for Implementation
+**Charts must use "liquid" styling - never rigid geometry:**
 
-| ✅ DO | ❌ DON'T |
-| :--- | :--- |
-| **DO** use generous whitespace (padding) inside cards. Luxury = Space. | **DON'T** pack information densely like an Excel sheet. |
-| **DO** use warm greys and browns instead of true black (`#000`). | **DON'T** use default bright blues or neon greens. |
-| **DO** make borders extremely thin (1px) and translucent. | **DON'T** use thick, solid borders. |
-| **DO** add subtle noise/grain texture to the darkest backgrounds (Leather feel). | **DON'T** use literal photos of leather textures (too old school). |
-| **DO** round corners significantly (`20px` to `32px`) for cards. | **DON'T** use sharp, square corners (too aggressive). |
+```css
+/* Chart styling requirements */
+.chart-line {
+  stroke: #E6A65D;
+  stroke-width: 2px;
+  fill: none;
+  /* Use smooth bezier curves, not jagged lines */
+}
 
----
+.chart-area {
+  fill: linear-gradient(to bottom, 
+    rgba(230, 166, 93, 0.3) 0%, 
+    rgba(230, 166, 93, 0) 100%);
+}
 
-## 8. Component Hierarchy for Personal Finance App
+/* Animation: lines draw from left to right */
+.chart-line {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: draw-line 2s ease-in-out forwards;
+}
 
-### Financial Data Display
-* **Net Worth:** Large heading with `Space Grotesk`, `Single Malt` color
-* **Transaction Cards:** Glass surface with subtle glow on hover
-* **Budget Progress:** Liquid-style progress bars with gradient fills
-* **Charts:** Smooth bezier curves with amber gradients
+@keyframes draw-line {
+  to { stroke-dashoffset: 0; }
+}
+```
 
-### Navigation
-* **Sidebar:** `Deep Leather` background with glass card overlays
-* **Active States:** `Single Malt` accent with subtle glow
-* **Icons:** Minimal line icons with consistent stroke weight
+## Lighting & Atmosphere
 
-### Forms & Inputs
-* **Input Fields:** Glass surface with focused amber border
-* **Labels:** `Inter` font with reduced opacity
-* **Validation:** `Growth Emerald` for success, warm red for errors
+**MANDATORY ambient glow for luxury feel:**
 
-This design system ensures every component maintains the "Executive Lounge" aesthetic while providing excellent usability for financial data management.
+```css
+/* Add to main layout background */
+.ambient-glow {
+  position: fixed;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, 
+    rgba(230, 166, 93, 0.15) 0%, 
+    transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+}
+```
+
+**Shadow Rules:**
+- Never use black/gray shadows
+- Use colored shadows matching the element
+- Example: Amber buttons get amber-tinted shadows
+
+## Implementation Rules (ENFORCE STRICTLY)
+
+### ✅ REQUIRED Patterns
+- **Spacing:** Generous padding (24px minimum for cards)
+- **Border Radius:** 20px-32px for cards, 999px for buttons
+- **Borders:** 1px maximum thickness, always translucent
+- **Colors:** Only use defined color tokens above
+- **Materials:** Always use glass/gradient effects, never flat colors
+
+### ❌ FORBIDDEN Patterns
+- Flat solid colors for containers
+- Sharp corners (< 8px border radius)
+- Pure black (#000000) or pure white (#FFFFFF) backgrounds
+- Bright blues, neon greens, or corporate colors
+- Dense layouts without whitespace
+- Thick borders (> 1px)
+- Black/gray shadows
+
+## Component-Specific Guidelines
+
+### Financial Cards
+```tsx
+// Transaction card example
+<div className="glass-card hover:shadow-lg transition-all duration-300">
+  <div className="flex justify-between items-center">
+    <h3 className="heading text-lg">Transaction Title</h3>
+    <span className="text-accent-primary font-semibold">$1,234.56</span>
+  </div>
+</div>
+```
+
+### Navigation Elements
+- Sidebar: Deep Leather background (#2A1D15)
+- Active states: Single Malt accent (#E6A65D) with subtle glow
+- Icons: Minimal line style, consistent 1.5px stroke weight
+
+### Form Inputs
+```css
+.form-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 12px 16px;
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+}
+
+.form-input:focus {
+  border-color: #E6A65D;
+  box-shadow: 0 0 0 3px rgba(230, 166, 93, 0.1);
+}
+```
+
+### Status Indicators
+- **Success:** Growth Emerald (#4E7A58)
+- **Warning:** Aged Oak (#5C3A21)  
+- **Error:** Warm red (not harsh red)
+- **Info:** Single Malt (#E6A65D)
+
+This design system ensures every component maintains the Executive Lounge aesthetic while providing clear implementation guidance for AI assistants.
