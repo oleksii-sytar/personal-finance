@@ -5,58 +5,12 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    /* Dark Mode - Night Cockpit */
-    --bg-primary: #1C1917;
-    --bg-secondary: #2A1D15;
-    --bg-glass: rgba(255, 255, 255, 0.05);
-    --text-primary: rgba(255, 255, 255, 0.95);
-    --text-secondary: rgba(255, 255, 255, 0.75);
-    --text-muted: rgba(255, 255, 255, 0.5);
-    --accent-primary: #E6A65D;
-    --accent-secondary: #5C3A21;
-    --accent-success: #4E7A58;
-    --border-primary: rgba(255, 255, 255, 0.1);
-    --border-glass: rgba(255, 255, 255, 0.08);
-  }
-
-  .light {
-    /* Light Mode - Day Studio */
-    --bg-primary: #F5F5F4;
-    --bg-secondary: #E7E5E4;
-    --bg-glass: rgba(255, 255, 255, 0.8);
-    --text-primary: #1C1917;
-    --text-secondary: rgba(28, 25, 23, 0.8);
-    --text-muted: rgba(28, 25, 23, 0.6);
-    --accent-primary: #B45309;
-    --accent-secondary: #5C3A21;
-    --accent-success: #4E7A58;
-    --border-primary: rgba(28, 25, 23, 0.1);
-    --border-glass: rgba(28, 25, 23, 0.05);
-  }
-
   * {
     @apply border-transparent;
   }
   
   body {
-    @apply bg-background-primary text-text-primary;
     font-family: 'Inter', sans-serif;
-    transition: background-color 0.3s ease, color 0.3s ease;
-  }
-
-  /* Dark mode ambient glow */
-  .dark body {
-    background-image: 
-      radial-gradient(circle at 80% 20%, rgba(230, 166, 93, 0.25) 0%, transparent 40%),
-      radial-gradient(circle at 20% 80%, rgba(230, 166, 93, 0.15) 0%, transparent 50%);
-  }
-
-  /* Light mode ambient glow */
-  .light body {
-    background-image: 
-      radial-gradient(circle at 80% 20%, rgba(180, 83, 9, 0.12) 0%, transparent 40%),
-      radial-gradient(circle at 20% 80%, rgba(180, 83, 9, 0.08) 0%, transparent 50%);
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -66,135 +20,12 @@
   }
 }
 
-@layer components {
-  .glass-card {
-    background: var(--bg-glass);
-    backdrop-filter: blur(16px);
-    border: 1px solid var(--border-glass);
-    border-radius: 20px;
-    transition: all 0.3s ease;
+@layer utilities {
+  .bg-gradient-radial {
+    background-image: radial-gradient(var(--tw-gradient-stops));
   }
-
-  .glass-card:hover {
-    background: var(--bg-glass);
-    border-color: var(--border-primary);
-  }
-
-  .primary-button {
-    background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary) 100%);
-    border-radius: 999px;
-    border: none;
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .dark .primary-button {
-    background: linear-gradient(135deg, #E6A65D 0%, #F4B76D 100%);
-    color: #1C1917;
-    box-shadow: 0 4px 20px -5px rgba(230, 166, 93, 0.4);
-  }
-
-  .light .primary-button {
-    background: linear-gradient(135deg, #B45309 0%, #D97706 100%);
-    color: #FFFFFF;
-    box-shadow: 0 4px 20px -5px rgba(180, 83, 9, 0.3);
-  }
-
-  .primary-button:hover {
-    transform: translateY(-1px);
-  }
-
-  .dark .primary-button:hover {
-    box-shadow: 0 6px 25px -5px rgba(230, 166, 93, 0.6);
-  }
-
-  .light .primary-button:hover {
-    box-shadow: 0 6px 25px -5px rgba(180, 83, 9, 0.5);
-  }
-
-  .secondary-button {
-    background: transparent;
-    border: 1px solid var(--border-primary);
-    border-radius: 999px;
-    font-family: 'Inter', sans-serif;
-    font-weight: 500;
-    color: var(--text-secondary);
-    transition: all 0.3s ease;
-  }
-
-  .secondary-button:hover {
-    background: var(--bg-glass);
-    color: var(--text-primary);
-    border-color: var(--accent-primary);
-  }
-
-  .heading-primary {
+  
+  .font-space-grotesk {
     font-family: 'Space Grotesk', sans-serif;
-    letter-spacing: -0.02em;
-    font-weight: 600;
-    color: var(--text-primary);
-  }
-
-  .body-text {
-    font-family: 'Inter', sans-serif;
-    color: var(--text-secondary);
-  }
-
-  .sidebar-leather {
-    background: var(--bg-secondary);
-    transition: background-color 0.3s ease;
-  }
-
-  .dark .sidebar-leather {
-    background: linear-gradient(180deg, #2A1D15 0%, #241A12 100%);
-  }
-
-  .light .sidebar-leather {
-    background: linear-gradient(180deg, #E7E5E4 0%, #D6D3D1 100%);
-  }
-
-  /* Progress bars with liquid style */
-  .progress-liquid {
-    background: linear-gradient(90deg, var(--accent-primary) 0%, transparent 100%);
-    border-radius: 999px;
-    transition: all 0.3s ease;
-  }
-
-  /* Input fields with glass effect */
-  .input-glass {
-    background: var(--bg-glass);
-    backdrop-filter: blur(16px);
-    border: 1px solid var(--border-glass);
-    border-radius: 12px;
-    color: var(--text-primary);
-    transition: all 0.3s ease;
-  }
-
-  .input-glass:focus {
-    border-color: var(--accent-primary);
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(var(--accent-primary), 0.1);
-  }
-
-  .input-glass::placeholder {
-    color: var(--text-muted);
-  }
-
-  /* Navigation active states */
-  .nav-active {
-    background: var(--bg-glass);
-    color: var(--accent-primary);
-    border-radius: 12px;
-  }
-
-  .dark .nav-active {
-    box-shadow: 0 2px 10px -2px rgba(230, 166, 93, 0.3);
-  }
-
-  .light .nav-active {
-    box-shadow: 0 2px 10px -2px rgba(180, 83, 9, 0.2);
   }
 }

@@ -1,37 +1,43 @@
-import { InputHTMLAttributes, forwardRef } from 'react';
-import { cn } from '@/lib/utils';
+import { InputHTMLAttributes, forwardRef, useId } from 'react'
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
-  label?: string;
-  error?: string;
+  label?: string
+  error?: string
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, label, error, ...props }, ref) => {
+  ({ className = '', label, error, id, ...props }, ref) => {
+    const generatedId = useId()
+    const inputId = id || generatedId
+    const errorId = error ? `${inputId}-error` : undefined
+
     return (
       <div className="space-y-2">
         {label && (
-          <label className="block text-sm font-medium text-white/70 font-inter">
+          <label 
+            htmlFor={inputId}
+            className="block text-sm font-medium text-white/90"
+          >
             {label}
           </label>
         )}
         <input
-          className={cn(
-            'flex h-12 w-full rounded-glass bg-white/5 backdrop-blur-glass border border-white/8 px-4 py-3 text-sm font-inter text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-single-malt focus:border-single-malt disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-300',
-            error && 'border-red-400/50 focus:ring-red-400 focus:border-red-400',
-            className
-          )}
+          id={inputId}
+          aria-describedby={errorId}
+          className={`w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white/90 placeholder-white/40 focus:border-[#E6A65D] focus:ring-2 focus:ring-[#E6A65D]/20 focus:outline-none transition-all ${error ? 'border-red-400/50 focus:ring-red-400/20 focus:border-red-400' : ''} ${className}`}
           ref={ref}
           {...props}
         />
         {error && (
-          <p className="text-sm text-red-400 font-inter">{error}</p>
+          <p id={errorId} className="text-sm text-red-400">
+            {error}
+          </p>
         )}
       </div>
-    );
+    )
   }
-);
+)
 
-Input.displayName = 'Input';
+Input.displayName = 'Input'
 
-export { Input };
+export { Input }
