@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Space_Grotesk, Inter } from 'next/font/google';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 import './globals.css';
 
 const spaceGrotesk = Space_Grotesk({ 
@@ -24,11 +25,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${spaceGrotesk.variable} ${inter.variable}`}>
-      <body className={`${inter.className} antialiased`}>
-        <div className="min-h-screen bg-peat-charcoal">
-          {children}
-        </div>
+    <html lang="en" className={`${spaceGrotesk.variable} ${inter.variable}`} suppressHydrationWarning>
+      <body className={`${inter.className} antialiased`} suppressHydrationWarning>
+        <ThemeProvider defaultTheme="system">
+          <div className="min-h-screen bg-background-primary transition-colors duration-300">
+            {children}
+          </div>
+        </ThemeProvider>
         <SpeedInsights />
       </body>
     </html>
