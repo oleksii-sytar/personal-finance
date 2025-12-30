@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Space_Grotesk, Inter } from 'next/font/google';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import './globals.css';
 
 const spaceGrotesk = Space_Grotesk({ 
@@ -14,7 +15,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: 'Personal Finance Manager - Executive Suite',
-  description: 'Premium personal finance management with executive-grade insights and distilled control over your financial data.',
+  description: 'Premium personal finance management with executive-grade insights and distilled control over your financial data. Experience the luxury of financial clarity.',
 };
 
 export default function RootLayout({
@@ -28,6 +29,7 @@ export default function RootLayout({
         <div className="min-h-screen bg-peat-charcoal">
           {children}
         </div>
+        <SpeedInsights />
       </body>
     </html>
   );
