@@ -2,32 +2,33 @@ import { ButtonHTMLAttributes, forwardRef } from 'react';
 import { cn } from '@/lib/utils';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'primary', size = 'md', ...props }, ref) => {
+  ({ className, variant = 'primary', size = 'md', children, ...props }, ref) => {
     return (
       <button
         className={cn(
-          'inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
+          'inline-flex items-center justify-center font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-single-malt disabled:pointer-events-none disabled:opacity-50',
           {
-            'bg-primary-600 text-white hover:bg-primary-700': variant === 'primary',
-            'bg-gray-100 text-gray-900 hover:bg-gray-200': variant === 'secondary',
-            'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50': variant === 'outline',
-            'text-gray-700 hover:bg-gray-100': variant === 'ghost',
+            'primary-button': variant === 'primary',
+            'secondary-button': variant === 'secondary',
+            'text-white/90 hover:text-white hover:bg-white/5 rounded-pill': variant === 'ghost',
           },
           {
-            'h-8 px-3 text-sm': size === 'sm',
-            'h-10 px-4': size === 'md',
-            'h-12 px-6 text-lg': size === 'lg',
+            'h-8 px-4 text-sm': size === 'sm',
+            'h-12 px-6': size === 'md',
+            'h-14 px-8 text-lg': size === 'lg',
           },
           className
         )}
         ref={ref}
         {...props}
-      />
+      >
+        {children}
+      </button>
     );
   }
 );

@@ -64,8 +64,16 @@ export default function DashboardLayout({
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-peat-charcoal flex items-center justify-center">
+        <div className="glass-card p-8">
+          <div className="animate-pulse flex items-center space-x-4">
+            <div className="rounded-full bg-single-malt/20 h-12 w-12"></div>
+            <div className="space-y-2">
+              <div className="h-4 bg-white/10 rounded w-32"></div>
+              <div className="h-3 bg-white/5 rounded w-24"></div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -75,50 +83,62 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-peat-charcoal">
       {/* Sidebar */}
-      <div className="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg">
-        <div className="flex h-16 items-center px-6 border-b">
-          <DollarSign className="h-8 w-8 text-blue-600" />
-          <span className="ml-2 text-xl font-bold text-gray-900">
-            Personal Finance
-          </span>
+      <div className="fixed inset-y-0 left-0 z-50 w-72 sidebar-leather border-r border-white/5">
+        {/* Logo */}
+        <div className="flex h-20 items-center px-8 border-b border-white/5">
+          <div className="flex items-center">
+            <div className="p-2 rounded-full bg-single-malt/20">
+              <DollarSign className="h-6 w-6 text-single-malt" />
+            </div>
+            <span className="ml-3 text-lg font-space-grotesk font-semibold text-white">
+              Personal Finance
+            </span>
+          </div>
         </div>
         
-        <nav className="mt-6 px-3">
-          <div className="space-y-1">
+        {/* Navigation */}
+        <nav className="mt-8 px-6">
+          <div className="space-y-2">
             {navigation.map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
-                className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-100 hover:text-gray-900"
+                className="group flex items-center px-4 py-3 text-sm font-medium text-white/70 rounded-glass hover:text-white hover:bg-white/5 transition-all duration-300"
               >
-                <item.icon className="mr-3 h-5 w-5" />
+                <item.icon className="mr-4 h-5 w-5 group-hover:text-single-malt transition-colors" />
                 {item.name}
               </Link>
             ))}
           </div>
         </nav>
 
-        <div className="absolute bottom-0 w-full p-4 border-t">
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-600 truncate">
-              {user.email}
+        {/* User Profile */}
+        <div className="absolute bottom-0 w-full p-6 border-t border-white/5">
+          <div className="glass-card p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-white truncate font-inter">
+                  {user.email}
+                </p>
+                <p className="text-xs text-white/50 font-inter">Executive Account</p>
+              </div>
+              <button
+                onClick={handleSignOut}
+                className="ml-3 p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-full transition-all duration-300"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
             </div>
-            <button
-              onClick={handleSignOut}
-              className="p-2 text-gray-400 hover:text-gray-600"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
           </div>
         </div>
       </div>
 
       {/* Main content */}
-      <div className="pl-64">
-        <main className="py-6">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="pl-72">
+        <main className="py-8">
+          <div className="mx-auto max-w-7xl px-8">
             {children}
           </div>
         </main>

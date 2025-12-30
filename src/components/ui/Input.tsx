@@ -9,23 +9,23 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ className, label, error, ...props }, ref) => {
     return (
-      <div className="space-y-1">
+      <div className="space-y-2">
         {label && (
-          <label className="block text-sm font-medium text-gray-700">
+          <label className="block text-sm font-medium text-white/70 font-inter">
             {label}
           </label>
         )}
         <input
           className={cn(
-            'flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:cursor-not-allowed disabled:opacity-50',
-            error && 'border-red-500 focus:ring-red-500',
+            'flex h-12 w-full rounded-glass bg-white/5 backdrop-blur-glass border border-white/8 px-4 py-3 text-sm font-inter text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-single-malt focus:border-single-malt disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-300',
+            error && 'border-red-400/50 focus:ring-red-400 focus:border-red-400',
             className
           )}
           ref={ref}
           {...props}
         />
         {error && (
-          <p className="text-sm text-red-600">{error}</p>
+          <p className="text-sm text-red-400 font-inter">{error}</p>
         )}
       </div>
     );

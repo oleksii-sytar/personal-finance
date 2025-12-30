@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { DollarSign, TrendingUp, TrendingDown, CreditCard } from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown, CreditCard, Plus, ArrowUpRight, ArrowDownRight, Target, BarChart3 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 
 // Mock data for demonstration
@@ -13,11 +13,11 @@ const mockStats = {
 };
 
 const mockRecentTransactions = [
-  { id: '1', description: 'Grocery Store', amount: -85.32, category: 'Food & Dining', date: '2024-01-15' },
-  { id: '2', description: 'Salary Deposit', amount: 2600.00, category: 'Salary', date: '2024-01-15' },
-  { id: '3', description: 'Electric Bill', amount: -120.45, category: 'Bills & Utilities', date: '2024-01-14' },
-  { id: '4', description: 'Coffee Shop', amount: -4.75, category: 'Food & Dining', date: '2024-01-14' },
-  { id: '5', description: 'Gas Station', amount: -45.20, category: 'Transportation', date: '2024-01-13' },
+  { id: '1', description: 'Grocery Store', amount: -85.32, category: 'Food & Dining', date: '2024-01-15', type: 'expense' },
+  { id: '2', description: 'Salary Deposit', amount: 2600.00, category: 'Salary', date: '2024-01-15', type: 'income' },
+  { id: '3', description: 'Electric Bill', amount: -120.45, category: 'Bills & Utilities', date: '2024-01-14', type: 'expense' },
+  { id: '4', description: 'Coffee Shop', amount: -4.75, category: 'Food & Dining', date: '2024-01-14', type: 'expense' },
+  { id: '5', description: 'Gas Station', amount: -45.20, category: 'Transportation', date: '2024-01-13', type: 'expense' },
 ];
 
 export default function DashboardPage() {
@@ -25,119 +25,161 @@ export default function DashboardPage() {
   const [transactions, setTransactions] = useState(mockRecentTransactions);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600">Welcome back! Here's your financial overview.</p>
+      <div className="mb-8">
+        <h1 className="text-4xl font-space-grotesk font-bold text-white mb-2">
+          Executive Dashboard
+        </h1>
+        <p className="text-white/60 font-inter text-lg">
+          Welcome back. Here's your financial overview at a glance.
+        </p>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <DollarSign className="h-8 w-8 text-green-600" />
+        <div className="glass-card p-8 group hover:bg-white/8 transition-all duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 rounded-full bg-single-malt/20">
+              <DollarSign className="h-6 w-6 text-single-malt" />
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Total Balance</p>
-              <p className="text-2xl font-semibold text-gray-900">
-                {formatCurrency(stats.totalBalance)}
-              </p>
-            </div>
+            <TrendingUp className="h-5 w-5 text-growth-emerald" />
+          </div>
+          <div>
+            <p className="text-sm font-inter text-white/60 mb-1">Total Balance</p>
+            <p className="text-3xl font-space-grotesk font-bold text-single-malt">
+              {formatCurrency(stats.totalBalance)}
+            </p>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <TrendingUp className="h-8 w-8 text-blue-600" />
+        <div className="glass-card p-8 group hover:bg-white/8 transition-all duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 rounded-full bg-growth-emerald/20">
+              <ArrowUpRight className="h-6 w-6 text-growth-emerald" />
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Monthly Income</p>
-              <p className="text-2xl font-semibold text-gray-900">
-                {formatCurrency(stats.monthlyIncome)}
-              </p>
-            </div>
+            <span className="text-xs font-inter text-white/40">This Month</span>
+          </div>
+          <div>
+            <p className="text-sm font-inter text-white/60 mb-1">Monthly Income</p>
+            <p className="text-3xl font-space-grotesk font-bold text-white">
+              {formatCurrency(stats.monthlyIncome)}
+            </p>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <TrendingDown className="h-8 w-8 text-red-600" />
+        <div className="glass-card p-8 group hover:bg-white/8 transition-all duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 rounded-full bg-red-400/20">
+              <ArrowDownRight className="h-6 w-6 text-red-400" />
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Monthly Expenses</p>
-              <p className="text-2xl font-semibold text-gray-900">
-                {formatCurrency(stats.monthlyExpenses)}
-              </p>
-            </div>
+            <span className="text-xs font-inter text-white/40">This Month</span>
+          </div>
+          <div>
+            <p className="text-sm font-inter text-white/60 mb-1">Monthly Expenses</p>
+            <p className="text-3xl font-space-grotesk font-bold text-white">
+              {formatCurrency(stats.monthlyExpenses)}
+            </p>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <CreditCard className="h-8 w-8 text-purple-600" />
+        <div className="glass-card p-8 group hover:bg-white/8 transition-all duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 rounded-full bg-aged-oak/40">
+              <CreditCard className="h-6 w-6 text-aged-oak" />
             </div>
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Savings Rate</p>
-              <p className="text-2xl font-semibold text-gray-900">
-                {stats.savingsRate}%
-              </p>
-            </div>
+            <TrendingUp className="h-5 w-5 text-growth-emerald" />
+          </div>
+          <div>
+            <p className="text-sm font-inter text-white/60 mb-1">Savings Rate</p>
+            <p className="text-3xl font-space-grotesk font-bold text-white">
+              {stats.savingsRate}%
+            </p>
           </div>
         </div>
       </div>
 
       {/* Recent Transactions */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-lg font-medium text-gray-900">Recent Transactions</h2>
+      <div className="glass-card p-8">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-2xl font-space-grotesk font-semibold text-white">
+            Recent Transactions
+          </h2>
+          <button className="secondary-button px-4 py-2 text-sm">
+            View All
+          </button>
         </div>
-        <div className="divide-y divide-gray-200">
+        
+        <div className="space-y-4">
           {transactions.map((transaction) => (
-            <div key={transaction.id} className="px-6 py-4 flex items-center justify-between">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-900">
-                  {transaction.description}
-                </p>
-                <p className="text-sm text-gray-500">{transaction.category}</p>
+            <div key={transaction.id} className="flex items-center justify-between p-4 rounded-glass hover:bg-white/5 transition-all duration-300 border border-white/5">
+              <div className="flex items-center space-x-4">
+                <div className={`p-2 rounded-full ${
+                  transaction.type === 'income' 
+                    ? 'bg-growth-emerald/20' 
+                    : 'bg-red-400/20'
+                }`}>
+                  {transaction.type === 'income' ? (
+                    <ArrowUpRight className="h-4 w-4 text-growth-emerald" />
+                  ) : (
+                    <ArrowDownRight className="h-4 w-4 text-red-400" />
+                  )}
+                </div>
+                <div>
+                  <p className="font-inter font-medium text-white">
+                    {transaction.description}
+                  </p>
+                  <p className="text-sm text-white/50 font-inter">
+                    {transaction.category} • {transaction.date}
+                  </p>
+                </div>
               </div>
               <div className="text-right">
-                <p className={`text-sm font-medium ${
-                  transaction.amount > 0 ? 'text-green-600' : 'text-red-600'
+                <p className={`font-space-grotesk font-semibold ${
+                  transaction.amount > 0 ? 'text-growth-emerald' : 'text-white'
                 }`}>
                   {transaction.amount > 0 ? '+' : ''}{formatCurrency(Math.abs(transaction.amount))}
                 </p>
-                <p className="text-sm text-gray-500">{transaction.date}</p>
               </div>
             </div>
           ))}
         </div>
-        <div className="px-6 py-3 bg-gray-50 text-center">
-          <button className="text-sm text-blue-600 hover:text-blue-500 font-medium">
-            View all transactions
-          </button>
-        </div>
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <button className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left">
-            <h3 className="font-medium text-gray-900">Add Transaction</h3>
-            <p className="text-sm text-gray-500">Record a new income or expense</p>
+      <div className="glass-card p-8">
+        <h2 className="text-2xl font-space-grotesk font-semibold text-white mb-6">
+          Quick Actions
+        </h2>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+          <button className="glass-card p-6 hover:bg-white/8 transition-all duration-300 text-left group border border-white/10">
+            <div className="flex items-center mb-4">
+              <div className="p-3 rounded-full bg-single-malt/20 group-hover:bg-single-malt/30 transition-colors">
+                <Plus className="h-5 w-5 text-single-malt" />
+              </div>
+            </div>
+            <h3 className="font-space-grotesk font-semibold text-white mb-2">Add Transaction</h3>
+            <p className="text-sm text-white/60 font-inter">Record a new income or expense</p>
           </button>
-          <button className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left">
-            <h3 className="font-medium text-gray-900">Create Budget</h3>
-            <p className="text-sm text-gray-500">Set up a new budget category</p>
+          
+          <button className="glass-card p-6 hover:bg-white/8 transition-all duration-300 text-left group border border-white/10">
+            <div className="flex items-center mb-4">
+              <div className="p-3 rounded-full bg-aged-oak/40 group-hover:bg-aged-oak/50 transition-colors">
+                <Target className="h-5 w-5 text-aged-oak" />
+              </div>
+            </div>
+            <h3 className="font-space-grotesk font-semibold text-white mb-2">Create Budget</h3>
+            <p className="text-sm text-white/60 font-inter">Set up a new budget category</p>
           </button>
-          <button className="p-4 border border-gray-300 rounded-lg hover:bg-gray-50 text-left">
-            <h3 className="font-medium text-gray-900">View Reports</h3>
-            <p className="text-sm text-gray-500">Analyze your spending patterns</p>
+          
+          <button className="glass-card p-6 hover:bg-white/8 transition-all duration-300 text-left group border border-white/10">
+            <div className="flex items-center mb-4">
+              <div className="p-3 rounded-full bg-growth-emerald/20 group-hover:bg-growth-emerald/30 transition-colors">
+                <BarChart3 className="h-5 w-5 text-growth-emerald" />
+              </div>
+            </div>
+            <h3 className="font-space-grotesk font-semibold text-white mb-2">View Reports</h3>
+            <p className="text-sm text-white/60 font-inter">Analyze your spending patterns</p>
           </button>
         </div>
       </div>

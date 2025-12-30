@@ -1,12 +1,20 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Space_Grotesk, Inter } from 'next/font/google';
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'] });
+const spaceGrotesk = Space_Grotesk({ 
+  subsets: ['latin'],
+  variable: '--font-space-grotesk',
+});
+
+const inter = Inter({ 
+  subsets: ['latin'],
+  variable: '--font-inter',
+});
 
 export const metadata: Metadata = {
-  title: 'Personal Finance Manager',
-  description: 'Track expenses, manage budgets, and gain insights into your financial habits',
+  title: 'Personal Finance Manager - Executive Suite',
+  description: 'Premium personal finance management with executive-grade insights and distilled control over your financial data.',
 };
 
 export default function RootLayout({
@@ -15,9 +23,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <div className="min-h-screen bg-gray-50">
+    <html lang="en" className={`${spaceGrotesk.variable} ${inter.variable}`}>
+      <body className={`${inter.className} antialiased`}>
+        <div className="min-h-screen bg-peat-charcoal">
           {children}
         </div>
       </body>

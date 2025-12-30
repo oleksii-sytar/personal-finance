@@ -3,27 +3,27 @@ import { ArrowRight, DollarSign, PieChart, Target, TrendingUp } from 'lucide-rea
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-peat-charcoal">
       {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <header className="glass-card mx-4 mt-4 mb-8">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
-              <DollarSign className="h-8 w-8 text-blue-600" />
-              <span className="ml-2 text-xl font-bold text-gray-900">
+              <DollarSign className="h-8 w-8 text-single-malt" />
+              <span className="ml-3 text-xl font-space-grotesk font-semibold text-white">
                 Personal Finance
               </span>
             </div>
             <div className="flex space-x-4">
               <Link
                 href="/auth/login"
-                className="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
+                className="secondary-button px-6 py-3"
               >
                 Sign In
               </Link>
               <Link
                 href="/auth/signup"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+                className="primary-button px-6 py-3"
               >
                 Get Started
               </Link>
@@ -33,76 +33,100 @@ export default function HomePage() {
       </header>
 
       {/* Hero Section */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-900 sm:text-5xl md:text-6xl">
+      <main className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
+        <div className="text-center mb-20">
+          <h1 className="text-5xl md:text-7xl font-space-grotesk font-bold text-white mb-6">
             Take Control of Your
-            <span className="text-blue-600"> Finances</span>
+            <span className="text-single-malt block mt-2">Finances</span>
           </h1>
-          <p className="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
-            Track expenses, manage budgets, and gain insights into your financial habits with our intuitive personal finance management tool.
+          <p className="mt-6 max-w-3xl mx-auto text-lg text-white/70 font-inter leading-relaxed">
+            Track expenses, manage budgets, and gain insights into your financial habits with our intuitive personal finance management tool designed for the modern executive.
           </p>
-          <div className="mt-5 max-w-md mx-auto sm:flex sm:justify-center md:mt-8">
+          <div className="mt-10">
             <Link
               href="/auth/signup"
-              className="flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 md:py-4 md:text-lg md:px-10"
+              className="primary-button px-10 py-4 text-lg inline-flex items-center"
             >
               Start Managing Your Money
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <ArrowRight className="ml-3 h-5 w-5" />
             </Link>
           </div>
         </div>
 
         {/* Features */}
-        <div className="mt-20">
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="bg-white rounded-lg shadow-md p-6 text-center">
-              <div className="flex justify-center">
-                <TrendingUp className="h-12 w-12 text-green-500" />
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="glass-card p-8 text-center group hover:bg-white/8 transition-all duration-300">
+            <div className="flex justify-center mb-6">
+              <div className="p-4 rounded-full bg-growth-emerald/20">
+                <TrendingUp className="h-8 w-8 text-growth-emerald" />
               </div>
-              <h3 className="mt-4 text-lg font-medium text-gray-900">
-                Expense Tracking
-              </h3>
-              <p className="mt-2 text-sm text-gray-500">
-                Monitor your spending with detailed categorization and insights.
-              </p>
             </div>
+            <h3 className="text-xl font-space-grotesk font-semibold text-white mb-4">
+              Expense Tracking
+            </h3>
+            <p className="text-white/60 font-inter leading-relaxed">
+              Monitor your spending with detailed categorization and intelligent insights.
+            </p>
+          </div>
 
-            <div className="bg-white rounded-lg shadow-md p-6 text-center">
-              <div className="flex justify-center">
-                <Target className="h-12 w-12 text-blue-500" />
+          <div className="glass-card p-8 text-center group hover:bg-white/8 transition-all duration-300">
+            <div className="flex justify-center mb-6">
+              <div className="p-4 rounded-full bg-single-malt/20">
+                <Target className="h-8 w-8 text-single-malt" />
               </div>
-              <h3 className="mt-4 text-lg font-medium text-gray-900">
-                Budget Planning
-              </h3>
-              <p className="mt-2 text-sm text-gray-500">
-                Set budgets and track your progress toward financial goals.
-              </p>
             </div>
+            <h3 className="text-xl font-space-grotesk font-semibold text-white mb-4">
+              Budget Planning
+            </h3>
+            <p className="text-white/60 font-inter leading-relaxed">
+              Set intelligent budgets and track your progress toward financial goals.
+            </p>
+          </div>
 
-            <div className="bg-white rounded-lg shadow-md p-6 text-center">
-              <div className="flex justify-center">
-                <PieChart className="h-12 w-12 text-purple-500" />
+          <div className="glass-card p-8 text-center group hover:bg-white/8 transition-all duration-300">
+            <div className="flex justify-center mb-6">
+              <div className="p-4 rounded-full bg-aged-oak/40">
+                <PieChart className="h-8 w-8 text-aged-oak" />
               </div>
-              <h3 className="mt-4 text-lg font-medium text-gray-900">
-                Analytics & Reports
-              </h3>
-              <p className="mt-2 text-sm text-gray-500">
-                Visualize your financial data with comprehensive reports.
-              </p>
             </div>
+            <h3 className="text-xl font-space-grotesk font-semibold text-white mb-4">
+              Analytics & Reports
+            </h3>
+            <p className="text-white/60 font-inter leading-relaxed">
+              Visualize your financial data with comprehensive, liquid-style reports.
+            </p>
+          </div>
 
-            <div className="bg-white rounded-lg shadow-md p-6 text-center">
-              <div className="flex justify-center">
-                <DollarSign className="h-12 w-12 text-yellow-500" />
+          <div className="glass-card p-8 text-center group hover:bg-white/8 transition-all duration-300">
+            <div className="flex justify-center mb-6">
+              <div className="p-4 rounded-full bg-single-malt/20">
+                <DollarSign className="h-8 w-8 text-single-malt" />
               </div>
-              <h3 className="mt-4 text-lg font-medium text-gray-900">
-                Multi-Account Support
-              </h3>
-              <p className="mt-2 text-sm text-gray-500">
-                Manage multiple accounts and get a complete financial picture.
-              </p>
             </div>
+            <h3 className="text-xl font-space-grotesk font-semibold text-white mb-4">
+              Multi-Account Support
+            </h3>
+            <p className="text-white/60 font-inter leading-relaxed">
+              Manage multiple accounts and get a complete financial picture.
+            </p>
+          </div>
+        </div>
+
+        {/* CTA Section */}
+        <div className="mt-20 text-center">
+          <div className="glass-card p-12 max-w-4xl mx-auto">
+            <h2 className="text-3xl font-space-grotesk font-bold text-white mb-6">
+              Ready to Transform Your Financial Life?
+            </h2>
+            <p className="text-lg text-white/70 font-inter mb-8 leading-relaxed">
+              Join thousands of users who have taken control of their finances with our executive-grade platform.
+            </p>
+            <Link
+              href="/auth/signup"
+              className="primary-button px-8 py-4 text-lg"
+            >
+              Get Started Today
+            </Link>
           </div>
         </div>
       </main>

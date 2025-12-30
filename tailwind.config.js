@@ -8,22 +8,33 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: {
-          50: '#f0f9ff',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
-        },
-        success: {
-          50: '#f0fdf4',
-          500: '#22c55e',
-          600: '#16a34a',
-        },
-        danger: {
-          50: '#fef2f2',
-          500: '#ef4444',
-          600: '#dc2626',
-        },
+        // Dark Mode - Night Cockpit
+        'peat-charcoal': '#1C1917',
+        'deep-leather': '#2A1D15',
+        'single-malt': '#E6A65D',
+        'aged-oak': '#5C3A21',
+        'growth-emerald': '#4E7A58',
+        
+        // Light Mode - Day Studio
+        'warm-alabaster': '#F5F5F4',
+        'latte-leather': '#E7E5E4',
+        'burnt-copper': '#B45309',
+        'ink-grey': '#1C1917',
+        'pure-white': '#FFFFFF',
+      },
+      fontFamily: {
+        'space-grotesk': ['var(--font-space-grotesk)', 'sans-serif'],
+        'inter': ['var(--font-inter)', 'sans-serif'],
+      },
+      backdropBlur: {
+        'glass': '16px',
+      },
+      borderRadius: {
+        'glass': '20px',
+        'pill': '999px',
+      },
+      letterSpacing: {
+        'tight-executive': '-0.02em',
       },
     },
   },
