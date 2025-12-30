@@ -39,27 +39,26 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <div className="flex justify-center">
-            <DollarSign className="h-12 w-12 text-blue-600" />
+    <div className="min-h-screen flex items-center justify-center bg-peat-charcoal px-6">
+      <div className="w-full max-w-md">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <div className="flex justify-center mb-6">
+            <div className="p-4 rounded-full bg-single-malt/20">
+              <DollarSign className="h-8 w-8 text-single-malt" />
+            </div>
           </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Sign in to your account
+          <h2 className="text-3xl font-space-grotesk font-bold text-white mb-2">
+            Welcome Back
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Or{' '}
-            <Link
-              href="/auth/signup"
-              className="font-medium text-blue-600 hover:text-blue-500"
-            >
-              create a new account
-            </Link>
+          <p className="text-white/60 font-inter">
+            Sign in to your executive dashboard
           </p>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleLogin}>
-          <div className="space-y-4">
+
+        {/* Form */}
+        <div className="glass-card p-8">
+          <form onSubmit={handleLogin} className="space-y-6">
             <Input
               label="Email address"
               type="email"
@@ -68,6 +67,7 @@ export default function LoginPage() {
               required
               placeholder="Enter your email"
             />
+            
             <Input
               label="Password"
               type="password"
@@ -76,20 +76,34 @@ export default function LoginPage() {
               required
               placeholder="Enter your password"
             />
+
+            {error && (
+              <div className="text-red-400 text-sm text-center font-inter bg-red-400/10 p-3 rounded-glass border border-red-400/20">
+                {error}
+              </div>
+            )}
+
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={loading}
+            >
+              {loading ? 'Signing in...' : 'Sign in'}
+            </Button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <p className="text-white/60 font-inter text-sm">
+              Don't have an account?{' '}
+              <Link
+                href="/auth/signup"
+                className="text-single-malt hover:text-single-malt/80 font-medium transition-colors"
+              >
+                Create one here
+              </Link>
+            </p>
           </div>
-
-          {error && (
-            <div className="text-red-600 text-sm text-center">{error}</div>
-          )}
-
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={loading}
-          >
-            {loading ? 'Signing in...' : 'Sign in'}
-          </Button>
-        </form>
+        </div>
       </div>
     </div>
   );

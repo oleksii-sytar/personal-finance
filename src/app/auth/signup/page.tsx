@@ -48,27 +48,26 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <div className="flex justify-center">
-            <DollarSign className="h-12 w-12 text-blue-600" />
+    <div className="min-h-screen flex items-center justify-center bg-peat-charcoal px-6">
+      <div className="w-full max-w-md">
+        {/* Logo */}
+        <div className="text-center mb-8">
+          <div className="flex justify-center mb-6">
+            <div className="p-4 rounded-full bg-single-malt/20">
+              <DollarSign className="h-8 w-8 text-single-malt" />
+            </div>
           </div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
+          <h2 className="text-3xl font-space-grotesk font-bold text-white mb-2">
+            Join the Executive Suite
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Or{' '}
-            <Link
-              href="/auth/login"
-              className="font-medium text-blue-600 hover:text-blue-500"
-            >
-              sign in to your existing account
-            </Link>
+          <p className="text-white/60 font-inter">
+            Create your premium finance account
           </p>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSignUp}>
-          <div className="space-y-4">
+
+        {/* Form */}
+        <div className="glass-card p-8">
+          <form onSubmit={handleSignUp} className="space-y-6">
             <Input
               label="Email address"
               type="email"
@@ -77,6 +76,7 @@ export default function SignUpPage() {
               required
               placeholder="Enter your email"
             />
+            
             <Input
               label="Password"
               type="password"
@@ -85,6 +85,7 @@ export default function SignUpPage() {
               required
               placeholder="Create a password"
             />
+            
             <Input
               label="Confirm Password"
               type="password"
@@ -93,24 +94,40 @@ export default function SignUpPage() {
               required
               placeholder="Confirm your password"
             />
+
+            {error && (
+              <div className="text-red-400 text-sm text-center font-inter bg-red-400/10 p-3 rounded-glass border border-red-400/20">
+                {error}
+              </div>
+            )}
+            
+            {message && (
+              <div className="text-growth-emerald text-sm text-center font-inter bg-growth-emerald/10 p-3 rounded-glass border border-growth-emerald/20">
+                {message}
+              </div>
+            )}
+
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={loading}
+            >
+              {loading ? 'Creating account...' : 'Create account'}
+            </Button>
+          </form>
+
+          <div className="mt-6 text-center">
+            <p className="text-white/60 font-inter text-sm">
+              Already have an account?{' '}
+              <Link
+                href="/auth/login"
+                className="text-single-malt hover:text-single-malt/80 font-medium transition-colors"
+              >
+                Sign in here
+              </Link>
+            </p>
           </div>
-
-          {error && (
-            <div className="text-red-600 text-sm text-center">{error}</div>
-          )}
-          
-          {message && (
-            <div className="text-green-600 text-sm text-center">{message}</div>
-          )}
-
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={loading}
-          >
-            {loading ? 'Creating account...' : 'Create account'}
-          </Button>
-        </form>
+        </div>
       </div>
     </div>
   );
