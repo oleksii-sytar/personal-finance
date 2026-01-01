@@ -40,18 +40,18 @@ describe('Workspace Integration', () => {
   })
 
   it('should be able to query workspace_members table', async () => {
-    // Test that we can query the workspace_members table
-    // RLS is disabled on this table for UX, security handled by server actions
+    // Test that RLS is properly enabled on workspace_members
+    // Direct queries should be blocked, only Edge Functions should work
     const { data, error } = await supabase
       .from('workspace_members')
       .select('id')
       .limit(1)
     
-    // Should work without RLS blocking (security handled server-side)
+    // With RLS properly enabled, unauthenticated queries should return empty data
     expect(error).toBeNull()
     expect(data).toBeDefined()
     expect(Array.isArray(data)).toBe(true)
-    // Data may or may not be present depending on test data
+    expect(data).toHaveLength(0) // Should be empty due to RLS
   })
 
   it('should be able to query categories table', async () => {
