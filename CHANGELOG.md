@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2026-01-01
+
+### 🔒 CRITICAL Security Fix
+- **URGENT**: Re-enabled Row Level Security (RLS) on all database tables
+- Fixed major security vulnerability where all tables were unrestricted
+- Implemented proper RLS policies for secure data access
+- Updated integration tests to work with RLS enabled
+- Fixed autonomous deployment script for zero-interaction migrations
+
+### 🔧 Improvements
+- Enhanced autonomous deployment system with better migration handling
+- Improved integration test coverage for RLS verification
+- Better error handling in database operations
+
 ## [0.1.0] - 2026-01-01
 
 ### 🚀 New Features
