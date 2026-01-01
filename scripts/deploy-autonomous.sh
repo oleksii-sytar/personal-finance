@@ -58,7 +58,8 @@ echo -e "${YELLOW}📋 Checking database migrations...${NC}"
 
 # Apply migrations automatically (no user input required)
 echo -e "${GREEN}✅ Applying database migrations automatically...${NC}"
-if run_with_timeout 60 supabase db push --yes; then
+# Use printf to pipe 'y' to handle any prompts
+if printf 'y\n' | run_with_timeout 60 supabase db push; then
     echo -e "${GREEN}✅ Migrations applied successfully${NC}"
 else
     echo -e "${YELLOW}⚠️  Migration failed, timed out, or no changes to apply${NC}"

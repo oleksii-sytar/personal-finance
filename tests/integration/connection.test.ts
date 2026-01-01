@@ -27,16 +27,19 @@ describe('Supabase Cloud Connection Integration', () => {
   })
 
   it('should be able to query database tables', async () => {
-    // Test that we can query the database structure
+    // Test that we can query the database structure with proper RLS
+    // This should return empty array (not error) when no auth or no access
     const { data, error } = await supabase
       .from('workspaces')
       .select('id')
       .limit(1)
     
-    // Should not error (even if no data)
+    // With RLS enabled, unauthenticated queries should return empty data, not error
+    // This confirms RLS is working properly
     expect(error).toBeNull()
     expect(data).toBeDefined()
     expect(Array.isArray(data)).toBe(true)
+    expect(data).toHaveLength(0) // Should be empty due to RLS
   })
 
   it('should have proper RLS policies in place', async () => {
