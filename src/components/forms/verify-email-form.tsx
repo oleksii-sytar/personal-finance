@@ -19,6 +19,9 @@ export function VerifyEmailForm() {
   const { user } = useAuth()
   const supabase = createClient()
   
+  // Get invitation token from URL if present
+  const inviteToken = searchParams.get('token')
+  
   const [verificationStatus, setVerificationStatus] = useState<'loading' | 'success' | 'error' | 'expired' | 'pending'>('loading')
   const [message, setMessage] = useState('')
   const [isResending, setIsResending] = useState(false)
@@ -38,7 +41,6 @@ export function VerifyEmailForm() {
           })
           
           if (error) {
-            console.error('Email verification error:', error)
             if (error.message.includes('expired')) {
               setVerificationStatus('expired')
               setMessage('This verification link has expired. Please request a new one.')
@@ -50,13 +52,16 @@ export function VerifyEmailForm() {
             setVerificationStatus('success')
             setMessage('Your email has been successfully verified! You can now access all features.')
             
-            // Redirect to dashboard after successful verification
+            // Redirect based on invitation token or to dashboard
             setTimeout(() => {
-              router.push('/dashboard')
+              if (inviteToken) {
+                router.push(`/auth/invite?token=${inviteToken}`)
+              } else {
+                router.push('/dashboard')
+              }
             }, 3000)
           }
         } catch (error) {
-          console.error('Verification error:', error)
           setVerificationStatus('error')
           setMessage('An error occurred during verification. Please try again.')
         }
@@ -66,7 +71,11 @@ export function VerifyEmailForm() {
           setVerificationStatus('success')
           setMessage('Your email is already verified!')
           setTimeout(() => {
-            router.push('/dashboard')
+            if (inviteToken) {
+              router.push(`/auth/invite?token=${inviteToken}`)
+            } else {
+              router.push('/dashboard')
+            }
           }, 2000)
         } else {
           setVerificationStatus('pending')
@@ -94,13 +103,11 @@ export function VerifyEmailForm() {
     setIsResending(true)
     
     try {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: user.email
-      })
+      // Use server action for resending with invitation token support
+      const { resendVerificationAction } = await import('@/actions/auth')
+      const result = await resendVerificationAction(user.email, inviteToken || undefined)
 
-      if (error) {
-        console.error('Resend verification error:', error)
+      if (result.error) {
         setMessage('Failed to resend verification email. Please try again.')
       } else {
         setMessage('Verification email sent! Please check your inbox.')
@@ -187,24 +194,30 @@ export function VerifyEmailForm() {
           <div className="mt-6 space-y-3">
             {verificationStatus === 'success' && (
               <Button
-                onClick={() => router.push('/dashboard')}
+                onClick={() => {
+                  if (inviteToken) {
+                    router.push(`/auth/invite?token=${inviteToken}`)
+                  } else {
+                    router.push('/dashboard')
+                  }
+                }}
                 className="w-full"
               >
-                Go to Dashboard
+                {inviteToken ? 'Continue to Invitation' : 'Go to Dashboard'}
               </Button>
             )}
             
             {(verificationStatus === 'error' || verificationStatus === 'expired') && (
               <div className="space-y-2">
                 <Button
-                  onClick={() => router.push('/auth/signup')}
+                  onClick={() => router.push(inviteToken ? `/auth/signup?token=${inviteToken}` : '/auth/signup')}
                   className="w-full"
                   variant="secondary"
                 >
                   Sign Up Again
                 </Button>
                 <Button
-                  onClick={() => router.push('/auth/login')}
+                  onClick={() => router.push(inviteToken ? `/auth/login?token=${inviteToken}` : '/auth/login')}
                   className="w-full"
                   variant="outline"
                 >
@@ -215,7 +228,7 @@ export function VerifyEmailForm() {
             
             {verificationStatus === 'pending' && (
               <Button
-                onClick={() => router.push('/auth/login')}
+                onClick={() => router.push(inviteToken ? `/auth/login?token=${inviteToken}` : '/auth/login')}
                 className="w-full"
                 variant="outline"
               >

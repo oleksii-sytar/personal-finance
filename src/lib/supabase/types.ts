@@ -18,6 +18,13 @@ export type WorkspaceMember = Database['public']['Tables']['workspace_members'][
 export type WorkspaceMemberInsert = Database['public']['Tables']['workspace_members']['Insert']
 export type WorkspaceMemberUpdate = Database['public']['Tables']['workspace_members']['Update']
 
+export type UserProfile = Database['public']['Tables']['user_profiles']['Row']
+
+// Extended type for workspace members with user profile information
+export type WorkspaceMemberWithProfile = WorkspaceMember & {
+  user_profiles: UserProfile | null
+}
+
 export type WorkspaceInvitation = Database['public']['Tables']['workspace_invitations']['Row']
 export type WorkspaceInvitationInsert = Database['public']['Tables']['workspace_invitations']['Insert']
 export type WorkspaceInvitationUpdate = Database['public']['Tables']['workspace_invitations']['Update']

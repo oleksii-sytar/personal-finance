@@ -2,6 +2,9 @@ import type { Metadata } from 'next'
 import { Space_Grotesk, Inter } from 'next/font/google'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { AuthProvider } from '@/contexts/auth-context'
+import { WorkspaceProvider } from '@/contexts/workspace-context'
+import { ErrorBoundary } from '@/components/shared/error-boundary'
+import { ToastProvider } from '@/components/ui/toast'
 import './globals.css'
 
 const spaceGrotesk = Space_Grotesk({ 
@@ -30,9 +33,15 @@ export default function RootLayout({
         className={`${inter.className} antialiased bg-[#1C1917] text-white`}
         suppressHydrationWarning={true}
       >
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <ErrorBoundary>
+          <ToastProvider>
+            <AuthProvider>
+              <WorkspaceProvider>
+                {children}
+              </WorkspaceProvider>
+            </AuthProvider>
+          </ToastProvider>
+        </ErrorBoundary>
         <SpeedInsights />
       </body>
     </html>

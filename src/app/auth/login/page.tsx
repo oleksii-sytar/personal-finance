@@ -1,5 +1,11 @@
+import { Suspense } from 'react'
 import { LoginForm } from '@/components/forms/login-form'
 import Link from 'next/link'
+
+export const metadata = {
+  title: 'Sign In | Forma',
+  description: 'Sign in to your Forma account to manage your family finances',
+}
 
 export default function LoginPage() {
   return (
@@ -19,7 +25,16 @@ export default function LoginPage() {
         </div>
 
         {/* Use the LoginForm component with validation */}
-        <LoginForm />
+        <Suspense fallback={
+          <div className="animate-pulse space-y-4">
+            <div className="h-12 bg-white/10 rounded-xl" />
+            <div className="h-12 bg-white/10 rounded-xl" />
+            <div className="h-4 bg-white/5 rounded" />
+            <div className="h-12 bg-white/10 rounded-xl" />
+          </div>
+        }>
+          <LoginForm />
+        </Suspense>
       </div>
     </div>
   )

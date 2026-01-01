@@ -1,0 +1,51 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - button "Open Next.js Dev Tools" [ref=e7] [cursor=pointer]:
+    - img [ref=e8]
+  - generic [ref=e12]:
+    - generic [ref=e13]:
+      - link "F Forma" [ref=e14] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e16]: F
+        - generic [ref=e17]: Forma
+      - heading "Start Your Journey" [level=1] [ref=e18]
+      - paragraph [ref=e19]: Create your family finance account
+    - generic [ref=e20]:
+      - generic [ref=e21]:
+        - heading "Create Your Account" [level=1] [ref=e22]
+        - paragraph [ref=e23]: Join Forma to start managing your family finances
+      - generic [ref=e24]:
+        - generic [ref=e25]:
+          - generic [ref=e26]:
+            - generic [ref=e27]: Full Name
+            - textbox "Full Name" [ref=e28]:
+              - /placeholder: Enter your full name
+              - text: John Doe
+          - generic [ref=e29]:
+            - generic [ref=e30]: Email Address
+            - textbox "Email Address" [ref=e31]:
+              - /placeholder: Enter your email address
+              - text: test1767273466069@example.com
+          - generic [ref=e32]:
+            - generic [ref=e33]: Password
+            - textbox "Password" [ref=e34]:
+              - /placeholder: Create a strong password
+              - text: password123
+          - generic [ref=e35]:
+            - generic [ref=e36]: Confirm Password
+            - textbox "Confirm Password" [active] [ref=e37]:
+              - /placeholder: Confirm your password
+          - generic [ref=e38]:
+            - paragraph [ref=e39]: "Password must contain:"
+            - list [ref=e40]:
+              - listitem [ref=e41]: At least 8 characters
+              - listitem [ref=e42]: At least one letter
+              - listitem [ref=e43]: At least one number
+          - button "Create Account" [ref=e44] [cursor=pointer]
+        - paragraph [ref=e46]:
+          - text: Already have an account?
+          - button "Sign in here" [ref=e47] [cursor=pointer]
+  - alert [ref=e48]
+```

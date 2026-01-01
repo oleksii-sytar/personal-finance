@@ -1,0 +1,48 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e6] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e7]:
+      - img [ref=e8]
+    - generic [ref=e13]:
+      - button "Open issues overlay" [ref=e14]:
+        - generic [ref=e15]:
+          - generic [ref=e16]: "0"
+          - generic [ref=e17]: "1"
+        - generic [ref=e18]: Issue
+      - button "Collapse issues badge" [ref=e19]:
+        - img [ref=e20]
+  - generic [ref=e23]:
+    - link "F Forma" [ref=e25]:
+      - /url: /
+      - generic [ref=e27]: F
+      - generic [ref=e28]: Forma
+    - generic [ref=e29]:
+      - generic [ref=e30]:
+        - heading "Welcome Back" [level=1] [ref=e31]
+        - paragraph [ref=e32]: Sign in to your family finance dashboard
+      - generic [ref=e33]:
+        - generic [ref=e34]:
+          - generic [ref=e35]:
+            - generic [ref=e36]: Email Address
+            - textbox "Email Address" [active] [ref=e37]:
+              - /placeholder: Enter your email
+          - generic [ref=e38]:
+            - generic [ref=e39]: Password
+            - textbox "Password" [ref=e40]:
+              - /placeholder: Enter your password
+              - text: password123
+          - generic [ref=e41]:
+            - generic [ref=e42]:
+              - checkbox "Remember me" [ref=e43]
+              - generic [ref=e44]: Remember me
+            - link "Forgot password?" [ref=e45]:
+              - /url: /auth/reset-password
+          - button "Sign In" [ref=e46] [cursor=pointer]
+        - paragraph [ref=e48]:
+          - text: Don't have an account?
+          - link "Create one here" [ref=e49]:
+            - /url: /auth/signup
+  - alert [ref=e50]
+```
