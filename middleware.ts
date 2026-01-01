@@ -3,8 +3,9 @@ import { NextResponse, type NextRequest } from 'next/server'
 
 /**
  * Authentication middleware for Forma
- * Handles session refresh and route protection
+ * Handles session refresh, route protection, and email verification
  * Following the design document specifications
+ * Requirements: 1.6, 4.5, 8.5
  */
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
@@ -32,10 +33,11 @@ export async function middleware(request: NextRequest) {
   )
 
   // Refresh session if expired - required for Server Components
-  const { data: { user }, error } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  // Define protected and auth routes
+  // Define route categories
   const isAuthRoute = request.nextUrl.pathname.startsWith('/auth')
+  const isVerifyEmailRoute = request.nextUrl.pathname === '/auth/verify-email'
   const isProtectedRoute = 
     request.nextUrl.pathname.startsWith('/dashboard') ||
     request.nextUrl.pathname.startsWith('/transactions') ||
@@ -44,7 +46,7 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/reports') ||
     request.nextUrl.pathname.startsWith('/settings')
 
-  // Redirect logic
+  // Handle unauthenticated users
   if (!user && isProtectedRoute) {
     // Redirect unauthenticated users to login
     const redirectUrl = new URL('/auth/login', request.url)
@@ -52,15 +54,33 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl)
   }
 
-  if (user && isAuthRoute) {
-    // Redirect authenticated users away from auth pages
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+  // Handle authenticated users
+  if (user) {
+    // Check email verification status (Requirements 1.6, 4.5, 8.5)
+    const isEmailVerified = !!user.email_confirmed_at
+    
+    if (!isEmailVerified) {
+      // Allow access to verify-email page and auth routes for unverified users
+      if (!isVerifyEmailRoute && !isAuthRoute) {
+        return NextResponse.redirect(new URL('/auth/verify-email', request.url))
+      }
+    } else {
+      // Redirect verified users away from auth pages (except verify-email for direct links)
+      if (isAuthRoute && !isVerifyEmailRoute) {
+        return NextResponse.redirect(new URL('/dashboard', request.url))
+      }
+    }
   }
 
   // Handle root path redirect
   if (request.nextUrl.pathname === '/') {
     if (user) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
+      // Check if email is verified before redirecting to dashboard
+      if (user.email_confirmed_at) {
+        return NextResponse.redirect(new URL('/dashboard', request.url))
+      } else {
+        return NextResponse.redirect(new URL('/auth/verify-email', request.url))
+      }
     } else {
       return NextResponse.redirect(new URL('/auth/login', request.url))
     }

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { transactionSchema, createTransactionSchema, updateTransactionSchema } from '@/lib/validations/transaction'
+import { createTransactionSchema, updateTransactionSchema } from '@/lib/validations/transaction'
 import type { ActionResult, Transaction } from '@/types'
 
 /**
@@ -32,7 +32,7 @@ export async function createTransaction(
     })
 
     if (!validated.success) {
-      return { error: validated.error.flatten().fieldErrors }
+      return { error: validated.error.flatten() }
     }
 
     // Get user's workspace (assuming single workspace for now)
@@ -100,7 +100,7 @@ export async function updateTransaction(
     })
 
     if (!validated.success) {
-      return { error: validated.error.flatten().fieldErrors }
+      return { error: validated.error.flatten() }
     }
 
     // Update transaction (RLS will ensure user can only update their own)

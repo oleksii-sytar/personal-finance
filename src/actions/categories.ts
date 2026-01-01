@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
-import { categorySchema, createCategorySchema, updateCategorySchema } from '@/lib/validations/category'
+import { createCategorySchema, updateCategorySchema } from '@/lib/validations/category'
 import type { ActionResult, Category } from '@/types'
 
 /**
@@ -28,7 +28,7 @@ export async function createCategory(
     const validated = createCategorySchema.safeParse(rawData)
 
     if (!validated.success) {
-      return { error: validated.error.flatten().fieldErrors }
+      return { error: validated.error.flatten() }
     }
 
     // Get user's workspace
@@ -92,7 +92,7 @@ export async function updateCategory(
     const validated = updateCategorySchema.safeParse(rawData)
 
     if (!validated.success) {
-      return { error: validated.error.flatten().fieldErrors }
+      return { error: validated.error.flatten() }
     }
 
     // Update category (RLS will ensure user can only update their own)

@@ -2,11 +2,11 @@
 -- Following tech.md and structure.md database conventions
 
 -- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- Create workspaces table
 CREATE TABLE workspaces (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(100) NOT NULL,
     currency VARCHAR(3) NOT NULL DEFAULT 'UAH',
     owner_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -16,7 +16,7 @@ CREATE TABLE workspaces (
 
 -- Create accounts table
 CREATE TABLE accounts (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     name VARCHAR(100) NOT NULL,
     type VARCHAR(20) NOT NULL CHECK (type IN ('checking', 'savings', 'credit', 'investment')),
@@ -28,7 +28,7 @@ CREATE TABLE accounts (
 
 -- Create categories table
 CREATE TABLE categories (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     name VARCHAR(100) NOT NULL,
     color VARCHAR(7) NOT NULL, -- Hex color code
@@ -40,7 +40,7 @@ CREATE TABLE categories (
 
 -- Create transactions table
 CREATE TABLE transactions (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
     account_id UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
     category_id UUID NOT NULL REFERENCES categories(id) ON DELETE RESTRICT,
@@ -55,7 +55,7 @@ CREATE TABLE transactions (
 
 -- Create exchange_rates table for caching NBU API data
 CREATE TABLE exchange_rates (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     currency VARCHAR(3) NOT NULL,
     date DATE NOT NULL,
     rate DECIMAL(10,6) NOT NULL,

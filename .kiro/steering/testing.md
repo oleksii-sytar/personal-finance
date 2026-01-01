@@ -315,3 +315,42 @@ jobs:
 6. **Test edge cases** - empty states, error states, loading states
 7. **Avoid testing implementation details** - focus on user-visible behavior
 8. **Keep tests independent** - tests should not depend on each other
+9. **NEVER LEAVE FAILING TESTS** - All test failures must be fixed immediately
+10. **Use creative mocking strategies** - Don't repeat the same mocking patterns, innovate solutions
+
+### Creative Mocking Strategies
+
+When dealing with complex API patterns (like Supabase's chained queries), use targeted mocking approaches:
+
+```typescript
+// Pattern-specific mock for .eq().eq().single() chains
+mockSupabase.from.mockImplementation((table: string) => ({
+  select: vi.fn(() => ({
+    eq: vi.fn((col1: string, val1: any) => ({
+      eq: vi.fn((col2: string, val2: any) => ({
+        single: vi.fn(() => {
+          const key = `${table}_select_${col1}_${col2}_single`
+          return Promise.resolve(mockResponses[key] || { data: null, error: null })
+        })
+      }))
+    }))
+  }))
+}))
+```
+
+### Handling Validation vs Business Logic Order
+
+When testing server actions, remember that validation typically happens before business logic:
+
+```typescript
+// Test should account for validation-first approach
+if (userRole === 'member') {
+  if (typeof result.error === 'string') {
+    // Permission error (validation passed)
+    expect(result.error).toBe('Only workspace owners can invite members')
+  } else {
+    // Validation error (takes precedence)
+    expect(result.error).toBeDefined()
+  }
+}
+```

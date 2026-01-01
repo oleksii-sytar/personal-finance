@@ -172,7 +172,9 @@ describe('AuthProvider Property Tests', () => {
           // Simulate auth state change event for logout
           if (authStateCallback) {
             act(() => {
-              authStateCallback('SIGNED_OUT', null)
+              if (authStateCallback) {
+          authStateCallback('SIGNED_OUT', null)
+        }
             })
           }
           
@@ -229,7 +231,9 @@ describe('AuthProvider Property Tests', () => {
           // Simulate attempt to restore session (should fail)
           if (authStateCallback) {
             act(() => {
-              authStateCallback('TOKEN_REFRESHED', null) // Failed refresh
+              if (authStateCallback) {
+          authStateCallback('TOKEN_REFRESHED', null) // Failed refresh
+        }
             })
           }
           
@@ -283,7 +287,9 @@ describe('AuthProvider Property Tests', () => {
             if (authStateCallback) {
               act(() => {
                 const session = event === 'SIGNED_OUT' ? null : mockSession
-                authStateCallback(event, session)
+                if (authStateCallback) {
+            authStateCallback(event, session)
+          }
               })
             }
             

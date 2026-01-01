@@ -8,15 +8,16 @@ This document defines the deployment workflow, environment management, and relea
 
 | Environment | Purpose | URL Pattern | Database |
 |-------------|---------|-------------|----------|
-| **Local** | Development | `localhost:3000` | Supabase Local (Docker) |
-| **Preview** | PR Review | `forma-<branch>.vercel.app` | Supabase Staging |
-| **Staging** | Pre-production | `staging.forma.app` | Supabase Staging |
-| **Production** | Live | `app.forma.app` | Supabase Production |
+| **Development** | All development work | `localhost:3000` | Cloud Supabase (single) |
+| **Preview** | PR Review | `forma-<branch>.vercel.app` | Same Cloud Supabase |
+| **Future Production** | Live (when ready) | `app.forma.app` | New Supabase Project |
+
+**Note**: Currently using single cloud database for all development. Production will use separate Supabase project when ready.
 
 ## Deployment Flow
 
 ```
-Local Development
+Development (Cloud DB)
        ↓
    Push to Branch
        ↓
@@ -28,11 +29,9 @@ Local Development
        ↓
    Merge to Main
        ↓
-   Automatic Staging Deployment
+   Automatic Deployment
        ↓
-   QA Verification (Manual)
-       ↓
-   Manual Production Promotion
+   [Future: Production with separate DB]
 ```
 
 ## Vercel Deployment Configuration
@@ -54,12 +53,12 @@ Local Development
 
 ### Environment Variables
 
-| Variable | Local | Preview | Staging | Production |
-|----------|-------|---------|---------|------------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Local URL | Staging URL | Staging URL | Production URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Local Key | Staging Key | Staging Key | Production Key |
-| `SUPABASE_SERVICE_KEY` | Local Key | Staging Key | Staging Key | Production Key |
-| `NEXT_PUBLIC_APP_ENV` | `development` | `preview` | `staging` | `production` |
+| Variable | Development | Preview | Future Production |
+|----------|-------------|---------|-------------------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Cloud URL | Same Cloud URL | New Production URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Cloud Key | Same Cloud Key | New Production Key |
+| `SUPABASE_SERVICE_KEY` | Cloud Key | Same Cloud Key | New Production Key |
+| `NEXT_PUBLIC_APP_ENV` | `development` | `preview` | `production` |
 
 ## Database Migration Strategy
 
@@ -71,31 +70,27 @@ supabase migration new add_user_preferences
 # 2. Edit migration file
 # supabase/migrations/TIMESTAMP_add_user_preferences.sql
 
-# 3. Apply locally and test
-supabase db reset
+# 3. Apply to cloud database and test
+supabase db push
 
 # 4. Commit migration with code changes
 git add supabase/migrations/
 git commit -m "feat: add user preferences table"
 ```
 
-### Staging Deployment
+### Deployment
 ```bash
-# Migrations are automatically applied when pushing to staging branch
-# OR manually:
-supabase db push --linked
+# Migrations are automatically applied when pushing to cloud
+supabase db push
 ```
 
-### Production Deployment
+### Future Production Deployment
 ```bash
-# 1. Create backup first
-supabase db dump -f backup_$(date +%Y%m%d).sql
-
-# 2. Apply migrations (dry run first)
-supabase db push --dry-run
-
-# 3. Apply for real
-supabase db push
+# When ready for production:
+# 1. Create new Supabase project
+# 2. Apply all migrations to production project
+# 3. Migrate essential data only
+# 4. Update environment variables
 ```
 
 ## Release Phases

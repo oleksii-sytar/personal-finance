@@ -2,6 +2,10 @@ import '@testing-library/jest-dom'
 import { beforeAll, afterEach, afterAll } from 'vitest'
 import { cleanup } from '@testing-library/react'
 import { server } from './mocks/server'
+import { config } from 'dotenv'
+
+// Load environment variables from .env.local for tests
+config({ path: '.env.local' })
 
 // Start server before all tests
 beforeAll(() => server.listen({ 

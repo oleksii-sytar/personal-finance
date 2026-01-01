@@ -3,7 +3,15 @@
  */
 export type ActionResult<T> = 
   | { data: T; error?: never }
-  | { data?: never; error: string | Record<string, string[]> }
+  | { data?: never; error: string | ZodFlattenedError }
+
+/**
+ * Zod flattened error type for better type safety
+ */
+export type ZodFlattenedError = {
+  formErrors: string[]
+  fieldErrors: Record<string, string[] | undefined>
+}
 
 /**
  * Error types for better error handling
