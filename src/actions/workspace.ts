@@ -1,17 +1,19 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
 import type { Workspace, WorkspaceMember, WorkspaceMemberWithProfile, WorkspaceInvitation } from '@/lib/supabase/types'
 
 /**
  * Get workspaces for the current user with server-side security
- * This approach provides security without complex RLS policies
+ * Uses service role client to bypass RLS while maintaining security
  */
 export async function getUserWorkspaces(): Promise<{
   data?: Workspace[]
   error?: string
 }> {
   try {
+    // Use regular client for authentication
     const supabase = await createClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     
@@ -21,8 +23,20 @@ export async function getUserWorkspaces(): Promise<{
 
     console.log('Server: Loading workspaces for user:', user.id)
 
-    // Get workspace memberships for the user (server-side filtering)
-    const { data: userMemberships, error: membershipsError } = await supabase
+    // Use service role client to bypass RLS for workspace membership queries
+    const supabaseAdmin = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    )
+
+    // Get workspace memberships for the user using admin client
+    const { data: userMemberships, error: membershipsError } = await supabaseAdmin
       .from('workspace_members')
       .select('workspace_id, role')
       .eq('user_id', user.id)
@@ -39,11 +53,11 @@ export async function getUserWorkspaces(): Promise<{
       return { data: [] }
     }
 
-    // Get workspace details for all memberships (server-side filtering)
+    // Get workspace details for all memberships using admin client
     const workspaceIds = userMemberships.map(m => m.workspace_id)
     console.log('Server: Loading workspaces for IDs:', workspaceIds)
     
-    const { data: workspacesData, error: workspacesError } = await supabase
+    const { data: workspacesData, error: workspacesError } = await supabaseAdmin
       .from('workspaces')
       .select('*')
       .in('id', workspaceIds)
