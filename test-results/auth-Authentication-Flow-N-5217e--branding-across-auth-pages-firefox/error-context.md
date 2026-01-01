@@ -1,0 +1,44 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - link "F Forma" [ref=e5] [cursor=pointer]:
+      - /url: /
+      - generic [ref=e7]: F
+      - generic [ref=e8]: Forma
+    - heading "Start Your Journey" [level=1] [ref=e9]
+    - paragraph [ref=e10]: Create your family finance account
+  - generic [ref=e11]:
+    - generic [ref=e12]:
+      - heading "Create Your Account" [level=1] [ref=e13]
+      - paragraph [ref=e14]: Join Forma to start managing your family finances
+    - generic [ref=e15]:
+      - generic [ref=e16]:
+        - generic [ref=e17]:
+          - generic [ref=e18]: Full Name
+          - textbox "Full Name" [ref=e19]:
+            - /placeholder: Enter your full name
+        - generic [ref=e20]:
+          - generic [ref=e21]: Email Address
+          - textbox "Email Address" [ref=e22]:
+            - /placeholder: Enter your email address
+        - generic [ref=e23]:
+          - generic [ref=e24]: Password
+          - textbox "Password" [ref=e25]:
+            - /placeholder: Create a strong password
+        - generic [ref=e26]:
+          - generic [ref=e27]: Confirm Password
+          - textbox "Confirm Password" [ref=e28]:
+            - /placeholder: Confirm your password
+        - generic [ref=e29]:
+          - paragraph [ref=e30]: "Password must contain:"
+          - list [ref=e31]:
+            - listitem [ref=e32]: At least 8 characters
+            - listitem [ref=e33]: At least one letter
+            - listitem [ref=e34]: At least one number
+        - button "Create Account" [ref=e35] [cursor=pointer]
+      - paragraph [ref=e37]:
+        - text: Already have an account?
+        - button "Sign in here" [ref=e38] [cursor=pointer]
+```

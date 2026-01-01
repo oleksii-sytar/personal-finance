@@ -52,7 +52,6 @@ export async function createWorkspaceAction(
       .single()
 
     if (workspaceError) {
-      console.error('Error creating workspace:', workspaceError)
       return { error: 'Failed to create workspace' }
     }
 
@@ -62,7 +61,6 @@ export async function createWorkspaceAction(
     revalidatePath('/dashboard')
     return { data: workspace }
   } catch (error) {
-    console.error('Error in createWorkspaceAction:', error)
     return { error: 'An unexpected error occurred' }
   }
 }
@@ -111,10 +109,10 @@ async function initializeDefaultCategories(workspaceId: string): Promise<void> {
       )
 
     if (error) {
-      console.error('Error creating default categories:', error)
+      // Default categories creation errors are handled silently
     }
   } catch (error) {
-    console.error('Error in initializeDefaultCategories:', error)
+    // Default categories creation errors are handled silently
   }
 }
 
@@ -178,14 +176,12 @@ export async function inviteMemberAction(
       if (invitationError.code === '23505') { // Unique constraint violation
         return { error: 'User is already invited to this workspace' }
       }
-      console.error('Error creating invitation:', invitationError)
       return { error: 'Failed to create invitation' }
     }
 
     revalidatePath('/dashboard')
     return { data: invitation }
   } catch (error) {
-    console.error('Error in inviteMemberAction:', error)
     return { error: 'An unexpected error occurred' }
   }
 }
@@ -250,14 +246,12 @@ export async function removeMemberAction(
       .eq('id', validated.data.memberId)
 
     if (removeError) {
-      console.error('Error removing member:', removeError)
       return { error: 'Failed to remove member' }
     }
 
     revalidatePath('/dashboard')
     return { data: undefined }
   } catch (error) {
-    console.error('Error in removeMemberAction:', error)
     return { error: 'An unexpected error occurred' }
   }
 }
@@ -318,7 +312,6 @@ export async function transferOwnershipAction(
       .eq('id', currentMembership.workspace_id)
 
     if (workspaceError) {
-      console.error('Error updating workspace owner:', workspaceError)
       return { error: 'Failed to transfer ownership' }
     }
 
@@ -329,7 +322,6 @@ export async function transferOwnershipAction(
       .eq('id', newOwnerMembership.id)
 
     if (newOwnerRoleError) {
-      console.error('Error updating new owner role:', newOwnerRoleError)
       return { error: 'Failed to update new owner role' }
     }
 
@@ -341,14 +333,12 @@ export async function transferOwnershipAction(
       .eq('workspace_id', currentMembership.workspace_id)
 
     if (currentUserRoleError) {
-      console.error('Error updating current user role:', currentUserRoleError)
       return { error: 'Failed to update current user role' }
     }
 
     revalidatePath('/dashboard')
     return { data: undefined }
   } catch (error) {
-    console.error('Error in transferOwnershipAction:', error)
     return { error: 'An unexpected error occurred' }
   }
 }

@@ -38,6 +38,7 @@ export async function middleware(request: NextRequest) {
   // Define route categories
   const isAuthRoute = request.nextUrl.pathname.startsWith('/auth')
   const isVerifyEmailRoute = request.nextUrl.pathname === '/auth/verify-email'
+  const isInviteRoute = request.nextUrl.pathname === '/auth/invite'
   const isProtectedRoute = 
     request.nextUrl.pathname.startsWith('/dashboard') ||
     request.nextUrl.pathname.startsWith('/transactions') ||
@@ -65,11 +66,28 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL('/auth/verify-email', request.url))
       }
     } else {
-      // Redirect verified users away from auth pages (except verify-email for direct links)
-      if (isAuthRoute && !isVerifyEmailRoute) {
+      // Redirect verified users away from auth pages (except verify-email and invite for direct links)
+      if (isAuthRoute && !isVerifyEmailRoute && !isInviteRoute) {
         return NextResponse.redirect(new URL('/dashboard', request.url))
       }
+      
+      // For workspace-dependent routes, let the client-side AuthGuard handle workspace checks
+      // This allows for better UX with loading states and workspace creation flows
     }
+  }
+
+  // Handle invitation token preservation and redirect flow
+  const inviteToken = request.nextUrl.searchParams.get('token') || 
+                     request.nextUrl.searchParams.get('invite_token')
+  
+  // If there's an invitation token, store it in a cookie for later use
+  if (inviteToken && !request.nextUrl.pathname.includes('/auth/invite')) {
+    response.cookies.set('pending_invitation_token', inviteToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 7 // 7 days
+    })
   }
 
   // Handle root path redirect
@@ -77,6 +95,13 @@ export async function middleware(request: NextRequest) {
     if (user) {
       // Check if email is verified before redirecting to dashboard
       if (user.email_confirmed_at) {
+        // Check for pending invitation token (from URL or cookie)
+        const pendingToken = inviteToken || request.cookies.get('pending_invitation_token')?.value
+        if (pendingToken) {
+          // Clear the cookie and redirect to invitation
+          response.cookies.delete('pending_invitation_token')
+          return NextResponse.redirect(new URL(`/auth/invite?token=${pendingToken}`, request.url))
+        }
         return NextResponse.redirect(new URL('/dashboard', request.url))
       } else {
         return NextResponse.redirect(new URL('/auth/verify-email', request.url))
@@ -84,6 +109,18 @@ export async function middleware(request: NextRequest) {
     } else {
       return NextResponse.redirect(new URL('/auth/login', request.url))
     }
+  }
+
+  // Handle email verification completion - redirect to pending invitation if exists
+  if (request.nextUrl.pathname === '/auth/verify-email' && user?.email_confirmed_at) {
+    const pendingToken = request.cookies.get('pending_invitation_token')?.value
+    if (pendingToken) {
+      // Clear the cookie and redirect to invitation
+      response.cookies.delete('pending_invitation_token')
+      return NextResponse.redirect(new URL(`/auth/invite?token=${pendingToken}`, request.url))
+    }
+    // Otherwise redirect to dashboard
+    return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
   return response

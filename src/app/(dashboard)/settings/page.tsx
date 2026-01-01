@@ -1,4 +1,4 @@
-import { ComingSoon } from '@/components/shared/coming-soon'
+import { WorkspaceSettings } from '@/components/shared/workspace-settings'
 
 export default function SettingsPage() {
   return (
@@ -8,14 +8,11 @@ export default function SettingsPage() {
           Settings
         </h1>
         <p className="text-white/60 text-lg">
-          Customize your family finance experience and manage preferences.
+          Manage your workspace and customize your family finance experience.
         </p>
       </div>
 
-      <ComingSoon 
-        title="Settings Coming Soon"
-        description="We're building comprehensive settings for currency preferences, notification controls, and family member management."
-      />
+      <WorkspaceSettings />
     </div>
   )
 }

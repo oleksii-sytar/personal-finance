@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
@@ -15,7 +15,11 @@ import type { ZodError } from 'zod'
  */
 export function RegisterForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { signUp } = useAuth()
+  
+  // Get invitation token from URL if present
+  const inviteToken = searchParams.get('token') || searchParams.get('invite_token')
   
   const [formData, setFormData] = useState<SignUpInput>({
     email: '',
@@ -85,14 +89,38 @@ export function RegisterForm() {
     setSuccessMessage('')
     
     try {
-      const result = await signUp(formData)
+      // Create FormData and include invitation token if present
+      const formDataToSubmit = new FormData()
+      formDataToSubmit.set('email', formData.email)
+      formDataToSubmit.set('password', formData.password)
+      formDataToSubmit.set('confirmPassword', formData.confirmPassword)
+      formDataToSubmit.set('fullName', formData.fullName)
+      
+      if (inviteToken) {
+        formDataToSubmit.set('inviteToken', inviteToken)
+      }
+      
+      // Import and call the server action directly
+      const { signUpAction } = await import('@/actions/auth')
+      const result = await signUpAction(formDataToSubmit)
       
       if (result.error) {
         // Handle server-side errors (Requirement 1.7)
-        if (result.error.includes('already exists')) {
-          setErrors({ email: result.error })
+        if (typeof result.error === 'string') {
+          if (result.error.includes('already exists')) {
+            setErrors({ email: result.error })
+          } else {
+            setErrors({ email: result.error })
+          }
         } else {
-          setErrors({ email: result.error })
+          // Handle validation errors
+          const fieldErrors: Partial<Record<keyof SignUpInput, string>> = {}
+          Object.entries(result.error).forEach(([field, messages]) => {
+            if (Array.isArray(messages) && messages.length > 0) {
+              fieldErrors[field as keyof SignUpInput] = messages[0]
+            }
+          })
+          setErrors(fieldErrors)
         }
       } else {
         // Success - show verification message (Requirement 1.5)
@@ -106,9 +134,12 @@ export function RegisterForm() {
           fullName: '',
         })
         
-        // Redirect to login after a delay
+        // Redirect to login after a delay, preserving invitation token
         setTimeout(() => {
-          router.push('/auth/login')
+          const loginUrl = inviteToken 
+            ? `/auth/login?redirect=${encodeURIComponent(`/auth/invite?token=${inviteToken}`)}`
+            : '/auth/login'
+          router.push(loginUrl)
         }, 3000)
       }
     } catch (error) {
@@ -148,6 +179,7 @@ export function RegisterForm() {
             onChange={handleChange('fullName')}
             error={errors.fullName}
             placeholder="Enter your full name"
+            autoComplete="name"
             disabled={isLoading}
             required
           />
@@ -160,6 +192,7 @@ export function RegisterForm() {
             onChange={handleChange('email')}
             error={errors.email}
             placeholder="Enter your email address"
+            autoComplete="email"
             disabled={isLoading}
             required
           />
@@ -172,6 +205,7 @@ export function RegisterForm() {
             onChange={handleChange('password')}
             error={errors.password}
             placeholder="Create a strong password"
+            autoComplete="new-password"
             disabled={isLoading}
             required
           />
@@ -184,6 +218,7 @@ export function RegisterForm() {
             onChange={handleChange('confirmPassword')}
             error={errors.confirmPassword}
             placeholder="Confirm your password"
+            autoComplete="new-password"
             disabled={isLoading}
             required
           />

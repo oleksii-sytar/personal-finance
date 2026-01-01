@@ -3,9 +3,11 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from './auth-context'
+import { ensureUserProfile } from '@/actions/user-profile'
 import type { 
   Workspace, 
   WorkspaceMember, 
+  WorkspaceMemberWithProfile,
   WorkspaceInvitation,
   WorkspaceResult 
 } from '@/lib/supabase/types'
@@ -17,7 +19,7 @@ import type {
 interface WorkspaceContextType {
   currentWorkspace: Workspace | null
   workspaces: Workspace[]
-  members: WorkspaceMember[]
+  members: WorkspaceMemberWithProfile[]
   invitations: WorkspaceInvitation[]
   loading: boolean
   createWorkspace: (name: string) => Promise<WorkspaceResult<Workspace>>
@@ -42,7 +44,7 @@ const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefin
 export function WorkspaceProvider({ children }: WorkspaceProviderProps) {
   const [currentWorkspace, setCurrentWorkspace] = useState<Workspace | null>(null)
   const [workspaces, setWorkspaces] = useState<Workspace[]>([])
-  const [members, setMembers] = useState<WorkspaceMember[]>([])
+  const [members, setMembers] = useState<WorkspaceMemberWithProfile[]>([])
   const [invitations, setInvitations] = useState<WorkspaceInvitation[]>([])
   const [loading, setLoading] = useState(true)
   
@@ -76,45 +78,26 @@ export function WorkspaceProvider({ children }: WorkspaceProviderProps) {
   /**
    * Load all workspaces for the current user
    * Requirements: 4.1, 4.3
+   * Security: Server-side filtering ensures users only see their workspaces
    */
   const loadWorkspaces = async () => {
     if (!user) return
 
     try {
       setLoading(true)
+      console.log('Loading workspaces for user:', user.id)
 
-      // Get workspaces where user is owner or member
-      const { data: userWorkspaces, error: workspacesError } = await supabase
-        .from('workspace_members')
-        .select(`
-          workspace_id,
-          role,
-          workspaces (
-            id,
-            name,
-            currency,
-            owner_id,
-            created_at,
-            updated_at
-          )
-        `)
-        .eq('user_id', user.id)
+      // Use server action for secure workspace loading
+      const { getUserWorkspaces } = await import('@/actions/workspace')
+      const result = await getUserWorkspaces()
 
-      if (workspacesError) {
-        console.error('Error loading workspaces:', workspacesError)
+      if (result.error) {
+        console.error('Error loading workspaces:', result.error)
         return
       }
 
-      const workspacesList: Workspace[] = []
-      
-      if (userWorkspaces) {
-        for (const item of userWorkspaces) {
-          if (item.workspaces) {
-            workspacesList.push(item.workspaces as unknown as Workspace)
-          }
-        }
-      }
-
+      const workspacesList: Workspace[] = result.data || []
+      console.log('Setting workspaces:', workspacesList)
       setWorkspaces(workspacesList)
 
       // Set current workspace (first one if none selected)
@@ -136,7 +119,11 @@ export function WorkspaceProvider({ children }: WorkspaceProviderProps) {
     if (!user) return
 
     try {
-      // Load workspace members
+      // First, ensure the current user has a profile
+      console.log('Ensuring user profile exists...')
+      await ensureUserProfile()
+
+      // Load workspace members first
       const { data: workspaceMembers, error: membersError } = await supabase
         .from('workspace_members')
         .select(`
@@ -150,9 +137,43 @@ export function WorkspaceProvider({ children }: WorkspaceProviderProps) {
 
       if (membersError) {
         console.error('Error loading workspace members:', membersError)
-      } else {
-        setMembers(workspaceMembers || [])
+        setMembers([])
+        return
       }
+
+      if (!workspaceMembers || workspaceMembers.length === 0) {
+        console.log('No workspace members found')
+        setMembers([])
+        return
+      }
+
+      // Get all user IDs from members
+      const userIds = workspaceMembers.map(member => member.user_id)
+      
+      // Load user profiles for all members
+      const { data: userProfiles, error: profilesError } = await supabase
+        .from('user_profiles')
+        .select(`
+          id,
+          full_name,
+          avatar_url,
+          created_at,
+          updated_at
+        `)
+        .in('id', userIds)
+
+      if (profilesError) {
+        console.error('Error loading user profiles:', profilesError)
+      }
+
+      // Combine members with their profiles
+      const membersWithProfiles = workspaceMembers.map(member => ({
+        ...member,
+        user_profiles: userProfiles?.find(profile => profile.id === member.user_id) || null
+      })) as WorkspaceMemberWithProfile[]
+
+      console.log('Members with profiles:', membersWithProfiles)
+      setMembers(membersWithProfiles)
 
       // Load pending invitations (only if user is owner)
       const currentMember = workspaceMembers?.find(m => m.user_id === user.id)
@@ -227,13 +248,19 @@ export function WorkspaceProvider({ children }: WorkspaceProviderProps) {
    * Requirements: 5.1, 5.2
    */
   const inviteMember = async (email: string): Promise<WorkspaceResult<WorkspaceInvitation>> => {
+    console.log('inviteMember called with:', { email, user: user?.id, currentWorkspace: currentWorkspace?.id })
+    
     if (!user || !currentWorkspace) {
+      console.error('Missing user or workspace:', { user: !!user, currentWorkspace: !!currentWorkspace })
       return { error: 'Authentication and workspace required' }
     }
 
     // Check if user is owner
     const currentMember = members.find(m => m.user_id === user.id)
+    console.log('Current member check:', { currentMember, members: members.length })
+    
     if (currentMember?.role !== 'owner') {
+      console.error('User is not owner:', { role: currentMember?.role })
       return { error: 'Only workspace owners can invite members' }
     }
 
@@ -242,6 +269,14 @@ export function WorkspaceProvider({ children }: WorkspaceProviderProps) {
       const token = crypto.randomUUID()
       const expiresAt = new Date()
       expiresAt.setDate(expiresAt.getDate() + 7) // 7 days expiration
+
+      console.log('Creating invitation with:', {
+        workspace_id: currentWorkspace.id,
+        email: email.toLowerCase().trim(),
+        invited_by: user.id,
+        token,
+        expires_at: expiresAt.toISOString()
+      })
 
       const { data: invitation, error: invitationError } = await supabase
         .from('workspace_invitations')
@@ -256,12 +291,14 @@ export function WorkspaceProvider({ children }: WorkspaceProviderProps) {
         .single()
 
       if (invitationError) {
+        console.error('Invitation creation error:', invitationError)
         if (invitationError.code === '23505') { // Unique constraint violation
           return { error: 'User is already invited to this workspace' }
         }
-        console.error('Error creating invitation:', invitationError)
         return { error: 'Failed to create invitation' }
       }
+
+      console.log('Invitation created successfully:', invitation)
 
       // Refresh invitations
       await loadWorkspaceDetails(currentWorkspace.id)

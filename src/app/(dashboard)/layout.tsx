@@ -4,10 +4,11 @@ import {
   ArrowUpDown, 
   FolderOpen, 
   BarChart3, 
-  Settings,
-  LogOut,
-  User
+  Settings
 } from 'lucide-react'
+import { AuthGuard } from '@/components/shared/auth-guard'
+import { WorkspaceSelector } from '@/components/shared/workspace-selector'
+import { UserProfile } from '@/components/layout/user-profile'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -23,7 +24,8 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
-    <div className="min-h-screen bg-[#1C1917] relative overflow-hidden">
+    <AuthGuard requireWorkspace={false}>
+      <div className="min-h-screen bg-[#1C1917] relative overflow-hidden">
       {/* Ambient Glow */}
       <div className="fixed top-[-50%] right-[-50%] w-full h-full bg-gradient-radial from-[#E6A65D]/15 via-transparent to-transparent pointer-events-none z-0" />
       
@@ -39,8 +41,13 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </div>
         
+        {/* Workspace Selector */}
+        <div className="px-6 py-4 border-b border-white/5">
+          <WorkspaceSelector />
+        </div>
+        
         {/* Navigation */}
-        <nav className="mt-8 px-6">
+        <nav className="mt-4 px-6">
           <div className="space-y-2">
             {navigation.map((item) => (
               <Link
@@ -57,24 +64,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
         {/* User Profile */}
         <div className="absolute bottom-0 w-full p-6 border-t border-white/5">
-          <div className="bg-white/5 backdrop-blur-md border border-white/8 rounded-xl p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
-                  <User className="w-4 h-4 text-white/70" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white/90 truncate">
-                    Family Account
-                  </p>
-                  <p className="text-xs text-white/50">Premium Plan</p>
-                </div>
-              </div>
-              <button className="ml-3 p-2 text-white/50 hover:text-white/90 hover:bg-white/10 rounded-lg transition-all duration-300">
-                <LogOut className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
+          <UserProfile />
         </div>
       </div>
 
@@ -87,5 +77,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </main>
       </div>
     </div>
+    </AuthGuard>
   )
 }

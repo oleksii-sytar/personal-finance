@@ -57,7 +57,6 @@ export async function createTransaction(
       .single()
 
     if (error) {
-      console.error('Transaction creation error:', error)
       return { error: 'Failed to create transaction' }
     }
 
@@ -66,7 +65,6 @@ export async function createTransaction(
     
     return { data: transaction }
   } catch (error) {
-    console.error('Unexpected error in createTransaction:', error)
     return { error: 'An unexpected error occurred' }
   }
 }
@@ -112,7 +110,6 @@ export async function updateTransaction(
       .single()
 
     if (error) {
-      console.error('Transaction update error:', error)
       return { error: 'Failed to update transaction' }
     }
 
@@ -121,7 +118,6 @@ export async function updateTransaction(
     
     return { data: transaction }
   } catch (error) {
-    console.error('Unexpected error in updateTransaction:', error)
     return { error: 'An unexpected error occurred' }
   }
 }
@@ -151,7 +147,6 @@ export async function deleteTransaction(
       .eq('id', id)
 
     if (error) {
-      console.error('Transaction deletion error:', error)
       return { error: 'Failed to delete transaction' }
     }
 
@@ -160,7 +155,6 @@ export async function deleteTransaction(
     
     return { data: { id } }
   } catch (error) {
-    console.error('Unexpected error in deleteTransaction:', error)
     return { error: 'An unexpected error occurred' }
   }
 }

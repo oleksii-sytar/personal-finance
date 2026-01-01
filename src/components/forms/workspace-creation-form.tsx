@@ -2,16 +2,18 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/Button'
+import { LoadingButton } from '@/components/ui/loading-button'
 import { Input } from '@/components/ui/Input'
 import { Card } from '@/components/ui/Card'
 import { useWorkspace } from '@/contexts/workspace-context'
+import { useErrorHandler } from '@/hooks/use-error-handler'
 import { workspaceCreateSchema } from '@/lib/validations/workspace'
 import type { WorkspaceCreateInput } from '@/lib/validations/workspace'
 
 interface WorkspaceCreationFormProps {
   onSuccess?: () => void
   onSkip?: () => void
+  onCancel?: () => void
   showSkipOption?: boolean
 }
 
@@ -22,6 +24,7 @@ interface WorkspaceCreationFormProps {
 export function WorkspaceCreationForm({ 
   onSuccess, 
   onSkip, 
+  onCancel,
   showSkipOption = false 
 }: WorkspaceCreationFormProps) {
   const [formData, setFormData] = useState<WorkspaceCreateInput>({
@@ -32,6 +35,7 @@ export function WorkspaceCreationForm({
   const [isLoading, setIsLoading] = useState(false)
   
   const { createWorkspace } = useWorkspace()
+  const { handleValidationError, handleSuccess, handleError } = useErrorHandler()
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,13 +48,20 @@ export function WorkspaceCreationForm({
       const validated = workspaceCreateSchema.safeParse(formData)
       
       if (!validated.success) {
-        const fieldErrors: Record<string, string> = {}
+        const fieldErrors: Record<string, string[]> = {}
         validated.error.errors.forEach((error) => {
           if (error.path[0]) {
-            fieldErrors[error.path[0] as string] = error.message
+            const field = error.path[0] as string
+            if (!fieldErrors[field]) {
+              fieldErrors[field] = []
+            }
+            fieldErrors[field].push(error.message)
           }
         })
-        setErrors(fieldErrors)
+        setErrors(Object.fromEntries(
+          Object.entries(fieldErrors).map(([key, messages]) => [key, messages[0]])
+        ))
+        handleValidationError(fieldErrors, 'workspace-creation')
         return
       }
 
@@ -60,25 +71,34 @@ export function WorkspaceCreationForm({
       if (result.error) {
         if (typeof result.error === 'string') {
           setErrors({ general: result.error })
+          handleError(result.error, { category: 'workspace' })
         } else {
-          // Handle validation errors from server - convert array errors to strings
-          const fieldErrors: Record<string, string> = {}
+          // Handle validation errors from server - convert to proper format
+          const fieldErrors: Record<string, string[]> = {}
           Object.entries(result.error).forEach(([key, messages]) => {
-            fieldErrors[key] = Array.isArray(messages) ? messages[0] : messages
+            fieldErrors[key] = Array.isArray(messages) ? messages : [messages]
           })
-          setErrors(fieldErrors)
+          setErrors(Object.fromEntries(
+            Object.entries(fieldErrors).map(([key, messages]) => [key, messages[0]])
+          ))
+          handleValidationError(fieldErrors, 'workspace-creation')
         }
         return
       }
 
-      // Success - call onSuccess callback or redirect
+      // Success - show toast and call callback or redirect
+      handleSuccess('Workspace Created', 'Your workspace has been successfully created!')
+      
       if (onSuccess) {
         onSuccess()
       } else {
         router.push('/dashboard')
       }
     } catch (error) {
-      console.error('Error creating workspace:', error)
+      handleError(error instanceof Error ? error : new Error(String(error)), {
+        category: 'workspace',
+        context: { action: 'create_workspace' }
+      })
       setErrors({ general: 'An unexpected error occurred' })
     } finally {
       setIsLoading(false)
@@ -97,17 +117,17 @@ export function WorkspaceCreationForm({
     <Card className="w-full max-w-md mx-auto p-6">
       <div className="space-y-6">
         <div className="text-center space-y-2">
-          <h2 className="text-2xl font-semibold text-text-primary">
+          <h2 className="text-2xl font-semibold text-white/90">
             Create Your Workspace
           </h2>
-          <p className="text-text-secondary">
+          <p className="text-white/60">
             Set up a workspace to start managing your family finances
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor="name" className="text-sm font-medium text-text-primary">
+            <label htmlFor="name" className="text-sm font-medium text-white/90">
               Workspace Name
             </label>
             <Input
@@ -125,7 +145,7 @@ export function WorkspaceCreationForm({
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="currency" className="text-sm font-medium text-text-primary">
+            <label htmlFor="currency" className="text-sm font-medium text-white/90">
               Primary Currency
             </label>
             <select
@@ -133,13 +153,13 @@ export function WorkspaceCreationForm({
               value={formData.currency}
               onChange={(e) => setFormData(prev => ({ ...prev, currency: e.target.value }))}
               disabled={isLoading}
-              className="w-full px-3 py-2 bg-bg-glass border border-white/10 rounded-lg text-text-primary focus:border-accent-primary focus:outline-none focus:ring-2 focus:ring-accent-primary/20"
+              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white/90 focus:border-[#E6A65D] focus:outline-none focus:ring-2 focus:ring-[#E6A65D]/20"
             >
-              <option value="UAH">Ukrainian Hryvnia (UAH)</option>
-              <option value="USD">US Dollar (USD)</option>
-              <option value="EUR">Euro (EUR)</option>
-              <option value="GBP">British Pound (GBP)</option>
-              <option value="PLN">Polish Zloty (PLN)</option>
+              <option value="UAH" className="bg-[#2A1D15] text-white/90">Ukrainian Hryvnia (UAH)</option>
+              <option value="USD" className="bg-[#2A1D15] text-white/90">US Dollar (USD)</option>
+              <option value="EUR" className="bg-[#2A1D15] text-white/90">Euro (EUR)</option>
+              <option value="GBP" className="bg-[#2A1D15] text-white/90">British Pound (GBP)</option>
+              <option value="PLN" className="bg-[#2A1D15] text-white/90">Polish Zloty (PLN)</option>
             </select>
             {errors.currency && (
               <p className="text-sm text-red-500">{errors.currency}</p>
@@ -153,16 +173,18 @@ export function WorkspaceCreationForm({
           )}
 
           <div className="flex flex-col gap-3">
-            <Button
+            <LoadingButton
               type="submit"
-              disabled={isLoading || !formData.name.trim()}
+              loading={isLoading}
+              loadingText="Creating..."
+              disabled={!formData.name.trim()}
               className="w-full"
             >
-              {isLoading ? 'Creating...' : 'Create Workspace'}
-            </Button>
+              Create Workspace
+            </LoadingButton>
 
             {showSkipOption && (
-              <Button
+              <LoadingButton
                 type="button"
                 variant="secondary"
                 onClick={handleSkip}
@@ -170,13 +192,25 @@ export function WorkspaceCreationForm({
                 className="w-full"
               >
                 Skip for Now
-              </Button>
+              </LoadingButton>
+            )}
+
+            {onCancel && (
+              <LoadingButton
+                type="button"
+                variant="secondary"
+                onClick={onCancel}
+                disabled={isLoading}
+                className="w-full"
+              >
+                Cancel
+              </LoadingButton>
             )}
           </div>
         </form>
 
         {showSkipOption && (
-          <p className="text-xs text-text-secondary text-center">
+          <p className="text-xs text-white/50 text-center">
             You can create a workspace later from your settings
           </p>
         )}

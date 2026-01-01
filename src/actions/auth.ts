@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { signUpSchema, signInSchema, resetPasswordSchema } from '@/lib/validations/auth'
+import { logAuthFailure, logError } from '@/lib/utils/error-logging'
 import type { ActionResult } from '@/types/actions'
 
 /**
@@ -24,6 +25,15 @@ export async function signUpAction(formData: FormData): Promise<ActionResult<{ m
     if (!validated.success) {
       return { error: validated.error.flatten() }
     }
+
+    // Get invitation token if provided
+    const inviteToken = formData.get('inviteToken') as string | null
+    
+    // Build redirect URL with invitation token if present
+    let redirectUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/verify-email`
+    if (inviteToken) {
+      redirectUrl += `?token=${inviteToken}`
+    }
   
   const { data, error } = await supabase.auth.signUp({
     email: validated.data.email,
@@ -32,12 +42,16 @@ export async function signUpAction(formData: FormData): Promise<ActionResult<{ m
       data: {
         full_name: validated.data.fullName
       },
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/verify-email`
+      emailRedirectTo: redirectUrl
     }
   })
   
   if (error) {
-    console.error('Sign up error:', error)
+    // Log authentication failure (Requirement 9.4, 9.5)
+    logAuthFailure('signup', {
+      email: validated.data.email,
+      reason: error.message
+    })
     
     // Handle specific error cases (Requirement 1.7)
     if (error.message.includes('already registered')) {
@@ -58,18 +72,20 @@ export async function signUpAction(formData: FormData): Promise<ActionResult<{ m
         })
       
       if (profileError && !profileError.message.includes('duplicate key')) {
-        console.error('Failed to create user profile:', profileError)
         // Don't fail the signup for this, as the trigger might have worked
       }
     } catch (profileError) {
-      console.error('Error creating user profile:', profileError)
       // Don't fail the signup for this
     }
   }
   
   return { data: { message: 'Check your email for verification link' } }
   } catch (error) {
-    console.error('Supabase connection error:', error)
+    // Log system error (Requirement 9.4, 9.5)
+    logError(error instanceof Error ? error : new Error(String(error)), {
+      category: 'auth',
+      additionalContext: { action: 'signup' }
+    })
     
     // Handle Supabase connection issues gracefully
     if (error instanceof Error && error.message.includes('fetch')) {
@@ -105,7 +121,11 @@ export async function signInAction(formData: FormData): Promise<ActionResult<{ m
   })
   
   if (error) {
-    console.error('Sign in error:', error)
+    // Log authentication failure (Requirement 9.4, 9.5)
+    logAuthFailure('login', {
+      email: validated.data.email,
+      reason: error.message
+    })
     
     // Return generic error message for security (Requirement 2.3)
     if (error.message.includes('Email not confirmed')) {
@@ -145,7 +165,7 @@ export async function resetPasswordAction(formData: FormData): Promise<ActionRes
   })
   
   if (error) {
-    console.error('Password reset error:', error)
+    // Password reset errors are handled silently for security
   }
   
   // Always return success message for security (Requirement 3.4)
@@ -170,7 +190,7 @@ export async function verifyEmailAction(token: string): Promise<ActionResult<{ m
     })
     
     if (error) {
-      console.error('Email verification error:', error)
+      // Email verification errors are handled silently
       
       if (error.message.includes('expired')) {
         return { error: 'This verification link has expired. Please request a new one.' }
@@ -182,7 +202,6 @@ export async function verifyEmailAction(token: string): Promise<ActionResult<{ m
     revalidatePath('/', 'layout')
     return { data: { message: 'Your email has been successfully verified!' } }
   } catch (error) {
-    console.error('Verification error:', error)
     return { error: 'An error occurred during verification. Please try again.' }
   }
 }
@@ -191,26 +210,30 @@ export async function verifyEmailAction(token: string): Promise<ActionResult<{ m
  * Server action to resend verification email
  * Requirements: 8.1, 8.2
  */
-export async function resendVerificationAction(email: string): Promise<ActionResult<{ message: string }>> {
+export async function resendVerificationAction(email: string, inviteToken?: string): Promise<ActionResult<{ message: string }>> {
   const supabase = await createClient()
   
   try {
+    // Build redirect URL with invitation token if present
+    let redirectUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/verify-email`
+    if (inviteToken) {
+      redirectUrl += `?token=${inviteToken}`
+    }
+
     const { error } = await supabase.auth.resend({
       type: 'signup',
       email: email,
       options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/verify-email`
+        emailRedirectTo: redirectUrl
       }
     })
     
     if (error) {
-      console.error('Resend verification error:', error)
       return { error: 'Failed to resend verification email. Please try again.' }
     }
     
     return { data: { message: 'Verification email sent! Please check your inbox.' } }
   } catch (error) {
-    console.error('Resend verification error:', error)
     return { error: 'An error occurred. Please try again.' }
   }
 }
@@ -225,10 +248,10 @@ export async function signOutAction(): Promise<void> {
   try {
     const { error } = await supabase.auth.signOut()
     if (error) {
-      console.error('Sign out error:', error)
+      // Sign out errors are handled silently
     }
   } catch (error) {
-    console.error('Sign out error:', error)
+    // Sign out errors are handled silently
   }
   
   revalidatePath('/', 'layout')

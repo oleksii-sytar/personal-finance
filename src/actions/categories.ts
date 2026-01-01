@@ -53,7 +53,6 @@ export async function createCategory(
       .single()
 
     if (error) {
-      console.error('Category creation error:', error)
       return { error: 'Failed to create category' }
     }
 
@@ -62,7 +61,6 @@ export async function createCategory(
     
     return { data: category }
   } catch (error) {
-    console.error('Unexpected error in createCategory:', error)
     return { error: 'An unexpected error occurred' }
   }
 }
@@ -104,7 +102,6 @@ export async function updateCategory(
       .single()
 
     if (error) {
-      console.error('Category update error:', error)
       return { error: 'Failed to update category' }
     }
 
@@ -113,7 +110,6 @@ export async function updateCategory(
     
     return { data: category }
   } catch (error) {
-    console.error('Unexpected error in updateCategory:', error)
     return { error: 'An unexpected error occurred' }
   }
 }
@@ -154,7 +150,6 @@ export async function deleteCategory(
       .eq('id', id)
 
     if (error) {
-      console.error('Category deletion error:', error)
       return { error: 'Failed to delete category' }
     }
 
@@ -163,7 +158,6 @@ export async function deleteCategory(
     
     return { data: { id } }
   } catch (error) {
-    console.error('Unexpected error in deleteCategory:', error)
     return { error: 'An unexpected error occurred' }
   }
 }

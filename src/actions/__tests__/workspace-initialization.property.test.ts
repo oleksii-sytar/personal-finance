@@ -14,7 +14,7 @@ vi.mock('@/lib/supabase/server')
 
 // Mock Next.js revalidatePath
 vi.mock('next/cache', () => ({
-  revalidatePath: vi.fn(),
+  revalidatePath: vi.fn().mockImplementation(() => {}),
 }))
 
 const mockSupabase = {

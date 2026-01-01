@@ -1,12 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { useAuth } from '@/contexts/auth-context'
+import { useErrorHandler } from '@/hooks/use-error-handler'
 import { signInSchema, type SignInInput } from '@/lib/validations/auth'
 import type { ZodError } from 'zod'
 
@@ -16,7 +17,13 @@ import type { ZodError } from 'zod'
  */
 export function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { signIn } = useAuth()
+  const { handleAuthError, handleValidationError, handleSuccess } = useErrorHandler()
+  
+  // Get redirect URL from search params (for invitation flow)
+  const redirectTo = searchParams.get('redirect')
+  const inviteToken = searchParams.get('token') || searchParams.get('invite_token')
   
   const [formData, setFormData] = useState<SignInInput>({
     email: '',
@@ -86,7 +93,10 @@ export function LoginForm() {
       const result = await signIn(formData)
       
       if (result.error) {
-        // Handle server-side errors (Requirement 2.3)
+        // Handle authentication errors with proper logging
+        handleAuthError(result.error, 'login', { email: formData.email })
+        
+        // Set form-specific errors
         if (result.error.includes('Invalid login credentials')) {
           setErrors({ email: 'Invalid email or password' })
         } else if (result.error.includes('Email not confirmed')) {
@@ -95,11 +105,19 @@ export function LoginForm() {
           setErrors({ email: result.error })
         }
       } else {
-        // Success - redirect to dashboard
-        router.push('/dashboard')
+        // Success - show toast and redirect
+        handleSuccess('Welcome back!', 'You have been successfully signed in.')
+        
+        // Redirect to invitation if there's a redirect URL, otherwise dashboard
+        if (redirectTo) {
+          router.push(decodeURIComponent(redirectTo))
+        } else if (inviteToken) {
+          router.push(`/auth/invite?token=${inviteToken}`)
+        } else {
+          router.push('/dashboard')
+        }
       }
     } catch (error) {
-      console.error('Login error:', error)
       setErrors({ email: 'An unexpected error occurred. Please try again.' })
     } finally {
       setIsLoading(false)
@@ -127,6 +145,7 @@ export function LoginForm() {
             onChange={handleChange('email')}
             error={errors.email}
             placeholder="Enter your email"
+            autoComplete="email"
             disabled={isLoading}
             required
           />
@@ -139,6 +158,7 @@ export function LoginForm() {
             onChange={handleChange('password')}
             error={errors.password}
             placeholder="Enter your password"
+            autoComplete="current-password"
             disabled={isLoading}
             required
           />
@@ -179,7 +199,7 @@ export function LoginForm() {
           <p className="text-white/60 text-sm">
             Don't have an account?{' '}
             <Link
-              href="/auth/signup"
+              href={inviteToken ? `/auth/signup?token=${inviteToken}` : '/auth/signup'}
               className="text-[#E6A65D] hover:text-[#F4B76D] transition-colors"
             >
               Create one here

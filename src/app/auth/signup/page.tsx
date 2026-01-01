@@ -1,5 +1,11 @@
+import { Suspense } from 'react'
 import { RegisterForm } from '@/components/forms/register-form'
 import Link from 'next/link'
+
+export const metadata = {
+  title: 'Sign Up | Forma',
+  description: 'Create your Forma account to start managing your family finances',
+}
 
 export default function SignUpPage() {
   return (
@@ -25,7 +31,17 @@ export default function SignUpPage() {
         </div>
 
         {/* Use the RegisterForm component with validation */}
-        <RegisterForm />
+        <Suspense fallback={
+          <div className="animate-pulse space-y-4">
+            <div className="h-12 bg-white/10 rounded-xl" />
+            <div className="h-12 bg-white/10 rounded-xl" />
+            <div className="h-12 bg-white/10 rounded-xl" />
+            <div className="h-12 bg-white/10 rounded-xl" />
+            <div className="h-12 bg-white/10 rounded-xl" />
+          </div>
+        }>
+          <RegisterForm />
+        </Suspense>
       </div>
     </div>
   )

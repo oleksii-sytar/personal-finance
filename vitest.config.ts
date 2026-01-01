@@ -13,6 +13,17 @@ export default defineConfig({
     watch: false,
     reporter: ['verbose'],
     bail: 1, // Stop on first failure for faster feedback
+    // Exclude E2E tests from Vitest (they should run with Playwright)
+    exclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/cypress/**',
+      '**/.{idea,git,cache,output,temp}/**',
+      '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*',
+      '**/tests/e2e/**',
+      '**/*.e2e.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}',
+      '**/*.spec.ts' // Exclude Playwright spec files
+    ]
   },
   resolve: {
     alias: {
