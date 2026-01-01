@@ -12,7 +12,7 @@ CREATE TABLE user_profiles (
 
 -- Create workspace_members table
 CREATE TABLE workspace_members (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     workspace_id UUID REFERENCES workspaces(id) ON DELETE CASCADE,
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
     role TEXT NOT NULL DEFAULT 'member' CHECK (role IN ('owner', 'member')),
@@ -22,7 +22,7 @@ CREATE TABLE workspace_members (
 
 -- Create workspace_invitations table
 CREATE TABLE workspace_invitations (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     workspace_id UUID REFERENCES workspaces(id) ON DELETE CASCADE,
     email TEXT NOT NULL,
     invited_by UUID REFERENCES auth.users(id) NOT NULL,

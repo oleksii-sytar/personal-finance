@@ -43,6 +43,11 @@ export const signInSchema = z.object({
 })
 
 // Password reset request schema - Requirements 3.2
+export const resetPasswordSchema = z.object({
+  email: emailSchema,
+})
+
+// Password reset request schema - Requirements 3.2
 export const passwordResetRequestSchema = z.object({
   email: emailSchema,
 })

@@ -268,10 +268,10 @@ describe('Password Validation Property Tests', () => {
           
           // The core password error should be the same across contexts
           const directPasswordError = directErrors[0]
-          const signupPasswordError = signupErrors.find(err => 
+          const signupPasswordError = signupErrors.find((err: any) => 
             err.includes('8 characters') || err.includes('letter') || err.includes('number')
           )
-          const resetPasswordError = resetErrors.find(err => 
+          const resetPasswordError = resetErrors.find((err: any) => 
             err.includes('8 characters') || err.includes('letter') || err.includes('number')
           )
           

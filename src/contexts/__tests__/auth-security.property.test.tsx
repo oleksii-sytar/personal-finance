@@ -72,11 +72,13 @@ describe('Authentication Security Property Tests', () => {
         }),
         async ({ email, password, errorType }) => {
           // Mock different types of authentication errors
-          const mockError: AuthError = {
+          const mockError = {
             name: 'AuthError',
             message: getErrorMessage(errorType),
             status: getErrorStatus(errorType),
-          }
+            code: errorType,
+            __isAuthError: true
+          } as any
           
           mockSupabase.auth.signInWithPassword.mockResolvedValue({
             data: { user: null, session: null },
@@ -92,7 +94,7 @@ describe('Authentication Security Property Tests', () => {
           })
           
           // Attempt sign in
-          const authResult = await result.current.signIn({ email, password })
+          const authResult = await result.current.signIn({ email, password, rememberMe: false })
           
           // Verify generic error message is returned regardless of specific error type
           expect(authResult.error).toBe('Invalid email or password')
@@ -191,11 +193,13 @@ describe('Authentication Security Property Tests', () => {
           
           // Perform multiple login attempts with different error types
           for (const attempt of loginAttempts) {
-            const mockError: AuthError = {
+            const mockError = {
               name: 'AuthError',
               message: getErrorMessage(attempt.errorType),
               status: getErrorStatus(attempt.errorType),
-            }
+              code: attempt.errorType,
+              __isAuthError: true
+            } as any
             
             mockSupabase.auth.signInWithPassword.mockResolvedValue({
               data: { user: null, session: null },
@@ -205,6 +209,7 @@ describe('Authentication Security Property Tests', () => {
             const authResult = await result.current.signIn({
               email: attempt.email,
               password: attempt.password,
+              rememberMe: false
             })
             
             if (authResult.error) {
@@ -213,7 +218,7 @@ describe('Authentication Security Property Tests', () => {
           }
           
           // Verify all error messages are the same generic message
-          const uniqueMessages = [...new Set(errorMessages)]
+          const uniqueMessages = Array.from(new Set(errorMessages))
           expect(uniqueMessages).toHaveLength(1)
           expect(uniqueMessages[0]).toBe('Invalid email or password')
           
@@ -244,11 +249,13 @@ describe('Authentication Security Property Tests', () => {
         }),
         async ({ email, shouldError, errorType }) => {
           if (shouldError) {
-            const mockError: AuthError = {
+            const mockError = {
               name: 'AuthError',
               message: getResetErrorMessage(errorType),
               status: getResetErrorStatus(errorType),
-            }
+              code: errorType,
+              __isAuthError: true
+            } as any
             
             mockSupabase.auth.resetPasswordForEmail.mockResolvedValue({
               data: null,
@@ -322,6 +329,7 @@ describe('Authentication Security Property Tests', () => {
           const validEmailResult = await result.current.signIn({
             email: validEmail,
             password,
+            rememberMe: false
           })
           
           // Mock error for invalid email format
@@ -337,6 +345,7 @@ describe('Authentication Security Property Tests', () => {
           const invalidEmailResult = await result.current.signIn({
             email: invalidEmail,
             password,
+            rememberMe: false
           })
           
           // Both should return the same generic error message

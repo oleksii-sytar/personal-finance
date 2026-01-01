@@ -26,25 +26,17 @@ supabase --version
 
 ### Local Development Setup
 
+**Note**: We use cloud Supabase exclusively - no local Docker setup required.
+
 ```bash
-# Initialize Supabase in project (first time only)
-supabase init
+# Check project status
+supabase status
 
-# Start local Supabase stack
-supabase start
+# Apply migrations to cloud database
+supabase db push
 
-# This outputs:
-# - API URL: http://127.0.0.1:54321
-# - GraphQL URL: http://127.0.0.1:54321/graphql/v1
-# - Studio URL: http://127.0.0.1:54323
-# - Anon Key: eyJ...
-# - Service Role Key: eyJ...
-
-# Stop local stack
-supabase stop
-
-# Stop and reset database
-supabase stop --no-backup
+# Generate TypeScript types from cloud database
+supabase gen types typescript > src/types/database.ts
 ```
 
 ### Database Operations
@@ -56,17 +48,14 @@ supabase migration new create_transactions_table
 # List migrations
 supabase migration list
 
-# Apply migrations (local)
-supabase db reset
+# Apply migrations to cloud database
+supabase db push
 
-# Generate TypeScript types
-supabase gen types typescript --local > src/types/database.ts
+# Generate TypeScript types from cloud database
+supabase gen types typescript > src/types/database.ts
 
 # Diff local vs remote database
 supabase db diff
-
-# Push migrations to remote
-supabase db push
 
 # Pull remote schema
 supabase db pull
@@ -106,21 +95,15 @@ supabase functions logs calculate-forecast
 
 ### Troubleshooting
 
-**Issue: Docker not running**
+**Issue: Connection failed**
 ```bash
-# Error: Cannot connect to Docker daemon
-# Solution: Start Docker Desktop or Docker service
-sudo systemctl start docker  # Linux
-open -a Docker               # macOS
-```
+# Check project status
+supabase status
 
-**Issue: Port already in use**
-```bash
-# Error: Port 54321 is already in use
-# Solution: Stop other Supabase instances or change port
-supabase stop
-# Or check what's using the port:
-lsof -i :54321
+# Verify environment variables
+vercel env pull .env.local
+
+# Check Supabase Dashboard for service status
 ```
 
 **Issue: Migration failed**
@@ -128,8 +111,8 @@ lsof -i :54321
 # Check migration status
 supabase migration list
 
-# Reset and reapply all migrations
-supabase db reset
+# Check what's different
+supabase db diff
 
 # Repair migration history (if corrupted)
 supabase migration repair --status applied <version>
@@ -138,21 +121,20 @@ supabase migration repair --status applied <version>
 **Issue: Types out of sync**
 ```bash
 # Regenerate types after schema changes
-supabase gen types typescript --local > src/types/database.ts
+supabase gen types typescript > src/types/database.ts
 ```
 
 ### Environment Variables
 
 ```env
-# Local development
-NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
-SUPABASE_SERVICE_KEY=eyJ...
-
-# Production (from Supabase Dashboard)
+# Cloud Supabase (single environment)
 NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 SUPABASE_SERVICE_KEY=eyJ...
+
+# Development settings
+NEXT_PUBLIC_APP_ENV=development
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
 ---
@@ -565,10 +547,10 @@ serve(async (req) => {
 ### Testing Supabase
 
 ```bash
-# Start local Supabase
-supabase start
+# Check connection status
+curl -s http://localhost:3000/status
 
-# Run tests against local instance
+# Run tests against cloud database
 pnpm test:integration
 ```
 

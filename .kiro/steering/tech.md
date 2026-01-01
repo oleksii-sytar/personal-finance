@@ -63,9 +63,9 @@ Forma uses a modern, TypeScript-first stack optimized for rapid development, exc
   - Edge Functions for performance
 
 ### Environment Management
-- **Development**: Local Supabase instance via CLI
-- **Staging**: Supabase project (staging environment)
-- **Production**: Supabase project (production environment)
+- **Development**: Cloud Supabase (single environment)
+- **Preview**: Same Cloud Supabase (PR deployments)
+- **Future Production**: Separate Supabase project (when ready)
 
 ## Development Tools
 
@@ -103,22 +103,16 @@ Forma uses a modern, TypeScript-first stack optimized for rapid development, exc
 
 ### Supabase CLI
 ```bash
-# Start local development
-supabase start
-
-# Stop local development
-supabase stop
+# Check project status
+supabase status
 
 # Generate TypeScript types from database
-supabase gen types typescript --local > src/types/database.ts
+supabase gen types typescript > src/types/database.ts
 
 # Create a new migration
 supabase migration new <migration_name>
 
-# Apply migrations locally
-supabase db reset
-
-# Push migrations to remote
+# Apply migrations to cloud database
 supabase db push
 
 # Pull schema from remote
