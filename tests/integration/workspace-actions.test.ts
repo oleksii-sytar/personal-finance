@@ -13,43 +13,44 @@ describe('Workspace Integration', () => {
   })
 
   it('should be able to query workspaces table', async () => {
-    // Test that we can query the workspaces table
+    // Test that we can query the workspaces table with RLS enabled
     const { data, error } = await supabase
       .from('workspaces')
       .select('id')
       .limit(1)
     
-    // Should not error (even if no data due to RLS)
+    // With RLS enabled, unauthenticated queries should return empty data, not error
     expect(error).toBeNull()
     expect(data).toBeDefined()
     expect(Array.isArray(data)).toBe(true)
+    expect(data).toHaveLength(0) // Should be empty due to RLS
   })
 
   it('should enforce RLS on workspaces table', async () => {
-    // Test that we can query the workspaces table
-    // Note: RLS is currently disabled for development simplicity
+    // Test that RLS is properly enforced
     const { data, error } = await supabase
       .from('workspaces')
       .select('*')
     
-    // Should return data since RLS is disabled for development
+    // Should return empty data due to RLS (no authentication)
     expect(error).toBeNull()
     expect(data).toBeDefined()
     expect(Array.isArray(data)).toBe(true)
-    // Note: In production, we would implement proper RLS policies
+    expect(data).toHaveLength(0) // Should be empty due to RLS
   })
 
   it('should be able to query workspace_members table', async () => {
-    // Test that we can query the workspace_members table
+    // Test that we can query the workspace_members table with RLS
     const { data, error } = await supabase
       .from('workspace_members')
       .select('id')
       .limit(1)
     
-    // Should not error (even if no data due to RLS)
+    // With RLS enabled, unauthenticated queries should return empty data
     expect(error).toBeNull()
     expect(data).toBeDefined()
     expect(Array.isArray(data)).toBe(true)
+    expect(data).toHaveLength(0) // Should be empty due to RLS
   })
 
   it('should be able to query categories table', async () => {
