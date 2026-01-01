@@ -114,6 +114,7 @@ export function WorkspaceProvider({ children }: WorkspaceProviderProps) {
   /**
    * Load members and invitations for a specific workspace
    * Requirements: 5.6, 6.1
+   * Uses Edge Functions to bypass RLS while maintaining security
    */
   const loadWorkspaceDetails = async (workspaceId: string) => {
     if (!user) return
@@ -123,29 +124,30 @@ export function WorkspaceProvider({ children }: WorkspaceProviderProps) {
       console.log('Ensuring user profile exists...')
       await ensureUserProfile()
 
-      // Use server action to load workspace members securely
-      const { getWorkspaceMembers, getWorkspaceInvitations } = await import('@/actions/workspace')
+      // Use Edge Function to load workspace members securely
+      const { workspaceOperations } = await import('@/lib/edge-functions/workspace-operations')
       
-      // Load workspace members
-      const membersResult = await getWorkspaceMembers(workspaceId)
-      if (membersResult.error) {
-        console.error('Error loading workspace members:', membersResult.error)
+      try {
+        // Load workspace members via Edge Function
+        const membersData = await workspaceOperations.getWorkspaceMembers(workspaceId)
+        console.log('Members loaded via Edge Function:', membersData)
+        setMembers(membersData)
+      } catch (error) {
+        console.error('Error loading workspace members via Edge Function:', error)
         setMembers([])
-      } else {
-        console.log('Members with profiles:', membersResult.data)
-        setMembers(membersResult.data || [])
       }
 
-      // Load invitations (only if user is owner)
-      const invitationsResult = await getWorkspaceInvitations(workspaceId)
-      if (invitationsResult.error) {
-        // This is expected for non-owners, so don't log as error
-        if (!invitationsResult.error.includes('Only workspace owners')) {
-          console.error('Error loading invitations:', invitationsResult.error)
+      try {
+        // Load invitations via Edge Function (only works for owners)
+        const invitationsData = await workspaceOperations.getWorkspaceInvitations(workspaceId)
+        console.log('Invitations loaded via Edge Function:', invitationsData)
+        setInvitations(invitationsData)
+      } catch (error) {
+        // This is expected for non-owners
+        if (!error.message.includes('Only workspace owners')) {
+          console.error('Error loading invitations via Edge Function:', error)
         }
         setInvitations([])
-      } else {
-        setInvitations(invitationsResult.data || [])
       }
     } catch (error) {
       console.error('Error in loadWorkspaceDetails:', error)
@@ -203,6 +205,7 @@ export function WorkspaceProvider({ children }: WorkspaceProviderProps) {
   /**
    * Invite a member to the current workspace
    * Requirements: 5.1, 5.2
+   * Uses Edge Function for secure invitation creation
    */
   const inviteMember = async (email: string): Promise<WorkspaceResult<WorkspaceInvitation>> => {
     console.log('inviteMember called with:', { email, user: user?.id, currentWorkspace: currentWorkspace?.id })
@@ -213,23 +216,19 @@ export function WorkspaceProvider({ children }: WorkspaceProviderProps) {
     }
 
     try {
-      // Use server action for secure invitation creation
-      const { createWorkspaceInvitation } = await import('@/actions/workspace')
-      const result = await createWorkspaceInvitation(currentWorkspace.id, email)
+      // Use Edge Function for secure invitation creation
+      const { workspaceOperations } = await import('@/lib/edge-functions/workspace-operations')
+      const invitation = await workspaceOperations.createWorkspaceInvitation(currentWorkspace.id, email)
 
-      if (result.error) {
-        return { error: result.error }
-      }
-
-      console.log('Invitation created successfully:', result.data)
+      console.log('Invitation created successfully via Edge Function:', invitation)
 
       // Refresh workspace details to show new invitation
       await loadWorkspaceDetails(currentWorkspace.id)
 
-      return { data: result.data! }
+      return { data: invitation }
     } catch (error) {
-      console.error('Error in inviteMember:', error)
-      return { error: 'An unexpected error occurred' }
+      console.error('Error in inviteMember via Edge Function:', error)
+      return { error: error.message || 'An unexpected error occurred' }
     }
   }
 
