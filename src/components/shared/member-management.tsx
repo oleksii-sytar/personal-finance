@@ -7,9 +7,6 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { InviteMemberForm } from '@/components/forms/invite-member-form'
 import { useWorkspace } from '@/contexts/workspace-context'
 import { useAuth } from '@/contexts/auth-context'
-import { useOptimisticUpdates } from '@/hooks/use-optimistic-updates'
-import { useErrorHandler } from '@/hooks/use-error-handler'
-import { WorkspaceMembersSkeleton } from './workspace-skeleton'
 import type { WorkspaceMemberWithProfile } from '@/lib/supabase/types'
 
 interface ConfirmationDialogProps {

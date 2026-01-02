@@ -70,7 +70,7 @@ serve(async (req) => {
 
     switch (operation) {
       case 'get_members': {
-        // Get all workspace members with their profiles
+        // Get all workspace members first
         const { data: members, error: membersError } = await supabaseAdmin
           .from('workspace_members')
           .select(`
@@ -78,26 +78,48 @@ serve(async (req) => {
             user_id,
             workspace_id,
             role,
-            joined_at,
-            user_profiles!inner (
-              id,
-              full_name,
-              avatar_url,
-              created_at,
-              updated_at
-            )
+            joined_at
           `)
           .eq('workspace_id', workspace_id)
 
         if (membersError) {
+          console.error('Members query error:', membersError)
           return new Response(
             JSON.stringify({ error: 'Failed to fetch members' }),
             { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           )
         }
 
+        if (!members || members.length === 0) {
+          return new Response(
+            JSON.stringify({ data: [] }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+
+        // Get user profiles for all members
+        const userIds = members.map(m => m.user_id)
+        const { data: profiles, error: profilesError } = await supabaseAdmin
+          .from('user_profiles')
+          .select('*')
+          .in('id', userIds)
+
+        if (profilesError) {
+          console.error('Profiles query error:', profilesError)
+          return new Response(
+            JSON.stringify({ error: 'Failed to fetch member profiles' }),
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          )
+        }
+
+        // Combine members with their profiles
+        const membersWithProfiles = members.map(member => ({
+          ...member,
+          user_profiles: profiles?.find(p => p.id === member.user_id) || null
+        }))
+
         return new Response(
-          JSON.stringify({ data: members }),
+          JSON.stringify({ data: membersWithProfiles }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }

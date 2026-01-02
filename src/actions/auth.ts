@@ -40,7 +40,9 @@ export async function signUpAction(formData: FormData): Promise<ActionResult<{ m
     password: validated.data.password,
     options: {
       data: {
-        full_name: validated.data.fullName
+        full_name: validated.data.fullName,
+        // Store invitation token in user metadata for later retrieval
+        invite_token: inviteToken || null
       },
       emailRedirectTo: redirectUrl
     }
@@ -180,7 +182,7 @@ export async function resetPasswordAction(formData: FormData): Promise<ActionRes
  * Server action for email verification
  * Requirements: 8.1, 8.2, 8.3, 8.4
  */
-export async function verifyEmailAction(token: string): Promise<ActionResult<{ message: string }>> {
+export async function verifyEmailAction(token: string): Promise<ActionResult<{ message: string; inviteToken?: string }>> {
   const supabase = await createClient()
   
   try {
@@ -197,6 +199,51 @@ export async function verifyEmailAction(token: string): Promise<ActionResult<{ m
       }
       
       return { error: 'Invalid or expired verification link.' }
+    }
+    
+    // Check if user has an invitation token in their metadata
+    const user = data.user
+    const inviteToken = user?.user_metadata?.invite_token
+    
+    if (inviteToken) {
+      console.log('User has invitation token, attempting to accept invitation:', inviteToken)
+      
+      try {
+        // Import and call the invitation acceptance function
+        const { acceptInvitation } = await import('@/actions/invitation')
+        const inviteResult = await acceptInvitation(inviteToken)
+        
+        if (inviteResult.success) {
+          console.log('Invitation accepted successfully')
+          revalidatePath('/', 'layout')
+          return { 
+            data: { 
+              message: 'Your email has been verified and you have been added to the workspace!',
+              inviteToken 
+            } 
+          }
+        } else {
+          console.log('Failed to accept invitation:', inviteResult.error)
+          // Don't fail email verification if invitation acceptance fails
+          revalidatePath('/', 'layout')
+          return { 
+            data: { 
+              message: 'Your email has been verified! Please check your invitation link.',
+              inviteToken 
+            } 
+          }
+        }
+      } catch (inviteError) {
+        console.error('Error accepting invitation:', inviteError)
+        // Don't fail email verification if invitation acceptance fails
+        revalidatePath('/', 'layout')
+        return { 
+          data: { 
+            message: 'Your email has been verified! Please check your invitation link.',
+            inviteToken 
+          } 
+        }
+      }
     }
     
     revalidatePath('/', 'layout')

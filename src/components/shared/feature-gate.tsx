@@ -3,6 +3,7 @@
 import { ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { useWorkspace } from '@/contexts/workspace-context'
+import { useWorkspaceModal } from '@/contexts/workspace-modal-context'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Lock, Plus } from 'lucide-react'
@@ -25,6 +26,7 @@ export function FeatureGate({
   requireWorkspace = true 
 }: FeatureGateProps) {
   const { currentWorkspace, workspaces, loading } = useWorkspace()
+  const { openCreateModal } = useWorkspaceModal()
   const router = useRouter()
 
   // Show loading while checking workspace status
@@ -66,7 +68,7 @@ export function FeatureGate({
             
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button
-                onClick={() => router.push('/dashboard')}
+                onClick={openCreateModal}
                 className="flex items-center gap-2"
               >
                 <Plus className="w-4 h-4" />

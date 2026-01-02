@@ -9,30 +9,59 @@ class WorkspaceOperationsClient {
   private supabase = createClient()
 
   private async callEdgeFunction(operation: string, data: any) {
+    console.log('🔧 Edge Function client called:', { operation, data })
+    
     const { data: { session } } = await this.supabase.auth.getSession()
+    console.log('🔑 Session details:', { 
+      hasSession: !!session,
+      hasAccessToken: !!session?.access_token,
+      tokenLength: session?.access_token?.length,
+      expiresAt: session?.expires_at,
+      currentTime: Math.floor(Date.now() / 1000)
+    })
     
     if (!session) {
+      console.error('❌ No session found for Edge Function call')
       throw new Error('Authentication required')
     }
 
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/workspace-operations`,
-      {
+    const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/workspace-operations`
+    console.log('📡 Calling Edge Function URL:', url)
+
+    try {
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ operation, ...data }),
+      })
+
+      console.log('📨 Edge Function response:', { status: response.status, ok: response.ok })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('❌ Edge Function error response text:', errorText)
+        
+        let error
+        try {
+          error = JSON.parse(errorText)
+        } catch {
+          error = { error: errorText }
+        }
+        
+        console.error('❌ Edge Function error parsed:', error)
+        throw new Error(error.error || `HTTP ${response.status}: ${errorText}`)
       }
-    )
 
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.error || 'Edge function call failed')
+      const result = await response.json()
+      console.log('✅ Edge Function success result:', result)
+      return result
+    } catch (fetchError) {
+      console.error('❌ Edge Function fetch error:', fetchError)
+      throw fetchError
     }
-
-    return response.json()
   }
 
   async getWorkspaceMembers(workspaceId: string): Promise<WorkspaceMemberWithProfile[]> {

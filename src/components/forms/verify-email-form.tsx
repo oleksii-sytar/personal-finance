@@ -34,14 +34,12 @@ export function VerifyEmailForm() {
       
       if (token && type === 'email') {
         try {
-          // Verify the email using the token
-          const { error } = await supabase.auth.verifyOtp({
-            token_hash: token,
-            type: 'email'
-          })
+          // Import and call the server action
+          const { verifyEmailAction } = await import('@/actions/auth')
+          const result = await verifyEmailAction(token)
           
-          if (error) {
-            if (error.message.includes('expired')) {
+          if (result.error) {
+            if (typeof result.error === 'string' && result.error.includes('expired')) {
               setVerificationStatus('expired')
               setMessage('This verification link has expired. Please request a new one.')
             } else {
@@ -50,13 +48,21 @@ export function VerifyEmailForm() {
             }
           } else {
             setVerificationStatus('success')
-            setMessage('Your email has been successfully verified! You can now access all features.')
+            setMessage(result.data?.message || 'Your email has been successfully verified!')
             
-            // Redirect based on invitation token or to dashboard
+            // Check if invitation was automatically accepted
+            const hasInviteToken = result.data?.inviteToken || inviteToken
+            
+            // Redirect based on invitation status
             setTimeout(() => {
-              if (inviteToken) {
-                router.push(`/auth/invite?token=${inviteToken}`)
+              if (hasInviteToken && result.data?.message?.includes('added to the workspace')) {
+                // Invitation was automatically accepted, go to dashboard
+                router.push('/dashboard')
+              } else if (hasInviteToken) {
+                // Invitation needs manual acceptance
+                router.push(`/auth/invite?token=${hasInviteToken}`)
               } else {
+                // No invitation, go to dashboard
                 router.push('/dashboard')
               }
             }, 3000)
@@ -88,7 +94,7 @@ export function VerifyEmailForm() {
     }
 
     verifyEmail()
-  }, [searchParams, user, supabase.auth, router])
+  }, [searchParams, user, router, inviteToken])
 
   /**
    * Resend verification email

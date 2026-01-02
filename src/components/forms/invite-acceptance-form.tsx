@@ -44,7 +44,7 @@ export function InviteAcceptanceForm() {
       setError('Invalid invitation link')
       setIsLoading(false)
     }
-  }, [token])
+  }, [token]) // token is stable from useSearchParams
 
   // Also try a second useEffect that runs on mount regardless
   useEffect(() => {

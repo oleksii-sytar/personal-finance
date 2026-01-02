@@ -6,7 +6,6 @@ import { LoadingButton } from '@/components/ui/loading-button'
 import { Input } from '@/components/ui/Input'
 import { Card } from '@/components/ui/Card'
 import { useWorkspace } from '@/contexts/workspace-context'
-import { useErrorHandler } from '@/hooks/use-error-handler'
 import { workspaceCreateSchema } from '@/lib/validations/workspace'
 import type { WorkspaceCreateInput } from '@/lib/validations/workspace'
 
@@ -35,11 +34,11 @@ export function WorkspaceCreationForm({
   const [isLoading, setIsLoading] = useState(false)
   
   const { createWorkspace } = useWorkspace()
-  const { handleValidationError, handleSuccess, handleError } = useErrorHandler()
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('Workspace creation form submitted')
     setErrors({})
     setIsLoading(true)
 
@@ -61,7 +60,6 @@ export function WorkspaceCreationForm({
         setErrors(Object.fromEntries(
           Object.entries(fieldErrors).map(([key, messages]) => [key, messages[0]])
         ))
-        handleValidationError(fieldErrors, 'workspace-creation')
         return
       }
 
@@ -71,7 +69,6 @@ export function WorkspaceCreationForm({
       if (result.error) {
         if (typeof result.error === 'string') {
           setErrors({ general: result.error })
-          handleError(result.error, { category: 'workspace' })
         } else {
           // Handle validation errors from server - convert to proper format
           const fieldErrors: Record<string, string[]> = {}
@@ -81,24 +78,18 @@ export function WorkspaceCreationForm({
           setErrors(Object.fromEntries(
             Object.entries(fieldErrors).map(([key, messages]) => [key, messages[0]])
           ))
-          handleValidationError(fieldErrors, 'workspace-creation')
         }
         return
       }
 
-      // Success - show toast and call callback or redirect
-      handleSuccess('Workspace Created', 'Your workspace has been successfully created!')
-      
+      // Success - call callback or redirect
       if (onSuccess) {
         onSuccess()
       } else {
         router.push('/dashboard')
       }
     } catch (error) {
-      handleError(error instanceof Error ? error : new Error(String(error)), {
-        category: 'workspace',
-        context: { action: 'create_workspace' }
-      })
+      console.error('Workspace creation error:', error)
       setErrors({ general: 'An unexpected error occurred' })
     } finally {
       setIsLoading(false)
