@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -14,6 +15,43 @@ import type { ZodError } from 'zod'
  * Requirements: 3.1, 3.2, 3.3, 3.4
  */
 export function ResetPasswordForm() {
+  const router = useRouter()
+  const { resetPassword, user, loading } = useAuth()
+  
+  // Redirect authenticated users to dashboard (client-side guard)
+  useEffect(() => {
+    if (user) {
+      console.log('Redirecting authenticated user from reset password page')
+      router.replace('/dashboard')
+    }
+  }, [user, router])
+  
+  // Early return for loading state - don't render anything while checking auth
+  if (loading) {
+    return (
+      <Card className="w-full max-w-md mx-auto">
+        <CardContent className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E6A65D]"></div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  // Don't render form if user is authenticated (will be redirected)
+  if (user) {
+    return (
+      <Card className="w-full max-w-md mx-auto">
+        <CardContent className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E6A65D]"></div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return <ResetPasswordFormContent />
+}
+
+function ResetPasswordFormContent() {
   const { resetPassword } = useAuth()
   
   const [formData, setFormData] = useState<PasswordResetRequestInput>({

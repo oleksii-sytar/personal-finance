@@ -1,6 +1,8 @@
 'use client'
 
-import { LogOut, User } from 'lucide-react'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { LogOut, User, Loader2 } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
 
 /**
@@ -9,13 +11,22 @@ import { useAuth } from '@/contexts/auth-context'
  */
 export function UserProfile() {
   const { signOut, user } = useAuth()
+  const router = useRouter()
+  const [isSigningOut, setIsSigningOut] = useState(false)
 
   const handleSignOut = async () => {
     try {
+      setIsSigningOut(true)
       await signOut()
-      // Redirect will be handled by the auth context
+      
+      // Redirect to login with logout success parameter
+      router.push('/auth/login?logout=success')
     } catch (error) {
       console.error('Sign out error:', error)
+      setIsSigningOut(false) // Reset loading state on error
+      
+      // Even on error, redirect to login for security
+      router.push('/auth/login?logout=success')
     }
   }
 
@@ -35,10 +46,15 @@ export function UserProfile() {
         </div>
         <button 
           onClick={handleSignOut}
-          className="ml-3 p-2 text-white/50 hover:text-white/90 hover:bg-white/10 rounded-lg transition-all duration-300"
-          title="Sign Out"
+          disabled={isSigningOut}
+          className="ml-3 p-2 text-white/50 hover:text-white/90 hover:bg-white/10 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          title={isSigningOut ? "Signing out..." : "Sign Out"}
         >
-          <LogOut className="h-4 w-4" />
+          {isSigningOut ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <LogOut className="h-4 w-4" />
+          )}
         </button>
       </div>
     </div>

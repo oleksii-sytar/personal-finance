@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ChevronDown, Plus, Settings, Check } from 'lucide-react'
 import { useWorkspace } from '@/contexts/workspace-context'
-import { WorkspaceCreationForm } from '@/components/forms/workspace-creation-form'
+import { useWorkspaceModal } from '@/contexts/workspace-modal-context'
 import type { Workspace } from '@/lib/supabase/types'
 
 interface WorkspaceSelectorProps {
@@ -17,7 +17,6 @@ interface WorkspaceSelectorProps {
  */
 export function WorkspaceSelector({ className = '' }: WorkspaceSelectorProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const [showCreateForm, setShowCreateForm] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
   
@@ -27,6 +26,8 @@ export function WorkspaceSelector({ className = '' }: WorkspaceSelectorProps) {
     loading, 
     switchWorkspace 
   } = useWorkspace()
+  
+  const { openCreateModal } = useWorkspaceModal()
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -48,12 +49,9 @@ export function WorkspaceSelector({ className = '' }: WorkspaceSelectorProps) {
   }
 
   const handleCreateWorkspace = () => {
+    console.log('Create workspace button clicked')
     setIsOpen(false)
-    setShowCreateForm(true)
-  }
-
-  const handleWorkspaceCreated = () => {
-    setShowCreateForm(false)
+    openCreateModal()
   }
 
   if (loading) {
@@ -158,16 +156,6 @@ export function WorkspaceSelector({ className = '' }: WorkspaceSelectorProps) {
           </div>
         )}
       </div>
-
-      {/* Create Workspace Modal */}
-      {showCreateForm && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <WorkspaceCreationForm
-            onSuccess={handleWorkspaceCreated}
-            onCancel={() => setShowCreateForm(false)}
-          />
-        </div>
-      )}
     </>
   )
 }

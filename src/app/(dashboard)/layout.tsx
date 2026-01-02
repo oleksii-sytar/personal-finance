@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { AuthGuard } from '@/components/shared/auth-guard'
 import { WorkspaceSelector } from '@/components/shared/workspace-selector'
+import { WorkspaceCreationModal } from '@/components/shared/workspace-creation-modal'
 import { UserProfile } from '@/components/layout/user-profile'
 
 const navigation = [
@@ -76,6 +77,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </main>
       </div>
+
+      {/* Global Workspace Creation Modal */}
+      <WorkspaceCreationModal />
     </div>
     </AuthGuard>
   )

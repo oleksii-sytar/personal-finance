@@ -231,6 +231,25 @@ export async function createWorkspaceInvitation(workspaceId: string, email: stri
       return { error: 'Only workspace owners can invite members' }
     }
 
+    // Get workspace details for email
+    const { data: workspace, error: workspaceError } = await supabase
+      .from('workspaces')
+      .select('name')
+      .eq('id', workspaceId)
+      .single()
+
+    if (workspaceError) {
+      console.error('Error fetching workspace:', workspaceError)
+      return { error: 'Workspace not found' }
+    }
+
+    // Get inviter name
+    const { data: inviterProfile } = await supabase
+      .from('user_profiles')
+      .select('full_name')
+      .eq('id', user.id)
+      .single()
+
     // Generate invitation token
     const token = crypto.randomUUID()
     const expiresAt = new Date()
@@ -257,9 +276,114 @@ export async function createWorkspaceInvitation(workspaceId: string, email: stri
       return { error: 'Failed to create invitation' }
     }
 
+    // Send invitation email
+    try {
+      const { sendInvitationEmail } = await import('@/lib/email/invitation-email')
+      const emailResult = await sendInvitationEmail({
+        to: email.toLowerCase().trim(),
+        workspaceName: workspace.name,
+        inviterName: inviterProfile?.full_name || 'Someone',
+        invitationToken: token
+      })
+
+      if (!emailResult.success) {
+        console.warn('Failed to send invitation email:', emailResult.error)
+        // Don't fail the invitation creation if email fails
+      } else {
+        console.log('Invitation email sent successfully to:', email)
+      }
+    } catch (emailError) {
+      console.warn('Error sending invitation email:', emailError)
+      // Don't fail the invitation creation if email fails
+    }
+
     return { data: invitation }
   } catch (error) {
     console.error('Error in createWorkspaceInvitation:', error)
+    return { error: 'An unexpected error occurred' }
+  }
+}
+
+/**
+ * Create a new workspace
+ * Uses service role to ensure proper workspace and membership creation
+ */
+export async function createWorkspace(name: string): Promise<{
+  data?: Workspace
+  error?: string
+}> {
+  try {
+    // Use regular client for authentication
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    
+    if (authError || !user) {
+      return { error: 'Authentication required' }
+    }
+
+    console.log('Server: Creating workspace for user:', user.id, 'name:', name)
+
+    // Use service role client to bypass RLS for workspace creation
+    const supabaseAdmin = createServiceClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    )
+
+    // Create workspace using admin client
+    const { data: workspace, error: workspaceError } = await supabaseAdmin
+      .from('workspaces')
+      .insert({
+        name: name.trim(),
+        owner_id: user.id,
+        currency: 'UAH' // Default currency
+      })
+      .select()
+      .single()
+
+    console.log('Server: Workspace creation result:', { workspace, workspaceError })
+
+    if (workspaceError) {
+      console.error('Server: Error creating workspace:', workspaceError)
+      return { error: 'Failed to create workspace' }
+    }
+
+    // The database trigger should automatically add the owner as a member
+    // But let's verify the membership was created
+    const { data: membership, error: membershipError } = await supabaseAdmin
+      .from('workspace_members')
+      .select('*')
+      .eq('workspace_id', workspace.id)
+      .eq('user_id', user.id)
+      .single()
+
+    console.log('Server: Membership verification:', { membership, membershipError })
+
+    if (membershipError) {
+      console.warn('Server: Membership not found, creating manually:', membershipError)
+      // Create membership manually if trigger didn't work
+      const { error: createMembershipError } = await supabaseAdmin
+        .from('workspace_members')
+        .insert({
+          workspace_id: workspace.id,
+          user_id: user.id,
+          role: 'owner'
+        })
+
+      if (createMembershipError) {
+        console.error('Server: Error creating membership:', createMembershipError)
+        // Don't fail the workspace creation for this
+      }
+    }
+
+    return { data: workspace }
+  } catch (error) {
+    console.error('Server: Error in createWorkspace:', error)
     return { error: 'An unexpected error occurred' }
   }
 }

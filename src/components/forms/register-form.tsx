@@ -1,19 +1,103 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { useAuth } from '@/contexts/auth-context'
+import { usePostLoginCheck } from '@/hooks/use-post-login-check'
+import { PendingInvitationsModal } from '@/components/invitations/pending-invitations-modal'
 import { signUpSchema, type SignUpInput } from '@/lib/validations/auth'
 import type { ZodError } from 'zod'
 
 /**
  * Registration form component with validation and error handling
  * Requirements: 1.2, 1.3, 1.4, 1.7
+ * Now includes post-signup invitation check functionality
  */
 export function RegisterForm() {
+  const router = useRouter()
+  const { signUp, user, loading } = useAuth()
+  
+  // Post-login invitation check (also works after signup)
+  const { 
+    hasPendingInvitations, 
+    pendingInvitations, 
+    isLoading: checkingInvitations,
+    checkComplete 
+  } = usePostLoginCheck()
+  
+  const [showInvitationsModal, setShowInvitationsModal] = useState(false)
+  
+  // Handle post-signup invitation flow
+  useEffect(() => {
+    if (user && checkComplete && !checkingInvitations) {
+      if (hasPendingInvitations && pendingInvitations.length > 0) {
+        console.log('New user has pending invitations, showing modal')
+        setShowInvitationsModal(true)
+      } else {
+        console.log('No pending invitations for new user, redirecting to dashboard')
+        router.replace('/dashboard')
+      }
+    }
+  }, [user, checkComplete, checkingInvitations, hasPendingInvitations, pendingInvitations, router])
+  
+  // Redirect authenticated users to dashboard (client-side guard)
+  useEffect(() => {
+    if (user && !checkingInvitations && checkComplete && !hasPendingInvitations) {
+      console.log('Redirecting authenticated user from register page')
+      router.replace('/dashboard')
+    }
+  }, [user, router, checkingInvitations, checkComplete, hasPendingInvitations])
+  
+  // Early return for loading state - don't render anything while checking auth or invitations
+  if (loading || (user && checkingInvitations)) {
+    return (
+      <Card className="w-full max-w-md mx-auto">
+        <CardContent className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E6A65D]"></div>
+          <p className="ml-3 text-white/60">
+            {loading ? 'Checking authentication...' : 'Checking for invitations...'}
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  // Don't render form if user is authenticated (will be redirected)
+  if (user && checkComplete && !hasPendingInvitations) {
+    return (
+      <Card className="w-full max-w-md mx-auto">
+        <CardContent className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E6A65D]"></div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const handleInvitationsProcessed = () => {
+    // Refresh the page or redirect to dashboard after invitations are processed
+    router.push('/dashboard')
+  }
+
+  return (
+    <>
+      <RegisterFormContent />
+      
+      {/* Pending Invitations Modal */}
+      {showInvitationsModal && pendingInvitations.length > 0 && (
+        <PendingInvitationsModal
+          invitations={pendingInvitations}
+          onClose={() => setShowInvitationsModal(false)}
+          onInvitationsProcessed={handleInvitationsProcessed}
+        />
+      )}
+    </>
+  )
+}
+
+function RegisterFormContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { signUp } = useAuth()
@@ -134,13 +218,9 @@ export function RegisterForm() {
           fullName: '',
         })
         
-        // Redirect to login after a delay, preserving invitation token
-        setTimeout(() => {
-          const loginUrl = inviteToken 
-            ? `/auth/login?redirect=${encodeURIComponent(`/auth/invite?token=${inviteToken}`)}`
-            : '/auth/login'
-          router.push(loginUrl)
-        }, 3000)
+        // For signup, we don't redirect immediately - let the post-login hook handle it
+        // The hook will check for invitations and either show modal or redirect to dashboard
+        console.log('Registration successful, letting post-login hook handle next steps')
       }
     } catch (error) {
       console.error('Registration error:', error)

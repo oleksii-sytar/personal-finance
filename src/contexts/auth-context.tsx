@@ -38,49 +38,27 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false) // Don't block UI
   
   const supabase = createClient()
 
   useEffect(() => {
     // Get initial session
-    const getInitialSession = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession()
-        
-        if (error) {
-          console.error('Error getting session:', error)
-        } else {
-          setSession(session)
-          setUser(session?.user ?? null)
-        }
-      } catch (error) {
-        console.error('Error in getInitialSession:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    getInitialSession()
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setUser(session?.user ?? null)
+    })
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         setSession(session)
         setUser(session?.user ?? null)
-        setLoading(false)
-
-        // Handle specific auth events
-        if (event === 'SIGNED_OUT') {
-          // Clear any cached data on sign out
-          setUser(null)
-          setSession(null)
-        }
       }
     )
 
     return () => subscription.unsubscribe()
-  }, [supabase.auth])
+  }, [])
 
   /**
    * Sign in with email and password
@@ -162,7 +140,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   /**
-   * Sign out current user
+   * Sign out current user and let middleware handle redirect
    * Requirements: 7.1, 7.2, 7.3
    */
   const signOut = async (): Promise<void> => {
@@ -171,9 +149,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (error) {
         console.error('Sign out error:', error)
       }
-      // State will be updated by the auth state change listener
+      
+      // Don't redirect manually - let the middleware handle it
+      // The middleware will detect the user is no longer authenticated
+      // and redirect appropriately with proper logout success handling
     } catch (error) {
       console.error('Sign out error:', error)
+      // Even if there's an error, the auth state will be cleared
+      // and middleware will handle the redirect
     }
   }
 

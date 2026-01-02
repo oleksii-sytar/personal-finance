@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { WorkspaceCreationForm } from '@/components/forms/workspace-creation-form'
 import { useAuth } from '@/contexts/auth-context'
 import { useWorkspace } from '@/contexts/workspace-context'
+import { useWorkspaceModal } from '@/contexts/workspace-modal-context'
 import { Card } from '@/components/ui/Card'
 import { LoadingSpinner } from '@/components/shared/loading-spinner'
 import { Button } from '@/components/ui/Button'
@@ -93,6 +94,7 @@ export function OnboardingFlow() {
   
   const { user } = useAuth()
   const { workspaces, loading: workspaceLoading } = useWorkspace()
+  const { openCreateModal } = useWorkspaceModal()
   const router = useRouter()
 
   // Check if user needs onboarding
@@ -109,7 +111,7 @@ export function OnboardingFlow() {
   }, [user, workspaces, workspaceLoading])
 
   const handleGetStarted = () => {
-    setStep('create-workspace')
+    openCreateModal()
   }
 
   const handleWorkspaceCreated = () => {
@@ -127,7 +129,7 @@ export function OnboardingFlow() {
   }
 
   const handleCreateFromSkipped = () => {
-    setStep('create-workspace')
+    openCreateModal()
   }
 
   if (step === 'loading' || workspaceLoading) {
@@ -217,16 +219,12 @@ export function OnboardingFlow() {
     )
   }
 
+  // Remove the create-workspace step since we're using the modal now
   if (step === 'create-workspace') {
+    // This should not happen anymore, but just in case
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          <WorkspaceCreationForm
-            onSuccess={handleWorkspaceCreated}
-            onSkip={handleSkip}
-            showSkipOption={true}
-          />
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner />
       </div>
     )
   }

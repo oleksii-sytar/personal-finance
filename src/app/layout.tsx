@@ -3,6 +3,7 @@ import { Space_Grotesk, Inter } from 'next/font/google'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { AuthProvider } from '@/contexts/auth-context'
 import { WorkspaceProvider } from '@/contexts/workspace-context'
+import { WorkspaceModalProvider } from '@/contexts/workspace-modal-context'
 import { ErrorBoundary } from '@/components/shared/error-boundary'
 import { ToastProvider } from '@/components/ui/toast'
 import './globals.css'
@@ -37,7 +38,9 @@ export default function RootLayout({
           <ToastProvider>
             <AuthProvider>
               <WorkspaceProvider>
-                {children}
+                <WorkspaceModalProvider>
+                  {children}
+                </WorkspaceModalProvider>
               </WorkspaceProvider>
             </AuthProvider>
           </ToastProvider>
