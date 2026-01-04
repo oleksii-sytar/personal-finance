@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-01-04
+
+### 🎨 UI/UX Improvements
+- **Fixed Ambient Glow Visibility**: Resolved clipping issues with the Executive Lounge ambient glow effect
+- **Enhanced Glow Coverage**: Expanded ambient glow to cover full viewport without being cut off
+- **Improved Visual Atmosphere**: Dual-layer ambient glow system for better luxury aesthetic
+- **Removed Background Transitions**: Eliminated unwanted background transitions on content containers
+- **Streamlined User Flow**: Removed onboarding workspace route, users now go directly to dashboard
+
+### 🐛 Bug Fixes
+- **Performance Optimization**: Fixed excessive API calls in `usePostLoginCheck` hook with debouncing and caching
+- **Navigation Issues**: Resolved global redirect problems from NavigationManager component
+- **Z-Index Layering**: Proper layering of ambient glow behind content but above background
+
+### 🔧 Technical Improvements
+- **Enhanced Ambient Glow System**: Improved positioning and sizing to prevent viewport clipping
+- **Better Overflow Management**: Added proper overflow controls to prevent unwanted scrollbars
+- **Optimized Request Handling**: Implemented request deduplication and throttling for invitation checks
+
 ## [0.2.0] - 2026-01-02
 
 ### 🚀 New Features
