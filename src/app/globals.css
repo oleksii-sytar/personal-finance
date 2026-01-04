@@ -41,8 +41,8 @@
     --shadow-elevated: rgba(230, 166, 93, 0.6); /* Elevated element shadow */
     
     /* Ambient Effects - Luxury Atmosphere (Req 4.6) */
-    --ambient-glow: rgba(230, 166, 93, 0.15); /* Warm ambient glow */
-    --ambient-glow-strong: rgba(230, 166, 93, 0.25); /* Stronger glow for focus states */
+    --ambient-glow: rgba(230, 166, 93, 0.2); /* Enhanced warm ambient glow */
+    --ambient-glow-strong: rgba(230, 166, 93, 0.35); /* Stronger glow for focus states */
     --glass-blur: 16px; /* Glass blur effect */
     
     /* Transition timing - Smooth luxury feel */
@@ -124,6 +124,7 @@
 
   html {
     @apply border-transparent;
+    overflow-x: hidden; /* Prevent horizontal scroll but allow vertical */
   }
 
   /* Apply transitions only to specific UI elements that need them */
@@ -171,13 +172,28 @@
   body::before {
     content: '';
     position: fixed;
+    top: -100%;
+    right: -100%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at 75% 25%, var(--ambient-glow) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0; /* Behind all content but above background */
+    /* Smooth transition for ambient glow */
+    transition: background var(--theme-transition-duration) var(--theme-transition-easing);
+  }
+
+  /* Additional ambient glow layer for better visibility */
+  body::after {
+    content: '';
+    position: fixed;
     top: -50%;
     right: -50%;
-    width: 100%;
-    height: 100%;
-    background: radial-gradient(circle, var(--ambient-glow) 0%, transparent 70%);
+    width: 150%;
+    height: 150%;
+    background: radial-gradient(circle at 80% 20%, var(--ambient-glow-strong) 0%, transparent 50%);
     pointer-events: none;
-    z-index: -1;
+    z-index: 0; /* Same layer as main glow */
     /* Smooth transition for ambient glow */
     transition: background var(--theme-transition-duration) var(--theme-transition-easing);
   }
@@ -418,7 +434,13 @@
 
   /* Enhanced ambient glow utilities */
   .ambient-glow {
-    position: relative;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 0; /* Behind all content but above background */
   }
 
   .ambient-glow::before {
@@ -430,7 +452,6 @@
     height: 100%;
     background: radial-gradient(circle, var(--ambient-glow) 0%, transparent 70%);
     pointer-events: none;
-    z-index: -1;
     /* Smooth transition for ambient glow - Requirement 9.4 */
     transition: background var(--theme-transition-duration) var(--theme-transition-easing);
   }
