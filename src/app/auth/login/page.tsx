@@ -1,5 +1,8 @@
 import { Suspense } from 'react'
-import { LoginForm } from '@/components/forms/login-form'
+import { LazyLoginForm } from '@/components/forms/lazy'
+import { FormLoadingSkeleton } from '@/components/shared/form-loading-skeleton'
+import { AuthSyncManager } from '@/components/shared/auth-sync-manager'
+import { AuthComponentErrorBoundary } from '@/components/shared/auth-component-error-boundary'
 import Link from 'next/link'
 
 export const metadata = {
@@ -10,6 +13,9 @@ export const metadata = {
 export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)] px-6 relative overflow-hidden">
+      {/* AuthSyncManager for cross-tab synchronization */}
+      <AuthSyncManager />
+      
       {/* Ambient Glow */}
       <div className="fixed top-[-50%] right-[-50%] w-full h-full bg-gradient-radial from-[var(--accent-primary)]/15 via-transparent to-transparent pointer-events-none z-0" />
       
@@ -24,17 +30,12 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        {/* Use the LoginForm component with validation */}
-        <Suspense fallback={
-          <div className="animate-pulse space-y-4">
-            <div className="h-12 bg-glass rounded-xl" />
-            <div className="h-12 bg-glass rounded-xl" />
-            <div className="h-4 bg-glass/50 rounded" />
-            <div className="h-12 bg-glass rounded-xl" />
-          </div>
-        }>
-          <LoginForm />
-        </Suspense>
+        {/* Use the LazyLoginForm component with optimized loading */}
+        <AuthComponentErrorBoundary>
+          <Suspense fallback={<FormLoadingSkeleton variant="login" />}>
+            <LazyLoginForm />
+          </Suspense>
+        </AuthComponentErrorBoundary>
       </div>
     </div>
   )

@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import { AcceptInvitationsContent } from '@/components/invitations/accept-invitations-content'
+import { AuthComponentErrorBoundary } from '@/components/shared/auth-component-error-boundary'
 
 export const metadata = {
   title: 'Accept Invitations | Forma',
@@ -14,9 +15,11 @@ export default function AcceptInvitationsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[var(--bg-primary)] to-[var(--bg-secondary)] flex items-center justify-center p-4">
       <div className="w-full max-w-4xl">
-        <Suspense fallback={<AcceptInvitationsLoading />}>
-          <AcceptInvitationsContent />
-        </Suspense>
+        <AuthComponentErrorBoundary>
+          <Suspense fallback={<AcceptInvitationsLoading />}>
+            <AcceptInvitationsContent />
+          </Suspense>
+        </AuthComponentErrorBoundary>
       </div>
     </div>
   )

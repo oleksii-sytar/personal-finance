@@ -5,6 +5,9 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { useAuth } from '@/contexts/auth-context'
+import { AuthPageGuard } from '@/components/shared/auth-page-guard'
+import { VerifyEmailNavigationHandler } from '@/components/shared/auth-navigation-handler'
+import { AuthSyncManager } from '@/components/shared/auth-sync-manager'
 import { createClient } from '@/lib/supabase/client'
 import { CheckCircle, XCircle, Clock, Mail } from 'lucide-react'
 
@@ -12,8 +15,17 @@ import { CheckCircle, XCircle, Clock, Mail } from 'lucide-react'
  * Email verification form component
  * Handles verification links and status checking
  * Requirements: 8.1, 8.2, 8.3, 8.4, 8.5
+ * Wrapped with AuthPageGuard to ensure it only renders on /auth/verify-email
  */
 export function VerifyEmailForm() {
+  return (
+    <AuthPageGuard requiredPath="/auth/verify-email">
+      <VerifyEmailFormImplementation />
+    </AuthPageGuard>
+  )
+}
+
+function VerifyEmailFormImplementation() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user } = useAuth()
@@ -25,6 +37,57 @@ export function VerifyEmailForm() {
   const [verificationStatus, setVerificationStatus] = useState<'loading' | 'success' | 'error' | 'expired' | 'pending'>('loading')
   const [message, setMessage] = useState('')
   const [isResending, setIsResending] = useState(false)
+
+  return (
+    <>
+      {/* AuthNavigationHandler handles post-authentication navigation */}
+      <VerifyEmailNavigationHandler />
+      
+      {/* AuthSyncManager handles cross-tab synchronization */}
+      <AuthSyncManager />
+      
+      <VerifyEmailFormContent 
+        router={router}
+        searchParams={searchParams}
+        user={user}
+        supabase={supabase}
+        inviteToken={inviteToken}
+        verificationStatus={verificationStatus}
+        setVerificationStatus={setVerificationStatus}
+        message={message}
+        setMessage={setMessage}
+        isResending={isResending}
+        setIsResending={setIsResending}
+      />
+    </>
+  )
+}
+
+function VerifyEmailFormContent({
+  router,
+  searchParams,
+  user,
+  supabase,
+  inviteToken,
+  verificationStatus,
+  setVerificationStatus,
+  message,
+  setMessage,
+  isResending,
+  setIsResending
+}: {
+  router: any
+  searchParams: any
+  user: any
+  supabase: any
+  inviteToken: string | null
+  verificationStatus: 'loading' | 'success' | 'error' | 'expired' | 'pending'
+  setVerificationStatus: (status: 'loading' | 'success' | 'error' | 'expired' | 'pending') => void
+  message: string
+  setMessage: (message: string) => void
+  isResending: boolean
+  setIsResending: (isResending: boolean) => void
+}) {
 
   useEffect(() => {
     const verifyEmail = async () => {

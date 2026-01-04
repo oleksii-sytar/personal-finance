@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { signUpSchema, signInSchema, resetPasswordSchema } from '@/lib/validations/auth'
 import { logAuthFailure, logError } from '@/lib/utils/error-logging'
+import { handleNetworkError, retryWithBackoff } from '@/lib/utils/network-fallbacks'
 import type { ActionResult } from '@/types/actions'
 
 /**
@@ -89,10 +90,27 @@ export async function signUpAction(formData: FormData): Promise<ActionResult<{ m
       additionalContext: { action: 'signup' }
     })
     
-    // Handle Supabase connection issues gracefully
-    if (error instanceof Error && error.message.includes('fetch')) {
-      return { 
-        error: 'Database connection unavailable. Please ensure Supabase is running locally or check your connection.' 
+    // Handle network errors with graceful degradation (Requirements: 14.3, 14.4, 14.5)
+    const networkError = handleNetworkError(error, 'user registration')
+    
+    // Provide specific guidance based on error type
+    if (error instanceof Error) {
+      if (error.message.includes('fetch') || error.message.includes('network')) {
+        return { 
+          error: `${networkError.message} Please check your internet connection and try again.`
+        }
+      }
+      
+      if (error.message.includes('timeout')) {
+        return { 
+          error: 'Registration request timed out. Please try again with a stable connection.'
+        }
+      }
+      
+      if (error.message.includes('503') || error.message.includes('502')) {
+        return { 
+          error: 'Registration service is temporarily unavailable. Please try again in a few moments.'
+        }
       }
     }
     
@@ -105,46 +123,71 @@ export async function signUpAction(formData: FormData): Promise<ActionResult<{ m
  * Requirements: 2.1, 2.2, 2.3, 2.5, 2.6
  */
 export async function signInAction(formData: FormData): Promise<ActionResult<{ message: string }>> {
-  const supabase = await createClient()
-  
-  const validated = signInSchema.safeParse({
-    email: formData.get('email'),
-    password: formData.get('password'),
-    rememberMe: formData.get('rememberMe') === 'on'
-  })
-  
-  if (!validated.success) {
-    return { error: validated.error.flatten() }
-  }
-  
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email: validated.data.email,
-    password: validated.data.password,
-  })
-  
-  if (error) {
-    // Log authentication failure (Requirement 9.4, 9.5)
-    logAuthFailure('login', {
-      email: validated.data.email,
-      reason: error.message
+  try {
+    const supabase = await createClient()
+    
+    const validated = signInSchema.safeParse({
+      email: formData.get('email'),
+      password: formData.get('password'),
+      rememberMe: formData.get('rememberMe') === 'on'
     })
     
-    // Return generic error message for security (Requirement 2.3)
-    if (error.message.includes('Email not confirmed')) {
+    if (!validated.success) {
+      return { error: validated.error.flatten() }
+    }
+    
+    // Use retry with backoff for sign in to handle temporary network issues
+    const { data, error } = await retryWithBackoff(
+      () => supabase.auth.signInWithPassword({
+        email: validated.data.email,
+        password: validated.data.password,
+      }),
+      { maxRetries: 2, initialDelay: 1000 }
+    )
+    
+    if (error) {
+      // Log authentication failure (Requirement 9.4, 9.5)
+      logAuthFailure('login', {
+        email: validated.data.email,
+        reason: error.message
+      })
+      
+      // Return generic error message for security (Requirement 2.3)
+      if (error.message.includes('Email not confirmed')) {
+        return { error: 'Please verify your email before signing in' }
+      }
+      
+      return { error: 'Invalid email or password' }
+    }
+    
+    // Check if email is verified (Requirement 1.6, 8.5)
+    if (!data.user.email_confirmed_at) {
+      await supabase.auth.signOut()
       return { error: 'Please verify your email before signing in' }
     }
     
-    return { error: 'Invalid email or password' }
+    revalidatePath('/', 'layout')
+    redirect('/dashboard')
+  } catch (error) {
+    // Handle network errors with graceful degradation (Requirements: 14.3, 14.4, 14.5)
+    const networkError = handleNetworkError(error, 'sign in')
+    
+    if (error instanceof Error) {
+      if (error.message.includes('fetch') || error.message.includes('network')) {
+        return { 
+          error: `${networkError.message} Your credentials will be remembered when connection is restored.`
+        }
+      }
+      
+      if (error.message.includes('timeout')) {
+        return { 
+          error: 'Sign in request timed out. Please try again with a stable connection.'
+        }
+      }
+    }
+    
+    return { error: 'Unable to sign in at this time. Please try again.' }
   }
-  
-  // Check if email is verified (Requirement 1.6, 8.5)
-  if (!data.user.email_confirmed_at) {
-    await supabase.auth.signOut()
-    return { error: 'Please verify your email before signing in' }
-  }
-  
-  revalidatePath('/', 'layout')
-  redirect('/dashboard')
 }
 
 /**
@@ -152,29 +195,48 @@ export async function signInAction(formData: FormData): Promise<ActionResult<{ m
  * Requirements: 3.1, 3.2, 3.3, 3.4
  */
 export async function resetPasswordAction(formData: FormData): Promise<ActionResult<{ message: string }>> {
-  const supabase = await createClient()
-  
-  const validated = resetPasswordSchema.safeParse({
-    email: formData.get('email')
-  })
-  
-  if (!validated.success) {
-    return { error: validated.error.flatten() }
-  }
-  
-  const { error } = await supabase.auth.resetPasswordForEmail(validated.data.email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/reset-password/confirm`
-  })
-  
-  if (error) {
-    // Password reset errors are handled silently for security
-  }
-  
-  // Always return success message for security (Requirement 3.4)
-  return { 
-    data: { 
-      message: 'If an account with that email exists, you will receive a password reset link.' 
-    } 
+  try {
+    const supabase = await createClient()
+    
+    const validated = resetPasswordSchema.safeParse({
+      email: formData.get('email')
+    })
+    
+    if (!validated.success) {
+      return { error: validated.error.flatten() }
+    }
+    
+    // Use retry with backoff for password reset to handle temporary network issues
+    const { error } = await retryWithBackoff(
+      () => supabase.auth.resetPasswordForEmail(validated.data.email, {
+        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/reset-password/confirm`
+      }),
+      { maxRetries: 2, initialDelay: 1000 }
+    )
+    
+    if (error) {
+      // Password reset errors are handled silently for security
+      console.warn('Password reset error:', error.message)
+    }
+    
+    // Always return success message for security (Requirement 3.4)
+    return { 
+      data: { 
+        message: 'If an account with that email exists, you will receive a password reset link.' 
+      } 
+    }
+  } catch (error) {
+    // Handle network errors gracefully (Requirements: 14.3, 14.4, 14.5)
+    const networkError = handleNetworkError(error, 'password reset')
+    
+    // Still return success message for security, but log the network issue
+    console.warn('Network error during password reset:', networkError.message)
+    
+    return { 
+      data: { 
+        message: 'If an account with that email exists, you will receive a password reset link.' 
+      } 
+    }
   }
 }
 

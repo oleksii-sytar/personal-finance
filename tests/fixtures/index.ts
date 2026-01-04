@@ -5,3 +5,4 @@
 
 export * from './transactions'
 export * from './categories'
+export * from './auth-isolation'

@@ -1,7 +1,9 @@
 import { Suspense } from 'react'
-// import { VerifyEmailForm } from '@/components/forms/verify-email-form'
+import { LazyVerifyEmailForm } from '@/components/forms/lazy'
+import { FormLoadingSkeleton } from '@/components/shared/form-loading-skeleton'
+import { AuthSyncManager } from '@/components/shared/auth-sync-manager'
+import { AuthComponentErrorBoundary } from '@/components/shared/auth-component-error-boundary'
 import Link from 'next/link'
-// import { LoadingSpinner } from '@/components/shared/loading-spinner'
 
 export const metadata = {
   title: 'Verify Email | Forma',
@@ -15,6 +17,9 @@ export const metadata = {
 export default function VerifyEmailPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)] px-6 relative overflow-hidden">
+      {/* AuthSyncManager for cross-tab synchronization */}
+      <AuthSyncManager />
+      
       {/* Ambient Glow */}
       <div className="fixed top-[-50%] right-[-50%] w-full h-full bg-gradient-radial from-[var(--accent-primary)]/15 via-transparent to-transparent pointer-events-none z-0" />
       
@@ -35,14 +40,12 @@ export default function VerifyEmailPage() {
           </p>
         </div>
 
-        <div className="glass-card p-8 text-center">
-          <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">
-            Email Verification
-          </h2>
-          <p className="text-[var(--text-secondary)]">
-            This page is under construction. Please check back later.
-          </p>
-        </div>
+        {/* Use the LazyVerifyEmailForm component with optimized loading */}
+        <AuthComponentErrorBoundary>
+          <Suspense fallback={<FormLoadingSkeleton variant="verify" />}>
+            <LazyVerifyEmailForm />
+          </Suspense>
+        </AuthComponentErrorBoundary>
       </div>
     </div>
   )

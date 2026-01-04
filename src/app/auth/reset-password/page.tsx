@@ -1,4 +1,8 @@
-import { ResetPasswordForm } from '@/components/forms/reset-password-form'
+import { Suspense } from 'react'
+import { LazyResetPasswordForm } from '@/components/forms/lazy'
+import { FormLoadingSkeleton } from '@/components/shared/form-loading-skeleton'
+import { AuthSyncManager } from '@/components/shared/auth-sync-manager'
+import { AuthComponentErrorBoundary } from '@/components/shared/auth-component-error-boundary'
 import Link from 'next/link'
 
 export const metadata = {
@@ -9,6 +13,9 @@ export const metadata = {
 export default function ResetPasswordPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)] px-6 relative overflow-hidden">
+      {/* AuthSyncManager for cross-tab synchronization */}
+      <AuthSyncManager />
+      
       {/* Ambient Glow */}
       <div className="fixed top-[-50%] right-[-50%] w-full h-full bg-gradient-radial from-[var(--accent-primary)]/15 via-transparent to-transparent pointer-events-none z-0" />
       
@@ -23,8 +30,12 @@ export default function ResetPasswordPage() {
           </Link>
         </div>
 
-        {/* Use the ResetPasswordForm component */}
-        <ResetPasswordForm />
+        {/* Use the LazyResetPasswordForm component with optimized loading */}
+        <AuthComponentErrorBoundary>
+          <Suspense fallback={<FormLoadingSkeleton variant="reset" />}>
+            <LazyResetPasswordForm />
+          </Suspense>
+        </AuthComponentErrorBoundary>
       </div>
     </div>
   )

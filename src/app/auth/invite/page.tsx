@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import { AuthComponentErrorBoundary } from '@/components/shared/auth-component-error-boundary'
 // import { InviteAcceptanceForm } from '@/components/forms/invite-acceptance-form'
 // import { Card } from '@/components/ui/Card'
 
@@ -18,14 +19,16 @@ export default function InvitePage() {
       <div className="fixed top-0 right-0 w-96 h-96 bg-gradient-radial from-[var(--accent-primary)]/20 to-transparent rounded-full blur-3xl pointer-events-none" />
       
       <div className="w-full max-w-md">
-        <div className="glass-card p-8 text-center">
-          <h1 className="text-2xl font-semibold text-[var(--text-primary)] mb-4">
-            Accept Invitation
-          </h1>
-          <p className="text-[var(--text-secondary)]">
-            This page is under construction. Please check back later.
-          </p>
-        </div>
+        <AuthComponentErrorBoundary>
+          <div className="glass-card p-8 text-center">
+            <h1 className="text-2xl font-semibold text-[var(--text-primary)] mb-4">
+              Accept Invitation
+            </h1>
+            <p className="text-[var(--text-secondary)]">
+              This page is under construction. Please check back later.
+            </p>
+          </div>
+        </AuthComponentErrorBoundary>
       </div>
     </div>
   )

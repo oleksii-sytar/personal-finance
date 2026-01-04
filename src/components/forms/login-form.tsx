@@ -10,26 +10,36 @@ import { useAuth } from '@/contexts/auth-context'
 import { useErrorHandler } from '@/hooks/use-error-handler'
 import { usePostLoginCheck } from '@/hooks/use-post-login-check'
 import { PendingInvitationsModal } from '@/components/invitations/pending-invitations-modal'
+import { AuthPageGuard } from '@/components/shared/auth-page-guard'
+import { LoginNavigationHandler } from '@/components/shared/auth-navigation-handler'
+import { AuthSyncManager } from '@/components/shared/auth-sync-manager'
 import { signInSchema, type SignInInput } from '@/lib/validations/auth'
+import { 
+  extractReturnUrl, 
+  determinePostAuthDestination, 
+  clearReturnUrl 
+} from '@/lib/utils/return-url'
 import type { ZodError } from 'zod'
 
 /**
  * Login form component with validation and error handling
  * Requirements: 2.1, 2.2, 2.3, 2.5, 2.6
  * Now includes post-login invitation check functionality
+ * Wrapped with AuthPageGuard to ensure it only renders on /auth/login
  */
 export function LoginForm() {
+  return (
+    <AuthPageGuard requiredPath="/auth/login">
+      <LoginFormImplementation />
+    </AuthPageGuard>
+  )
+}
+
+function LoginFormImplementation() {
   const router = useRouter()
   const { signIn, user, loading } = useAuth()
   
-  // Check if we're on the correct page
-  const [isOnLoginPage, setIsOnLoginPage] = useState(false)
-  
-  useEffect(() => {
-    setIsOnLoginPage(window.location.pathname === '/auth/login')
-  }, [])
-  
-  // Post-login invitation check - only when on login page
+  // Post-login invitation check
   const { 
     hasPendingInvitations, 
     pendingInvitations, 
@@ -39,35 +49,13 @@ export function LoginForm() {
   
   const [showInvitationsModal, setShowInvitationsModal] = useState(false)
   
-  // Handle post-login invitation flow - only when on login page
+  // Handle post-login invitation modal display
   useEffect(() => {
-    if (!isOnLoginPage) return
-    
-    if (user && checkComplete && !checkingInvitations) {
-      if (hasPendingInvitations && pendingInvitations.length > 0) {
-        console.log('User has pending invitations, showing modal')
-        setShowInvitationsModal(true)
-      } else {
-        console.log('No pending invitations, redirecting to dashboard')
-        router.replace('/dashboard')
-      }
+    if (user && checkComplete && !checkingInvitations && hasPendingInvitations && pendingInvitations.length > 0) {
+      console.log('User has pending invitations, showing modal')
+      setShowInvitationsModal(true)
     }
-  }, [isOnLoginPage, user, checkComplete, checkingInvitations, hasPendingInvitations, pendingInvitations, router])
-  
-  // Redirect authenticated users to dashboard (client-side guard) - only when on login page
-  useEffect(() => {
-    if (!isOnLoginPage) return
-    
-    if (user && !checkingInvitations && checkComplete && !hasPendingInvitations) {
-      console.log('Redirecting authenticated user from login page')
-      router.replace('/dashboard')
-    }
-  }, [isOnLoginPage, user, router, checkingInvitations, checkComplete, hasPendingInvitations])
-  
-  // Don't render anything if not on login page
-  if (!isOnLoginPage) {
-    return null
-  }
+  }, [user, checkComplete, checkingInvitations, hasPendingInvitations, pendingInvitations])
   
   // Early return for loading state - don't render anything while checking auth or invitations
   if (loading || (user && checkingInvitations)) {
@@ -83,17 +71,6 @@ export function LoginForm() {
     )
   }
 
-  // Don't render form if user is authenticated (will be redirected)
-  if (user && checkComplete && !hasPendingInvitations) {
-    return (
-      <Card className="w-full max-w-md mx-auto">
-        <CardContent className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-primary)]"></div>
-        </CardContent>
-      </Card>
-    )
-  }
-
   const handleInvitationsProcessed = () => {
     // Refresh the page or redirect to dashboard after invitations are processed
     router.push('/dashboard')
@@ -101,6 +78,12 @@ export function LoginForm() {
 
   return (
     <>
+      {/* AuthNavigationHandler handles all post-authentication navigation */}
+      <LoginNavigationHandler />
+      
+      {/* AuthSyncManager handles cross-tab synchronization */}
+      <AuthSyncManager />
+      
       <LoginFormContent />
       
       {/* Pending Invitations Modal */}
@@ -121,10 +104,11 @@ function LoginFormContent() {
   const { signIn } = useAuth()
   const { handleAuthError, handleValidationError, handleSuccess } = useErrorHandler()
   
-  // Get redirect URL from search params (for invitation flow)
-  const redirectTo = searchParams.get('redirect')
+  // Extract return URL using the new utility system
+  const returnUrl = extractReturnUrl(searchParams)
   const inviteToken = searchParams.get('token') || searchParams.get('invite_token')
   const logoutSuccess = searchParams.get('logout')
+  const reason = searchParams.get('reason') // expired, required, invalid
   
   const [formData, setFormData] = useState<SignInInput>({
     email: '',
@@ -135,6 +119,7 @@ function LoginFormContent() {
   const [errors, setErrors] = useState<Partial<Record<keyof SignInInput, string>>>({})
   const [isLoading, setIsLoading] = useState(false)
   const [showLogoutMessage, setShowLogoutMessage] = useState(false)
+  const [showReasonMessage, setShowReasonMessage] = useState(false)
 
   // Show logout success message
   useEffect(() => {
@@ -154,6 +139,50 @@ function LoginFormContent() {
       return () => clearTimeout(timer)
     }
   }, [logoutSuccess])
+
+  // Show reason message (session expired, etc.)
+  useEffect(() => {
+    if (reason) {
+      setShowReasonMessage(true)
+      
+      // Clean up the URL by removing the reason parameter
+      const newUrl = new URL(window.location.href)
+      newUrl.searchParams.delete('reason')
+      window.history.replaceState({}, '', newUrl.toString())
+      
+      // Hide message after 8 seconds
+      const timer = setTimeout(() => {
+        setShowReasonMessage(false)
+      }, 8000)
+      
+      return () => clearTimeout(timer)
+    }
+  }, [reason])
+
+  const getReasonMessage = () => {
+    switch (reason) {
+      case 'expired':
+        return {
+          title: 'Session Expired',
+          message: 'Your session has expired. Please sign in again to continue.',
+          type: 'warning' as const
+        }
+      case 'required':
+        return {
+          title: 'Authentication Required',
+          message: 'Please sign in to access this page.',
+          type: 'info' as const
+        }
+      case 'invalid':
+        return {
+          title: 'Invalid Session',
+          message: 'Your session is invalid. Please sign in again.',
+          type: 'warning' as const
+        }
+      default:
+        return null
+    }
+  }
 
   /**
    * Handle form field changes
@@ -223,16 +252,8 @@ function LoginFormContent() {
           setErrors({ email: result.error })
         }
       } else {
-        // Success - check for invitations or redirect
-        if (redirectTo) {
-          window.location.href = decodeURIComponent(redirectTo)
-        } else if (inviteToken) {
-          window.location.href = `/auth/invite?token=${inviteToken}`
-        } else {
-          // Let the post-login hook handle invitation checking and redirection
-          // The hook will either show invitations modal or redirect to dashboard
-          console.log('Login successful, letting post-login hook handle next steps')
-        }
+        // Success - AuthNavigationHandler will handle the navigation
+        console.log('Login successful, AuthNavigationHandler will handle navigation')
       }
     } catch (error) {
       setErrors({ email: 'An unexpected error occurred. Please try again.' })
@@ -263,6 +284,38 @@ function LoginFormContent() {
               <span className="text-sm font-medium">Signed out successfully</span>
             </div>
             <p className="text-xs text-[var(--accent-success)]/80 mt-1">You have been safely signed out of your account.</p>
+          </div>
+        )}
+
+        {/* Reason Message (session expired, etc.) */}
+        {showReasonMessage && getReasonMessage() && (
+          <div className={`mb-4 p-3 rounded-lg ${
+            getReasonMessage()?.type === 'warning' 
+              ? 'bg-[var(--accent-warning)]/10 border border-[var(--accent-warning)]/20' 
+              : 'bg-[var(--accent-info)]/10 border border-[var(--accent-info)]/20'
+          }`}>
+            <div className={`flex items-center gap-2 ${
+              getReasonMessage()?.type === 'warning' 
+                ? 'text-[var(--accent-warning)]' 
+                : 'text-[var(--accent-info)]'
+            }`}>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+              <span className="text-sm font-medium">{getReasonMessage()?.title}</span>
+            </div>
+            <p className={`text-xs mt-1 ${
+              getReasonMessage()?.type === 'warning' 
+                ? 'text-[var(--accent-warning)]/80' 
+                : 'text-[var(--accent-info)]/80'
+            }`}>
+              {getReasonMessage()?.message}
+            </p>
+            {returnUrl && (
+              <p className="text-xs mt-1 text-[var(--text-muted)]">
+                You'll be redirected to: {returnUrl}
+              </p>
+            )}
           </div>
         )}
         

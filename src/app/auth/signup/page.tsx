@@ -1,5 +1,8 @@
 import { Suspense } from 'react'
-import { RegisterForm } from '@/components/forms/register-form'
+import { LazyRegisterForm } from '@/components/forms/lazy'
+import { FormLoadingSkeleton } from '@/components/shared/form-loading-skeleton'
+import { AuthSyncManager } from '@/components/shared/auth-sync-manager'
+import { AuthComponentErrorBoundary } from '@/components/shared/auth-component-error-boundary'
 import Link from 'next/link'
 
 export const metadata = {
@@ -10,6 +13,9 @@ export const metadata = {
 export default function SignUpPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)] px-6 relative overflow-hidden">
+      {/* AuthSyncManager for cross-tab synchronization */}
+      <AuthSyncManager />
+      
       {/* Ambient Glow */}
       <div className="fixed top-[-50%] right-[-50%] w-full h-full bg-gradient-radial from-[var(--accent-primary)]/15 via-transparent to-transparent pointer-events-none z-0" />
       
@@ -30,18 +36,12 @@ export default function SignUpPage() {
           </p>
         </div>
 
-        {/* Use the RegisterForm component with validation */}
-        <Suspense fallback={
-          <div className="animate-pulse space-y-4">
-            <div className="h-12 bg-glass rounded-xl" />
-            <div className="h-12 bg-glass rounded-xl" />
-            <div className="h-12 bg-glass rounded-xl" />
-            <div className="h-12 bg-glass rounded-xl" />
-            <div className="h-12 bg-glass rounded-xl" />
-          </div>
-        }>
-          <RegisterForm />
-        </Suspense>
+        {/* Use the LazyRegisterForm component with optimized loading */}
+        <AuthComponentErrorBoundary>
+          <Suspense fallback={<FormLoadingSkeleton variant="register" />}>
+            <LazyRegisterForm />
+          </Suspense>
+        </AuthComponentErrorBoundary>
       </div>
     </div>
   )

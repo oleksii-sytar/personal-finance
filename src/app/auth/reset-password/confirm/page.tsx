@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
-import { ResetPasswordConfirmForm } from '@/components/forms/reset-password-confirm-form'
+import { LazyResetPasswordConfirmForm } from '@/components/forms/lazy'
+import { FormLoadingSkeleton } from '@/components/shared/form-loading-skeleton'
 import Link from 'next/link'
 
 export const metadata = {
@@ -8,7 +9,11 @@ export const metadata = {
 }
 
 function ResetPasswordConfirmContent() {
-  return <ResetPasswordConfirmForm />
+  return (
+    <Suspense fallback={<FormLoadingSkeleton variant="reset" />}>
+      <LazyResetPasswordConfirmForm />
+    </Suspense>
+  )
 }
 
 export default function ResetPasswordConfirmPage() {
