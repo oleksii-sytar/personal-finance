@@ -1,9 +1,11 @@
 'use client'
 
 import { createPortal } from 'react-dom'
+import { Suspense } from 'react'
 import { useWorkspaceModal } from '@/contexts/workspace-modal-context'
 import { useWorkspace } from '@/contexts/workspace-context'
-import { WorkspaceCreationForm } from '@/components/forms/workspace-creation-form'
+import { LazyWorkspaceCreationForm } from '@/components/forms/lazy'
+import { FormLoadingSkeleton } from '@/components/shared/form-loading-skeleton'
 
 /**
  * Global workspace creation modal that can be triggered from anywhere
@@ -29,10 +31,12 @@ export function WorkspaceCreationModal() {
 
   return createPortal(
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-[9999]">
-      <WorkspaceCreationForm
-        onSuccess={handleSuccess}
-        onCancel={handleCancel}
-      />
+      <Suspense fallback={<FormLoadingSkeleton variant="workspace" />}>
+        <LazyWorkspaceCreationForm
+          onSuccess={handleSuccess}
+          onCancel={handleCancel}
+        />
+      </Suspense>
     </div>,
     document.body
   )

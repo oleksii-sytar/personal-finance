@@ -2,10 +2,10 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 /**
- * Authentication middleware for Forma
- * Handles session refresh, route protection, and email verification
- * Following the design document specifications
- * Requirements: 1.6, 4.5, 8.5
+ * Simplified Authentication middleware for Forma
+ * Focuses on basic session validation and token refresh only
+ * Complex redirect logic moved to client-side components
+ * Requirements: 7.1, 7.2, 7.4, 7.5
  */
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
@@ -32,13 +32,11 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // Refresh session if expired - required for Server Components
+  // Basic session validation and token refresh - required for Server Components
   const { data: { user } } = await supabase.auth.getUser()
 
   // Define route categories
   const isAuthRoute = request.nextUrl.pathname.startsWith('/auth')
-  const isVerifyEmailRoute = request.nextUrl.pathname === '/auth/verify-email'
-  const isInviteRoute = request.nextUrl.pathname === '/auth/invite'
   const isProtectedRoute = 
     request.nextUrl.pathname.startsWith('/dashboard') ||
     request.nextUrl.pathname.startsWith('/transactions') ||
@@ -47,50 +45,19 @@ export async function middleware(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/reports') ||
     request.nextUrl.pathname.startsWith('/settings')
 
-  // Handle unauthenticated users
+  // Only handle basic authentication for protected routes
   if (!user && isProtectedRoute) {
-    // Check if this is a page refresh by looking for specific headers
-    const isPageRefresh = request.headers.get('cache-control') === 'max-age=0' ||
-                         request.headers.get('sec-fetch-mode') === 'navigate'
-    
-    // For page refreshes, let the client-side AuthGuard handle authentication
-    // This prevents redirect loops during session refresh
-    if (isPageRefresh) {
-      return response
-    }
-    
-    // For direct navigation without auth, redirect to login
+    // Capture return URL for restoration after authentication
+    const returnUrl = encodeURIComponent(request.nextUrl.pathname + request.nextUrl.search)
     const redirectUrl = new URL('/auth/login', request.url)
-    redirectUrl.searchParams.set('redirectTo', request.nextUrl.pathname)
+    redirectUrl.searchParams.set('returnUrl', returnUrl)
     return NextResponse.redirect(redirectUrl)
   }
 
-  // Handle authenticated users
-  if (user) {
-    // Check email verification status (Requirements 1.6, 4.5, 8.5)
-    const isEmailVerified = !!user.email_confirmed_at
-    
-    if (!isEmailVerified) {
-      // Allow access to verify-email page and auth routes for unverified users
-      if (!isVerifyEmailRoute && !isAuthRoute) {
-        return NextResponse.redirect(new URL('/auth/verify-email', request.url))
-      }
-    } else {
-      // Redirect verified users away from auth pages (except verify-email and invite for direct links)
-      if (isAuthRoute && !isVerifyEmailRoute && !isInviteRoute) {
-        return NextResponse.redirect(new URL('/dashboard', request.url))
-      }
-      
-      // For workspace-dependent routes, let the client-side AuthGuard handle workspace checks
-      // This allows for better UX with loading states and workspace creation flows
-    }
-  }
-
-  // Handle invitation token preservation and redirect flow
+  // Handle invitation token preservation (minimal logic)
   const inviteToken = request.nextUrl.searchParams.get('token') || 
                      request.nextUrl.searchParams.get('invite_token')
   
-  // If there's an invitation token, store it in a cookie for later use
   if (inviteToken && !request.nextUrl.pathname.includes('/auth/invite')) {
     response.cookies.set('pending_invitation_token', inviteToken, {
       httpOnly: true,
@@ -100,37 +67,13 @@ export async function middleware(request: NextRequest) {
     })
   }
 
-  // Handle root path redirect
+  // Simple root path handling - let client-side components handle complex logic
   if (request.nextUrl.pathname === '/') {
     if (user) {
-      // Check if email is verified before redirecting to dashboard
-      if (user.email_confirmed_at) {
-        // Check for pending invitation token (from URL or cookie)
-        const pendingToken = inviteToken || request.cookies.get('pending_invitation_token')?.value
-        if (pendingToken) {
-          // Clear the cookie and redirect to invitation
-          response.cookies.delete('pending_invitation_token')
-          return NextResponse.redirect(new URL(`/auth/invite?token=${pendingToken}`, request.url))
-        }
-        return NextResponse.redirect(new URL('/dashboard', request.url))
-      } else {
-        return NextResponse.redirect(new URL('/auth/verify-email', request.url))
-      }
+      return NextResponse.redirect(new URL('/dashboard', request.url))
     } else {
       return NextResponse.redirect(new URL('/auth/login', request.url))
     }
-  }
-
-  // Handle email verification completion - redirect to pending invitation if exists
-  if (request.nextUrl.pathname === '/auth/verify-email' && user?.email_confirmed_at) {
-    const pendingToken = request.cookies.get('pending_invitation_token')?.value
-    if (pendingToken) {
-      // Clear the cookie and redirect to invitation
-      response.cookies.delete('pending_invitation_token')
-      return NextResponse.redirect(new URL(`/auth/invite?token=${pendingToken}`, request.url))
-    }
-    // Otherwise redirect to dashboard
-    return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
   return response

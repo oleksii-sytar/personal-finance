@@ -1,0 +1,705 @@
+/**
+ * Integration Test: Cross-Tab Authentication Scenarios
+ * 
+ * **Task 14.2: Test cross-tab authentication scenarios**
+ * **Validates: Requirements 13.1, 13.2, 13.3, 13.4, 13.5**
+ * 
+ * This test verifies that authentication state synchronization works correctly
+ * across multiple browser tabs, ensuring consistent user experience.
+ * 
+ * **Feature: auth-page-refresh-fix, Task 14.2: Cross-Tab Authentication Integration**
+ */
+
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { render, screen, waitFor, act } from '@testing-library/react'
+import { AuthProvider } from '@/contexts/auth-context'
+import { WorkspaceProvider } from '@/contexts/workspace-context'
+import { AuthSyncManager } from '@/components/shared/auth-sync-manager'
+import { createClient } from '@/lib/supabase/client'
+import { sessionManager } from '@/lib/session/session-manager'
+
+// Mock Next.js navigation
+vi.mock('next/navigation', () => ({
+  useRouter: vi.fn(),
+  usePathname: vi.fn(() => '/dashboard'),
+  useSearchParams: vi.fn(() => ({
+    get: vi.fn(() => null),
+    toString: vi.fn(() => ''),
+  })),
+}))
+
+// Mock Supabase client
+vi.mock('@/lib/supabase/client', () => ({
+  createClient: vi.fn(),
+}))
+
+// Mock session manager
+vi.mock('@/lib/session/session-manager', () => ({
+  sessionManager: {
+    validateSession: vi.fn(),
+    getState: vi.fn(),
+    clearSession: vi.fn(),
+  },
+}))
+
+// Mock return URL utility
+vi.mock('@/lib/utils/return-url', () => ({
+  createLoginUrlWithReturn: vi.fn(() => '/auth/login?returnUrl=%2Fdashboard'),
+}))
+
+// Mock post-login check hook
+vi.mock('@/hooks/use-post-login-check', () => ({
+  usePostLoginCheck: vi.fn(() => ({
+    hasPendingInvitations: false,
+    pendingInvitations: [],
+    isLoading: false,
+    error: null,
+    checkComplete: true,
+  })),
+}))
+
+// Mock auth context
+vi.mock('@/contexts/auth-context', () => ({
+  useAuth: vi.fn(),
+  AuthProvider: ({ children }: any) => children,
+}))
+
+const mockUseAuth = vi.mocked(await import('@/contexts/auth-context')).useAuth
+
+describe('Cross-Tab Authentication Integration Tests', () => {
+  let mockLocalStorage: { [key: string]: string }
+  let mockSessionStorage: { [key: string]: string }
+  let mockAddEventListener: ReturnType<typeof vi.fn>
+  let mockRemoveEventListener: ReturnType<typeof vi.fn>
+  let mockDispatchEvent: ReturnType<typeof vi.fn>
+
+  const mockSignOut = vi.fn()
+  const mockValidateSession = vi.fn()
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    
+    // Reset storage mocks
+    mockLocalStorage = {}
+    mockSessionStorage = {}
+    mockAddEventListener = vi.fn()
+    mockRemoveEventListener = vi.fn()
+    mockDispatchEvent = vi.fn()
+
+    // Mock localStorage
+    Object.defineProperty(window, 'localStorage', {
+      value: {
+        getItem: vi.fn((key: string) => mockLocalStorage[key] || null),
+        setItem: vi.fn((key: string, value: string) => {
+          mockLocalStorage[key] = value
+        }),
+        removeItem: vi.fn((key: string) => {
+          delete mockLocalStorage[key]
+        }),
+        clear: vi.fn(() => {
+          mockLocalStorage = {}
+        }),
+      },
+      writable: true,
+    })
+
+    // Mock sessionStorage
+    Object.defineProperty(window, 'sessionStorage', {
+      value: {
+        getItem: vi.fn((key: string) => mockSessionStorage[key] || null),
+        setItem: vi.fn((key: string, value: string) => {
+          mockSessionStorage[key] = value
+        }),
+        removeItem: vi.fn((key: string) => {
+          delete mockSessionStorage[key]
+        }),
+        clear: vi.fn(() => {
+          mockSessionStorage = {}
+        }),
+      },
+      writable: true,
+    })
+
+    // Mock event listeners
+    Object.defineProperty(window, 'addEventListener', {
+      value: mockAddEventListener,
+      writable: true,
+    })
+
+    Object.defineProperty(document, 'addEventListener', {
+      value: mockAddEventListener,
+      writable: true,
+    })
+
+    Object.defineProperty(window, 'removeEventListener', {
+      value: mockRemoveEventListener,
+      writable: true,
+    })
+
+    Object.defineProperty(document, 'removeEventListener', {
+      value: mockRemoveEventListener,
+      writable: true,
+    })
+
+    // Mock dispatchEvent
+    Object.defineProperty(window, 'dispatchEvent', {
+      value: mockDispatchEvent,
+      writable: true,
+    })
+
+    // Mock document.hidden
+    Object.defineProperty(document, 'hidden', {
+      value: false,
+      writable: true,
+    })
+
+    // Setup authenticated Supabase mock
+    const mockSupabase = {
+      auth: {
+        onAuthStateChange: vi.fn(() => ({
+          data: { subscription: { unsubscribe: vi.fn() } }
+        })),
+        getUser: vi.fn().mockResolvedValue({
+          data: {
+            user: {
+              id: 'test-user-id',
+              email: 'test@example.com',
+              email_confirmed_at: new Date().toISOString(),
+            }
+          },
+          error: null
+        }),
+        getSession: vi.fn().mockResolvedValue({
+          data: {
+            session: {
+              user: {
+                id: 'test-user-id',
+                email: 'test@example.com',
+                email_confirmed_at: new Date().toISOString(),
+              },
+              access_token: 'mock-token',
+              expires_at: Date.now() + 3600000,
+            }
+          },
+          error: null
+        }),
+        signOut: vi.fn().mockResolvedValue({
+          error: null
+        }),
+      },
+      from: vi.fn(() => ({
+        select: vi.fn(() => ({
+          eq: vi.fn(() => ({
+            single: vi.fn(() => Promise.resolve({
+              data: {
+                id: 'test-workspace-id',
+                name: 'Test Workspace',
+                owner_id: 'test-user-id',
+              },
+              error: null
+            })),
+          })),
+        })),
+      })),
+    }
+    vi.mocked(createClient).mockReturnValue(mockSupabase as any)
+
+    // Setup session manager mock
+    vi.mocked(sessionManager.validateSession).mockResolvedValue(true)
+    vi.mocked(sessionManager.getState).mockReturnValue({
+      user: {
+        id: 'test-user-id',
+        email: 'test@example.com',
+        email_confirmed_at: new Date().toISOString(),
+      },
+      session: {
+        user: {
+          id: 'test-user-id',
+          email: 'test@example.com',
+          email_confirmed_at: new Date().toISOString(),
+        },
+        access_token: 'mock-token',
+        expires_at: Date.now() + 3600000,
+      },
+      lastValidated: new Date(),
+      isValid: true,
+    })
+
+    // Setup auth context mock
+    mockUseAuth.mockReturnValue({
+      user: { id: 'test-user-id', email: 'test@example.com' },
+      session: { user: { id: 'test-user-id' } },
+      signOut: mockSignOut,
+      validateSession: mockValidateSession,
+      isAuthenticated: true,
+      loading: false,
+      signIn: vi.fn(),
+      signUp: vi.fn(),
+      resetPassword: vi.fn(),
+    } as any)
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  // Helper to create test wrapper with providers
+  const createTestWrapper = () => {
+    const TestWrapper = ({ children }: { children: React.ReactNode }) => (
+      <AuthProvider>
+        <WorkspaceProvider>
+          <AuthSyncManager />
+          {children}
+        </WorkspaceProvider>
+      </AuthProvider>
+    )
+    
+    TestWrapper.displayName = 'CrossTabTestWrapper'
+    return TestWrapper
+  }
+
+  describe('Cross-tab sign out synchronization', () => {
+    it('should sign out user when sign out occurs in another tab', async () => {
+      const TestWrapper = createTestWrapper()
+
+      render(
+        <TestWrapper>
+          <div data-testid="test-content">Test Content</div>
+        </TestWrapper>
+      )
+
+      // Get the storage event handler
+      const storageHandler = mockAddEventListener.mock.calls.find(
+        call => call[0] === 'storage'
+      )?.[1]
+
+      expect(storageHandler).toBeDefined()
+
+      // Set different tab ID to simulate another tab
+      mockSessionStorage['current-tab-id'] = 'current-tab'
+      vi.mocked(window.sessionStorage.getItem).mockReturnValue('current-tab')
+
+      // Simulate sign out event from another tab
+      const mockEvent = {
+        key: 'auth-state-change',
+        newValue: JSON.stringify({
+          type: 'SIGN_OUT',
+          timestamp: Date.now(),
+          tabId: 'other-tab'
+        })
+      }
+
+      await act(async () => {
+        storageHandler(mockEvent)
+      })
+
+      // Should trigger sign out in current tab
+      expect(mockSignOut).toHaveBeenCalled()
+    })
+
+    it('should ignore sign out events from same tab', async () => {
+      const TestWrapper = createTestWrapper()
+
+      render(
+        <TestWrapper>
+          <div data-testid="test-content">Test Content</div>
+        </TestWrapper>
+      )
+
+      // Get the storage event handler
+      const storageHandler = mockAddEventListener.mock.calls.find(
+        call => call[0] === 'storage'
+      )?.[1]
+
+      expect(storageHandler).toBeDefined()
+
+      const tabId = 'same-tab'
+      mockSessionStorage['current-tab-id'] = tabId
+      vi.mocked(window.sessionStorage.getItem).mockReturnValue(tabId)
+
+      // Simulate sign out event from same tab
+      const mockEvent = {
+        key: 'auth-state-change',
+        newValue: JSON.stringify({
+          type: 'SIGN_OUT',
+          timestamp: Date.now(),
+          tabId: tabId
+        })
+      }
+
+      await act(async () => {
+        storageHandler(mockEvent)
+      })
+
+      // Should not trigger sign out since it's from the same tab
+      expect(mockSignOut).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('Cross-tab session expiry handling', () => {
+    it('should handle session expiry from another tab', async () => {
+      const TestWrapper = createTestWrapper()
+
+      render(
+        <TestWrapper>
+          <div data-testid="test-content">Test Content</div>
+        </TestWrapper>
+      )
+
+      // Get the storage event handler
+      const storageHandler = mockAddEventListener.mock.calls.find(
+        call => call[0] === 'storage'
+      )?.[1]
+
+      expect(storageHandler).toBeDefined()
+
+      mockSessionStorage['current-tab-id'] = 'current-tab'
+      vi.mocked(window.sessionStorage.getItem).mockReturnValue('current-tab')
+
+      // Simulate session expiry event from another tab
+      const mockEvent = {
+        key: 'auth-state-change',
+        newValue: JSON.stringify({
+          type: 'SESSION_EXPIRED',
+          timestamp: Date.now(),
+          tabId: 'other-tab'
+        })
+      }
+
+      await act(async () => {
+        storageHandler(mockEvent)
+      })
+
+      // Should clear session and dispatch event
+      expect(sessionManager.clearSession).toHaveBeenCalled()
+      expect(mockDispatchEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'auth-session-expired'
+        })
+      )
+    })
+
+    it('should validate session when tab becomes visible', async () => {
+      mockValidateSession.mockResolvedValue(true)
+
+      const TestWrapper = createTestWrapper()
+
+      render(
+        <TestWrapper>
+          <div data-testid="test-content">Test Content</div>
+        </TestWrapper>
+      )
+
+      // Get the visibility change handler
+      const visibilityHandler = mockAddEventListener.mock.calls.find(
+        call => call[0] === 'visibilitychange'
+      )?.[1]
+
+      expect(visibilityHandler).toBeDefined()
+
+      // Simulate tab becoming visible
+      Object.defineProperty(document, 'hidden', {
+        value: false,
+        writable: true,
+      })
+
+      await act(async () => {
+        await visibilityHandler()
+      })
+
+      // Should validate session when tab becomes visible
+      expect(mockValidateSession).toHaveBeenCalled()
+    })
+
+    it('should handle session validation failure on tab focus', async () => {
+      mockValidateSession.mockResolvedValue(false)
+
+      const TestWrapper = createTestWrapper()
+
+      render(
+        <TestWrapper>
+          <div data-testid="test-content">Test Content</div>
+        </TestWrapper>
+      )
+
+      // Get the visibility change handler
+      const visibilityHandler = mockAddEventListener.mock.calls.find(
+        call => call[0] === 'visibilitychange'
+      )?.[1]
+
+      expect(visibilityHandler).toBeDefined()
+
+      // Simulate tab becoming visible with invalid session
+      Object.defineProperty(document, 'hidden', {
+        value: false,
+        writable: true,
+      })
+
+      await act(async () => {
+        await visibilityHandler()
+      })
+
+      // Should clear session when validation fails
+      expect(sessionManager.clearSession).toHaveBeenCalled()
+    })
+  })
+
+  describe('Cross-tab sign in synchronization', () => {
+    it('should refresh page when sign in occurs in another tab', async () => {
+      const mockReload = vi.fn()
+
+      // Mock window.location.reload
+      Object.defineProperty(window, 'location', {
+        value: {
+          reload: mockReload,
+          pathname: '/dashboard',
+          search: '',
+          href: 'http://localhost:3000/dashboard'
+        },
+        writable: true,
+      })
+
+      const TestWrapper = createTestWrapper()
+
+      render(
+        <TestWrapper>
+          <div data-testid="test-content">Test Content</div>
+        </TestWrapper>
+      )
+
+      // Get the storage event handler
+      const storageHandler = mockAddEventListener.mock.calls.find(
+        call => call[0] === 'storage'
+      )?.[1]
+
+      expect(storageHandler).toBeDefined()
+
+      mockSessionStorage['current-tab-id'] = 'current-tab'
+      vi.mocked(window.sessionStorage.getItem).mockReturnValue('current-tab')
+
+      // Simulate sign in event from another tab
+      const mockEvent = {
+        key: 'auth-state-change',
+        newValue: JSON.stringify({
+          type: 'SIGN_IN',
+          data: { userId: 'test-user-id' },
+          timestamp: Date.now(),
+          tabId: 'other-tab'
+        })
+      }
+
+      await act(async () => {
+        storageHandler(mockEvent)
+      })
+
+      // Should reload the page to sync authentication state
+      expect(mockReload).toHaveBeenCalled()
+    })
+  })
+
+  describe('Cross-tab workspace changes', () => {
+    it('should refresh page when workspace changes in another tab', async () => {
+      const mockReload = vi.fn()
+
+      Object.defineProperty(window, 'location', {
+        value: {
+          reload: mockReload,
+          pathname: '/dashboard',
+          search: '',
+          href: 'http://localhost:3000/dashboard'
+        },
+        writable: true,
+      })
+
+      const TestWrapper = createTestWrapper()
+
+      render(
+        <TestWrapper>
+          <div data-testid="test-content">Test Content</div>
+        </TestWrapper>
+      )
+
+      // Get the storage event handler
+      const storageHandler = mockAddEventListener.mock.calls.find(
+        call => call[0] === 'storage'
+      )?.[1]
+
+      expect(storageHandler).toBeDefined()
+
+      mockSessionStorage['current-tab-id'] = 'current-tab'
+      vi.mocked(window.sessionStorage.getItem).mockReturnValue('current-tab')
+
+      // Simulate workspace change event from another tab
+      const mockEvent = {
+        key: 'auth-state-change',
+        newValue: JSON.stringify({
+          type: 'WORKSPACE_CHANGED',
+          data: { workspaceId: 'new-workspace-id' },
+          timestamp: Date.now(),
+          tabId: 'other-tab'
+        })
+      }
+
+      await act(async () => {
+        storageHandler(mockEvent)
+      })
+
+      // Should reload the page to sync workspace state
+      expect(mockReload).toHaveBeenCalled()
+    })
+  })
+
+  describe('Tab cleanup and lifecycle', () => {
+    it('should set unique tab identifier on mount', async () => {
+      const TestWrapper = createTestWrapper()
+
+      render(
+        <TestWrapper>
+          <div data-testid="test-content">Test Content</div>
+        </TestWrapper>
+      )
+
+      // Should set a unique tab ID
+      expect(window.sessionStorage.setItem).toHaveBeenCalledWith(
+        'current-tab-id',
+        expect.any(String)
+      )
+    })
+
+    it('should clean up tab data on beforeunload', async () => {
+      const TestWrapper = createTestWrapper()
+
+      render(
+        <TestWrapper>
+          <div data-testid="test-content">Test Content</div>
+        </TestWrapper>
+      )
+
+      // Get the beforeunload handler
+      const beforeUnloadHandler = mockAddEventListener.mock.calls.find(
+        call => call[0] === 'beforeunload'
+      )?.[1]
+
+      expect(beforeUnloadHandler).toBeDefined()
+
+      // Simulate beforeunload event
+      await act(async () => {
+        beforeUnloadHandler()
+      })
+
+      // Should remove tab-specific data
+      expect(window.sessionStorage.removeItem).toHaveBeenCalledWith('current-tab-id')
+    })
+  })
+
+  describe('Periodic session validation', () => {
+    it('should validate session periodically when tab is visible', async () => {
+      mockValidateSession.mockResolvedValue(true)
+
+      // Mock timers
+      vi.useFakeTimers()
+
+      const TestWrapper = createTestWrapper()
+
+      render(
+        <TestWrapper>
+          <div data-testid="test-content">Test Content</div>
+        </TestWrapper>
+      )
+
+      // Fast-forward 5 minutes
+      await act(async () => {
+        vi.advanceTimersByTime(5 * 60 * 1000)
+      })
+
+      // Should validate session periodically
+      expect(mockValidateSession).toHaveBeenCalled()
+
+      vi.useRealTimers()
+    })
+  })
+
+  describe('Error handling in cross-tab scenarios', () => {
+    it('should handle malformed storage events gracefully', async () => {
+      const TestWrapper = createTestWrapper()
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+      render(
+        <TestWrapper>
+          <div data-testid="test-content">Test Content</div>
+        </TestWrapper>
+      )
+
+      // Get the storage event handler
+      const storageHandler = mockAddEventListener.mock.calls.find(
+        call => call[0] === 'storage'
+      )?.[1]
+
+      expect(storageHandler).toBeDefined()
+
+      // Simulate malformed storage event
+      const mockEvent = {
+        key: 'auth-state-change',
+        newValue: 'invalid-json'
+      }
+
+      await act(async () => {
+        storageHandler(mockEvent)
+      })
+
+      // Should log error but not crash
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Failed to parse auth state change:',
+        expect.any(Error)
+      )
+
+      // Content should still be visible
+      expect(screen.getByTestId('test-content')).toBeInTheDocument()
+
+      consoleSpy.mockRestore()
+    })
+
+    it('should handle unknown message types gracefully', async () => {
+      const TestWrapper = createTestWrapper()
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+
+      render(
+        <TestWrapper>
+          <div data-testid="test-content">Test Content</div>
+        </TestWrapper>
+      )
+
+      // Get the storage event handler
+      const storageHandler = mockAddEventListener.mock.calls.find(
+        call => call[0] === 'storage'
+      )?.[1]
+
+      expect(storageHandler).toBeDefined()
+
+      mockSessionStorage['current-tab-id'] = 'current-tab'
+      vi.mocked(window.sessionStorage.getItem).mockReturnValue('current-tab')
+
+      // Simulate unknown message type
+      const mockEvent = {
+        key: 'auth-state-change',
+        newValue: JSON.stringify({
+          type: 'UNKNOWN_TYPE',
+          timestamp: Date.now(),
+          tabId: 'other-tab'
+        })
+      }
+
+      await act(async () => {
+        storageHandler(mockEvent)
+      })
+
+      // Should log unknown type but not crash
+      expect(consoleSpy).toHaveBeenCalledWith(
+        'Unknown auth state change:',
+        'UNKNOWN_TYPE'
+      )
+
+      consoleSpy.mockRestore()
+    })
+  })
+})

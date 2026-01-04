@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { WorkspaceCreationForm } from '@/components/forms/workspace-creation-form'
+import { Suspense } from 'react'
+import { LazyWorkspaceCreationForm } from '@/components/forms/lazy'
+import { FormLoadingSkeleton } from '@/components/shared/form-loading-skeleton'
 import { useAuth } from '@/contexts/auth-context'
 import { useWorkspace } from '@/contexts/workspace-context'
 import { useWorkspaceModal } from '@/contexts/workspace-modal-context'

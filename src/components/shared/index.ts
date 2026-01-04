@@ -9,7 +9,22 @@ export { LoadingSpinner } from './loading-spinner'
 export { CurrencyDisplay } from './currency-display'
 export { OnboardingFlow } from './onboarding-flow'
 export { MemberManagement } from './member-management'
-export { AuthGuard } from './auth-guard'
+export { SmartRouteGuard, RouteGuard } from './smart-route-guard'
+export { NavigationManager } from './navigation-manager'
+export { 
+  AuthNavigationHandler,
+  LoginNavigationHandler,
+  SignupNavigationHandler,
+  ResetPasswordNavigationHandler,
+  VerifyEmailNavigationHandler
+} from './auth-navigation-handler'
 export { WorkspaceSelector } from './workspace-selector'
 export { WorkspaceSettings } from './workspace-settings'
 export { ThemeToggle } from './theme-toggle'
+export { AuthPageGuard } from './auth-page-guard'
+export { AuthComponentErrorBoundary } from './auth-component-error-boundary'
+export { AuthSyncManager } from './auth-sync-manager'
+export { OfflineManager, useOfflineManager } from './offline-manager'
+export { NetworkStatus, useNetworkStatus } from './network-status'
+export { ServiceStatus, useServiceStatus } from './service-status'
+export { NetworkErrorBoundary, withNetworkErrorBoundary } from './network-error-boundary'

@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { Suspense } from 'react'
 import { LoadingButton } from '@/components/ui/loading-button'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
-import { InviteMemberForm } from '@/components/forms/invite-member-form'
+import { LazyInviteMemberForm } from '@/components/forms/lazy'
+import { FormLoadingSkeleton } from '@/components/shared/form-loading-skeleton'
 import { useWorkspace } from '@/contexts/workspace-context'
 import { useAuth } from '@/contexts/auth-context'
 import type { WorkspaceMemberWithProfile } from '@/lib/supabase/types'
@@ -340,10 +342,12 @@ export function MemberManagement() {
       {/* Invite Member Modal */}
       {showInviteForm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <InviteMemberForm
-            onSuccess={() => setShowInviteForm(false)}
-            onCancel={() => setShowInviteForm(false)}
-          />
+          <Suspense fallback={<FormLoadingSkeleton variant="workspace" />}>
+            <LazyInviteMemberForm
+              onSuccess={() => setShowInviteForm(false)}
+              onCancel={() => setShowInviteForm(false)}
+            />
+          </Suspense>
         </div>
       )}
 

@@ -122,8 +122,19 @@
     }
   }
 
-  * {
+  html {
     @apply border-transparent;
+  }
+
+  /* Apply transitions only to specific UI elements that need them */
+  .glass-card,
+  .btn-primary,
+  .btn-secondary,
+  .form-input,
+  .nav-item,
+  [class*="bg-"],
+  [class*="border-"],
+  [class*="text-"] {
     /* Smooth theme transitions - Requirements 9.1, 9.2 */
     transition: 
       background-color var(--theme-transition-duration) var(--theme-transition-easing),

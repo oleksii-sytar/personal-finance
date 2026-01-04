@@ -8,6 +8,9 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { useAuth } from '@/contexts/auth-context'
 import { usePostLoginCheck } from '@/hooks/use-post-login-check'
 import { PendingInvitationsModal } from '@/components/invitations/pending-invitations-modal'
+import { AuthPageGuard } from '@/components/shared/auth-page-guard'
+import { SignupNavigationHandler } from '@/components/shared/auth-navigation-handler'
+import { AuthSyncManager } from '@/components/shared/auth-sync-manager'
 import { signUpSchema, type SignUpInput } from '@/lib/validations/auth'
 import type { ZodError } from 'zod'
 
@@ -15,19 +18,21 @@ import type { ZodError } from 'zod'
  * Registration form component with validation and error handling
  * Requirements: 1.2, 1.3, 1.4, 1.7
  * Now includes post-signup invitation check functionality
+ * Wrapped with AuthPageGuard to ensure it only renders on /auth/signup
  */
 export function RegisterForm() {
+  return (
+    <AuthPageGuard requiredPath="/auth/signup">
+      <RegisterFormImplementation />
+    </AuthPageGuard>
+  )
+}
+
+function RegisterFormImplementation() {
   const router = useRouter()
   const { signUp, user, loading } = useAuth()
   
-  // Check if we're on the correct page
-  const [isOnSignupPage, setIsOnSignupPage] = useState(false)
-  
-  useEffect(() => {
-    setIsOnSignupPage(window.location.pathname === '/auth/signup')
-  }, [])
-  
-  // Post-login invitation check (also works after signup) - only when on signup page
+  // Post-signup invitation check (also works after signup)
   const { 
     hasPendingInvitations, 
     pendingInvitations, 
@@ -37,35 +42,13 @@ export function RegisterForm() {
   
   const [showInvitationsModal, setShowInvitationsModal] = useState(false)
   
-  // Handle post-signup invitation flow - only when on signup page
+  // Handle post-signup invitation modal display
   useEffect(() => {
-    if (!isOnSignupPage) return
-    
-    if (user && checkComplete && !checkingInvitations) {
-      if (hasPendingInvitations && pendingInvitations.length > 0) {
-        console.log('New user has pending invitations, showing modal')
-        setShowInvitationsModal(true)
-      } else {
-        console.log('No pending invitations for new user, redirecting to dashboard')
-        router.replace('/dashboard')
-      }
+    if (user && checkComplete && !checkingInvitations && hasPendingInvitations && pendingInvitations.length > 0) {
+      console.log('New user has pending invitations, showing modal')
+      setShowInvitationsModal(true)
     }
-  }, [isOnSignupPage, user, checkComplete, checkingInvitations, hasPendingInvitations, pendingInvitations, router])
-  
-  // Redirect authenticated users to dashboard (client-side guard) - only when on signup page
-  useEffect(() => {
-    if (!isOnSignupPage) return
-    
-    if (user && !checkingInvitations && checkComplete && !hasPendingInvitations) {
-      console.log('Redirecting authenticated user from register page')
-      router.replace('/dashboard')
-    }
-  }, [isOnSignupPage, user, router, checkingInvitations, checkComplete, hasPendingInvitations])
-  
-  // Don't render anything if not on signup page
-  if (!isOnSignupPage) {
-    return null
-  }
+  }, [user, checkComplete, checkingInvitations, hasPendingInvitations, pendingInvitations])
   
   // Early return for loading state - don't render anything while checking auth or invitations
   if (loading || (user && checkingInvitations)) {
@@ -81,17 +64,6 @@ export function RegisterForm() {
     )
   }
 
-  // Don't render form if user is authenticated (will be redirected)
-  if (user && checkComplete && !hasPendingInvitations) {
-    return (
-      <Card className="w-full max-w-md mx-auto">
-        <CardContent className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-primary)]"></div>
-        </CardContent>
-      </Card>
-    )
-  }
-
   const handleInvitationsProcessed = () => {
     // Refresh the page or redirect to dashboard after invitations are processed
     router.push('/dashboard')
@@ -99,6 +71,12 @@ export function RegisterForm() {
 
   return (
     <>
+      {/* AuthNavigationHandler handles all post-authentication navigation */}
+      <SignupNavigationHandler />
+      
+      {/* AuthSyncManager handles cross-tab synchronization */}
+      <AuthSyncManager />
+      
       <RegisterFormContent />
       
       {/* Pending Invitations Modal */}
@@ -234,9 +212,8 @@ function RegisterFormContent() {
           fullName: '',
         })
         
-        // For signup, we don't redirect immediately - let the post-login hook handle it
-        // The hook will check for invitations and either show modal or redirect to dashboard
-        console.log('Registration successful, letting post-login hook handle next steps')
+        // For signup, AuthNavigationHandler will handle the navigation
+        console.log('Registration successful, AuthNavigationHandler will handle navigation')
       }
     } catch (error) {
       console.error('Registration error:', error)

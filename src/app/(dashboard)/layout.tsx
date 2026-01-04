@@ -6,7 +6,7 @@ import {
   BarChart3, 
   Settings
 } from 'lucide-react'
-import { AuthGuard } from '@/components/shared/auth-guard'
+import { SmartRouteGuard } from '@/components/shared/smart-route-guard'
 import { WorkspaceSelector } from '@/components/shared/workspace-selector'
 import { WorkspaceCreationModal } from '@/components/shared/workspace-creation-modal'
 import { UserProfile } from '@/components/layout/user-profile'
@@ -25,7 +25,11 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
-    <AuthGuard requireWorkspace={false}>
+    <SmartRouteGuard 
+      requireAuth={true}
+      requireEmailVerification={true}
+      requireWorkspace={false}
+    >
       <div className="min-h-screen bg-[var(--bg-primary)] relative overflow-hidden">
       {/* Ambient Glow */}
       <div className="ambient-glow" />
@@ -81,6 +85,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Global Workspace Creation Modal */}
       <WorkspaceCreationModal />
     </div>
-    </AuthGuard>
+    </SmartRouteGuard>
   )
 }

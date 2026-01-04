@@ -1,22 +1,31 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { sessionManager } from '@/lib/session/session-manager'
 import type { User, Session } from '@supabase/supabase-js'
 import type { SignInInput, SignUpInput } from '@/lib/validations/auth'
 
 /**
  * Authentication context types following the design document specifications
- * Requirements: 2.4, 7.2, 7.3
+ * State-only context without navigation side effects
+ * Requirements: 6.1, 6.2, 6.3, 6.4, 6.5
  */
 interface AuthContextType {
+  // State access only - no navigation side effects
   user: User | null
   session: Session | null
   loading: boolean
+  isAuthenticated: boolean
+  
+  // Actions that don't trigger automatic redirects
   signIn: (credentials: SignInInput) => Promise<AuthResult>
   signUp: (credentials: SignUpInput) => Promise<AuthResult>
   signOut: () => Promise<void>
   resetPassword: (email: string) => Promise<AuthResult>
+  
+  // Session validation without side effects
+  validateSession: () => Promise<boolean>
 }
 
 interface AuthResult {
@@ -32,37 +41,60 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 /**
  * AuthProvider component that manages authentication state
- * Implements session management with persistence across browser refresh
- * Requirements: 2.4, 7.2, 7.3
+ * Provides authentication state without navigation side effects
+ * Requirements: 6.1, 6.2, 6.3, 6.4, 6.5
  */
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
-  const [loading, setLoading] = useState(false) // Don't block UI
+  const [loading, setLoading] = useState(true)
   
   const supabase = createClient()
 
-  useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-    })
+  // Session validation without automatic redirects
+  const validateSession = useCallback(async () => {
+    const isValid = await sessionManager.validateSession()
+    const state = sessionManager.getState()
+    
+    setSession(state.session)
+    setUser(state.user)
+    setLoading(false)
+    
+    return isValid
+  }, [])
 
+  // Initialize session on mount without redirects
+  useEffect(() => {
+    validateSession()
+  }, [validateSession])
+
+  useEffect(() => {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session)
         setUser(session?.user ?? null)
+        setLoading(false)
+        
+        // Update session manager state
+        if (session) {
+          sessionManager.getState().session = session
+          sessionManager.getState().user = session.user
+          sessionManager.getState().isValid = true
+          sessionManager.getState().lastValidated = new Date()
+        } else {
+          sessionManager.clearSession()
+        }
       }
     )
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, [supabase.auth])
 
   /**
    * Sign in with email and password
-   * Requirements: 2.1, 2.2, 2.3, 2.5, 2.6
+   * Returns result without triggering navigation
+   * Requirements: 6.1, 6.2, 6.3
    */
   const signIn = async (credentials: SignInInput): Promise<AuthResult> => {
     try {
@@ -72,7 +104,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       })
 
       if (error) {
-        // Return generic error message for security (Requirement 2.3)
+        // Return generic error message for security
         return { error: 'Invalid email or password' }
       }
 
@@ -85,7 +117,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   /**
    * Sign up with email, password, and full name
-   * Requirements: 1.2, 1.3, 1.4, 1.5, 1.7
+   * Returns result without triggering navigation
+   * Requirements: 6.1, 6.2, 6.3
    */
   const signUp = async (credentials: SignUpInput): Promise<AuthResult> => {
     try {
@@ -140,8 +173,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   /**
-   * Sign out current user and let middleware handle redirect
-   * Requirements: 7.1, 7.2, 7.3
+   * Sign out current user without automatic redirect
+   * Navigation should be handled by components that call this
+   * Requirements: 6.1, 6.2, 6.4
    */
   const signOut = async (): Promise<void> => {
     try {
@@ -150,19 +184,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
         console.error('Sign out error:', error)
       }
       
-      // Don't redirect manually - let the middleware handle it
-      // The middleware will detect the user is no longer authenticated
-      // and redirect appropriately with proper logout success handling
+      // Clear session manager state
+      sessionManager.clearSession()
+      
+      // No automatic redirect - let calling components handle navigation
     } catch (error) {
       console.error('Sign out error:', error)
-      // Even if there's an error, the auth state will be cleared
-      // and middleware will handle the redirect
+      // Even if there's an error, clear the session state
+      sessionManager.clearSession()
     }
   }
 
   /**
-   * Request password reset
-   * Requirements: 3.1, 3.2, 3.3, 3.4
+   * Request password reset without navigation side effects
+   * Requirements: 6.1, 6.2, 6.3
    */
   const resetPassword = async (email: string): Promise<AuthResult> => {
     try {
@@ -174,7 +209,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         console.error('Password reset error:', error)
       }
 
-      // Always return success message for security (Requirement 3.4)
+      // Always return success message for security
       return { 
         data: { 
           message: 'If an account with that email exists, you will receive a password reset link.' 
@@ -190,10 +225,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     user,
     session,
     loading,
+    isAuthenticated: !!session,
     signIn,
     signUp,
     signOut,
     resetPassword,
+    validateSession,
   }
 
   return (
@@ -205,7 +242,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
 /**
  * Hook to consume authentication context
- * Requirements: 2.4, 7.2, 7.3
+ * Provides authentication state without navigation side effects
+ * Requirements: 6.1, 6.2, 6.3, 6.4, 6.5
  */
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext)

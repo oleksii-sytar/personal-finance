@@ -7,14 +7,26 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { useAuth } from '@/contexts/auth-context'
+import { AuthPageGuard } from '@/components/shared/auth-page-guard'
+import { ResetPasswordNavigationHandler } from '@/components/shared/auth-navigation-handler'
+import { AuthSyncManager } from '@/components/shared/auth-sync-manager'
 import { passwordResetRequestSchema, type PasswordResetRequestInput } from '@/lib/validations/auth'
 import type { ZodError } from 'zod'
 
 /**
  * Password reset request form component
  * Requirements: 3.1, 3.2, 3.3, 3.4
+ * Wrapped with AuthPageGuard to ensure it only renders on /auth/reset-password
  */
 export function ResetPasswordForm() {
+  return (
+    <AuthPageGuard requiredPath="/auth/reset-password">
+      <ResetPasswordFormImplementation />
+    </AuthPageGuard>
+  )
+}
+
+function ResetPasswordFormImplementation() {
   const router = useRouter()
   const { resetPassword, user, loading } = useAuth()
   
@@ -48,7 +60,17 @@ export function ResetPasswordForm() {
     )
   }
 
-  return <ResetPasswordFormContent />
+  return (
+    <>
+      {/* AuthNavigationHandler handles post-authentication navigation */}
+      <ResetPasswordNavigationHandler />
+      
+      {/* AuthSyncManager handles cross-tab synchronization */}
+      <AuthSyncManager />
+      
+      <ResetPasswordFormContent />
+    </>
+  )
 }
 
 function ResetPasswordFormContent() {
