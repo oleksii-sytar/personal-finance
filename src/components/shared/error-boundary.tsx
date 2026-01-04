@@ -70,9 +70,9 @@ export class ErrorBoundary extends Component<Props, State> {
         <div className="flex flex-col items-center justify-center min-h-[400px] p-8 text-center">
           <div className="glass-card max-w-md w-full">
             <div className="mb-6">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/10 flex items-center justify-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-[var(--accent-error)]/10 flex items-center justify-center">
                 <svg 
-                  className="w-8 h-8 text-red-500" 
+                  className="w-8 h-8 text-[var(--accent-error)]" 
                   fill="none" 
                   stroke="currentColor" 
                   viewBox="0 0 24 24"
@@ -85,10 +85,10 @@ export class ErrorBoundary extends Component<Props, State> {
                   />
                 </svg>
               </div>
-              <h2 className="text-xl font-semibold text-white mb-2">
+              <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-2">
                 Something went wrong
               </h2>
-              <p className="text-white/60 text-sm">
+              <p className="text-[var(--text-secondary)] text-sm">
                 We encountered an unexpected error. Please try again or contact support if the problem persists.
               </p>
             </div>
@@ -111,10 +111,10 @@ export class ErrorBoundary extends Component<Props, State> {
             
             {process.env.NODE_ENV === 'development' && this.state.error && (
               <details className="mt-4 text-left">
-                <summary className="text-sm text-white/60 cursor-pointer">
+                <summary className="text-sm text-[var(--text-secondary)] cursor-pointer">
                   Error Details (Development)
                 </summary>
-                <pre className="mt-2 text-xs text-red-400 bg-red-500/10 p-3 rounded overflow-auto">
+                <pre className="mt-2 text-xs text-[var(--accent-error)] bg-[var(--accent-error)]/10 p-3 rounded overflow-auto">
                   {this.state.error.stack}
                 </pre>
               </details>
@@ -140,18 +140,18 @@ export function FeatureErrorBoundary({ children, featureName }: FeatureErrorBoun
   }
 
   const fallback = (
-    <div className="p-6 border border-red-200/20 rounded-lg bg-red-500/5">
+    <div className="p-6 border border-red-200/20 rounded-lg bg-[var(--accent-error)]/5">
       <div className="flex items-center gap-3 mb-3">
-        <div className="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center">
-          <svg className="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="w-8 h-8 rounded-full bg-[var(--accent-error)]/10 flex items-center justify-center">
+          <svg className="w-4 h-4 text-[var(--accent-error)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01" />
           </svg>
         </div>
-        <h3 className="text-sm font-medium text-red-400">
+        <h3 className="text-sm font-medium text-[var(--accent-error)]">
           {featureName} Unavailable
         </h3>
       </div>
-      <p className="text-sm text-white/60">
+      <p className="text-sm text-[var(--text-secondary)]">
         Unable to load {featureName}. Please try refreshing the page.
       </p>
     </div>

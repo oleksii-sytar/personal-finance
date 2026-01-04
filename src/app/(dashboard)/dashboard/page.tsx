@@ -29,7 +29,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E6A65D]"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-primary)]"></div>
       </div>
     )
   }
@@ -44,14 +44,14 @@ export default function DashboardPage() {
     <div className="space-y-8">
       {/* Success Message for Invitation Acceptance */}
       {showSuccessMessage && (
-        <div className="mb-6 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
-          <div className="flex items-center gap-2 text-green-400">
+        <div className="mb-6 p-4 bg-[var(--accent-success)]/10 border border-[var(--accent-success)]/20 rounded-lg">
+          <div className="flex items-center gap-2 text-[var(--accent-success)]">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
             <span className="font-medium">Welcome to your new workspace!</span>
           </div>
-          <p className="text-sm text-green-400/80 mt-1">
+          <p className="text-sm text-[var(--accent-success)] opacity-80 mt-1">
             You've successfully joined the workspace and can now collaborate on family finances.
           </p>
         </div>
@@ -59,14 +59,14 @@ export default function DashboardPage() {
 
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-4xl font-space-grotesk font-bold text-white/90 mb-2">
+        <h1 className="text-4xl font-space-grotesk font-bold text-[var(--text-primary)] mb-2">
           Family Dashboard
         </h1>
-        <p className="text-white/60 text-lg">
+        <p className="text-[var(--text-secondary)] text-lg">
           Your family's financial overview and recent activity.
         </p>
         {currentWorkspace && (
-          <p className="text-white/50 text-sm mt-2">
+          <p className="text-[var(--text-secondary)] opacity-80 text-sm mt-2">
             Workspace: {currentWorkspace.name}
           </p>
         )}

@@ -108,17 +108,17 @@ export function WorkspaceCreationForm({
     <Card className="w-full max-w-md mx-auto p-6">
       <div className="space-y-6">
         <div className="text-center space-y-2">
-          <h2 className="text-2xl font-semibold text-white/90">
+          <h2 className="text-2xl font-semibold text-[var(--text-primary)]">
             Create Your Workspace
           </h2>
-          <p className="text-white/60">
+          <p className="text-[var(--text-secondary)]">
             Set up a workspace to start managing your family finances
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor="name" className="text-sm font-medium text-white/90">
+            <label htmlFor="name" className="text-sm font-medium text-[var(--text-primary)]">
               Workspace Name
             </label>
             <Input
@@ -131,12 +131,12 @@ export function WorkspaceCreationForm({
               className={errors.name ? 'border-red-500' : ''}
             />
             {errors.name && (
-              <p className="text-sm text-red-500">{errors.name}</p>
+              <p className="text-sm text-[var(--accent-error)]">{errors.name}</p>
             )}
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="currency" className="text-sm font-medium text-white/90">
+            <label htmlFor="currency" className="text-sm font-medium text-[var(--text-primary)]">
               Primary Currency
             </label>
             <select
@@ -144,22 +144,22 @@ export function WorkspaceCreationForm({
               value={formData.currency}
               onChange={(e) => setFormData(prev => ({ ...prev, currency: e.target.value }))}
               disabled={isLoading}
-              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white/90 focus:border-[#E6A65D] focus:outline-none focus:ring-2 focus:ring-[#E6A65D]/20"
+              className="w-full px-3 py-2 bg-[var(--bg-glass)] border border-[var(--glass-border)] rounded-lg text-[var(--text-primary)] focus:border-[var(--accent-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent-primary)]/20"
             >
-              <option value="UAH" className="bg-[#2A1D15] text-white/90">Ukrainian Hryvnia (UAH)</option>
-              <option value="USD" className="bg-[#2A1D15] text-white/90">US Dollar (USD)</option>
-              <option value="EUR" className="bg-[#2A1D15] text-white/90">Euro (EUR)</option>
-              <option value="GBP" className="bg-[#2A1D15] text-white/90">British Pound (GBP)</option>
-              <option value="PLN" className="bg-[#2A1D15] text-white/90">Polish Zloty (PLN)</option>
+              <option value="UAH" className="bg-[var(--bg-secondary)] text-[var(--text-primary)]">Ukrainian Hryvnia (UAH)</option>
+              <option value="USD" className="bg-[var(--bg-secondary)] text-[var(--text-primary)]">US Dollar (USD)</option>
+              <option value="EUR" className="bg-[var(--bg-secondary)] text-[var(--text-primary)]">Euro (EUR)</option>
+              <option value="GBP" className="bg-[var(--bg-secondary)] text-[var(--text-primary)]">British Pound (GBP)</option>
+              <option value="PLN" className="bg-[var(--bg-secondary)] text-[var(--text-primary)]">Polish Zloty (PLN)</option>
             </select>
             {errors.currency && (
-              <p className="text-sm text-red-500">{errors.currency}</p>
+              <p className="text-sm text-[var(--accent-error)]">{errors.currency}</p>
             )}
           </div>
 
           {errors.general && (
-            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-              <p className="text-sm text-red-500">{errors.general}</p>
+            <div className="p-3 bg-[var(--accent-error)]/10 border border-[var(--accent-error)]/20 rounded-lg">
+              <p className="text-sm text-[var(--accent-error)]">{errors.general}</p>
             </div>
           )}
 
@@ -201,7 +201,7 @@ export function WorkspaceCreationForm({
         </form>
 
         {showSkipOption && (
-          <p className="text-xs text-white/50 text-center">
+          <p className="text-xs text-[var(--text-secondary)] opacity-80 text-center">
             You can create a workspace later from your settings
           </p>
         )}

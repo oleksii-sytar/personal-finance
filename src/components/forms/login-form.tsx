@@ -22,7 +22,14 @@ export function LoginForm() {
   const router = useRouter()
   const { signIn, user, loading } = useAuth()
   
-  // Post-login invitation check
+  // Check if we're on the correct page
+  const [isOnLoginPage, setIsOnLoginPage] = useState(false)
+  
+  useEffect(() => {
+    setIsOnLoginPage(window.location.pathname === '/auth/login')
+  }, [])
+  
+  // Post-login invitation check - only when on login page
   const { 
     hasPendingInvitations, 
     pendingInvitations, 
@@ -32,8 +39,10 @@ export function LoginForm() {
   
   const [showInvitationsModal, setShowInvitationsModal] = useState(false)
   
-  // Handle post-login invitation flow
+  // Handle post-login invitation flow - only when on login page
   useEffect(() => {
+    if (!isOnLoginPage) return
+    
     if (user && checkComplete && !checkingInvitations) {
       if (hasPendingInvitations && pendingInvitations.length > 0) {
         console.log('User has pending invitations, showing modal')
@@ -43,23 +52,30 @@ export function LoginForm() {
         router.replace('/dashboard')
       }
     }
-  }, [user, checkComplete, checkingInvitations, hasPendingInvitations, pendingInvitations, router])
+  }, [isOnLoginPage, user, checkComplete, checkingInvitations, hasPendingInvitations, pendingInvitations, router])
   
-  // Redirect authenticated users to dashboard (client-side guard)
+  // Redirect authenticated users to dashboard (client-side guard) - only when on login page
   useEffect(() => {
+    if (!isOnLoginPage) return
+    
     if (user && !checkingInvitations && checkComplete && !hasPendingInvitations) {
       console.log('Redirecting authenticated user from login page')
       router.replace('/dashboard')
     }
-  }, [user, router, checkingInvitations, checkComplete, hasPendingInvitations])
+  }, [isOnLoginPage, user, router, checkingInvitations, checkComplete, hasPendingInvitations])
+  
+  // Don't render anything if not on login page
+  if (!isOnLoginPage) {
+    return null
+  }
   
   // Early return for loading state - don't render anything while checking auth or invitations
   if (loading || (user && checkingInvitations)) {
     return (
       <Card className="w-full max-w-md mx-auto">
         <CardContent className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E6A65D]"></div>
-          <p className="ml-3 text-white/60">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-primary)]"></div>
+          <p className="ml-3 text-[var(--text-secondary)]">
             {loading ? 'Checking authentication...' : 'Checking for invitations...'}
           </p>
         </CardContent>
@@ -72,7 +88,7 @@ export function LoginForm() {
     return (
       <Card className="w-full max-w-md mx-auto">
         <CardContent className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E6A65D]"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-primary)]"></div>
         </CardContent>
       </Card>
     )
@@ -231,7 +247,7 @@ function LoginFormContent() {
         <CardTitle as="h1" className="text-center text-2xl">
           Welcome Back
         </CardTitle>
-        <p className="text-center text-white/60 mt-2">
+        <p className="text-center text-[var(--text-secondary)] mt-2">
           Sign in to your family finance dashboard
         </p>
       </CardHeader>
@@ -239,14 +255,14 @@ function LoginFormContent() {
       <CardContent>
         {/* Logout Success Message */}
         {showLogoutMessage && (
-          <div className="mb-4 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
-            <div className="flex items-center gap-2 text-green-400">
+          <div className="mb-4 p-3 bg-[var(--accent-success)]/10 border border-[var(--accent-success)]/20 rounded-lg">
+            <div className="flex items-center gap-2 text-[var(--accent-success)]">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
               <span className="text-sm font-medium">Signed out successfully</span>
             </div>
-            <p className="text-xs text-green-400/80 mt-1">You have been safely signed out of your account.</p>
+            <p className="text-xs text-[var(--accent-success)]/80 mt-1">You have been safely signed out of your account.</p>
           </div>
         )}
         
@@ -285,13 +301,13 @@ function LoginFormContent() {
                 checked={formData.rememberMe}
                 onChange={handleChange('rememberMe')}
                 disabled={isLoading}
-                className="w-4 h-4 text-[#E6A65D] bg-white/5 border-white/20 rounded focus:ring-[#E6A65D]/20"
+                className="w-4 h-4 text-[var(--accent-primary)] bg-[var(--bg-glass)] border-[var(--glass-border)] rounded focus:ring-[var(--accent-primary)]/20"
               />
-              <span className="ml-2 text-sm text-white/60">Remember me</span>
+              <span className="ml-2 text-sm text-[var(--text-secondary)]">Remember me</span>
             </label>
             <Link 
               href="/auth/reset-password" 
-              className="text-sm text-[#E6A65D] hover:text-[#F4B76D] transition-colors"
+              className="text-sm text-[var(--accent-primary)] hover:text-[#F4B76D] transition-colors"
             >
               Forgot password?
             </Link>
@@ -310,11 +326,11 @@ function LoginFormContent() {
         
         {/* Sign Up Link */}
         <div className="mt-6 text-center">
-          <p className="text-white/60 text-sm">
+          <p className="text-[var(--text-secondary)] text-sm">
             Don't have an account?{' '}
             <Link
               href={inviteToken ? `/auth/signup?token=${inviteToken}` : '/auth/signup'}
-              className="text-[#E6A65D] hover:text-[#F4B76D] transition-colors"
+              className="text-[var(--accent-primary)] hover:text-[#F4B76D] transition-colors"
             >
               Create one here
             </Link>

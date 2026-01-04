@@ -26,7 +26,7 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <AuthGuard requireWorkspace={false}>
-      <div className="min-h-screen bg-primary relative overflow-hidden">
+      <div className="min-h-screen bg-[var(--bg-primary)] relative overflow-hidden">
       {/* Ambient Glow */}
       <div className="ambient-glow" />
       

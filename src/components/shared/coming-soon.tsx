@@ -20,22 +20,22 @@ export function ComingSoon({
   return (
     <div className="flex flex-col items-center justify-center p-8 text-center">
       {icon && (
-        <div className="mb-4 text-text-muted">
+        <div className="mb-4 text-[var(--text-secondary)]">
           {icon}
         </div>
       )}
-      <h3 className="text-lg font-semibold text-text-muted heading-primary">
+      <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">
         {title}
       </h3>
-      <p className="text-sm text-text-muted mt-2 body-text">
+      <p className="text-sm text-[var(--text-secondary)] mt-2 max-w-md">
         {description}
       </p>
       <div className="mt-4 flex items-center gap-2">
-        <span className="px-3 py-1 bg-accent-primary/10 text-accent-primary rounded-full text-xs font-medium">
+        <span className="px-3 py-1 bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] rounded-full text-xs font-medium">
           Coming Soon
         </span>
         {availableIn && (
-          <span className="px-3 py-1 bg-background-glass border border-border-glass rounded-full text-xs text-text-secondary">
+          <span className="px-3 py-1 bg-[var(--bg-glass)] border border-[var(--glass-border)] rounded-full text-xs text-[var(--text-secondary)]">
             {availableIn}
           </span>
         )}

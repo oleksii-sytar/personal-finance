@@ -41,19 +41,19 @@ function ConfirmationDialog({
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className={variant === 'danger' ? 'text-red-400' : 'text-amber-400'}>
+          <CardTitle className={variant === 'danger' ? 'text-[var(--accent-error)]' : 'text-amber-400'}>
             {title}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-white/70 mb-6">{message}</p>
+          <p className="text-secondary mb-6">{message}</p>
           <div className="flex flex-col sm:flex-row gap-3">
             <LoadingButton
               onClick={onConfirm}
               loading={isLoading}
               loadingText="Processing..."
               variant={variant === 'danger' ? 'outline' : 'primary'}
-              className={variant === 'danger' ? 'border-red-400 text-red-400 hover:bg-red-400/10' : ''}
+              className={variant === 'danger' ? 'border-red-400 text-[var(--accent-error)] hover:bg-red-400/10' : ''}
             >
               {confirmText}
             </LoadingButton>
@@ -104,19 +104,19 @@ function MemberItem({
     : member.user_id?.slice(0, 2).toUpperCase() || '??'
 
   return (
-    <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
+    <div className="flex items-center justify-between p-4 bg-glass rounded-xl border border-glass">
       <div className="flex items-center space-x-3">
-        <div className="w-10 h-10 bg-gradient-to-br from-[#E6A65D] to-[#F4B76D] rounded-full flex items-center justify-center">
+        <div className="w-10 h-10 bg-gradient-to-br from-[var(--accent-primary)] to-[#F4B76D] rounded-full flex items-center justify-center">
           <span className="text-[#1C1917] font-semibold text-sm">
             {initials}
           </span>
         </div>
         <div>
-          <p className="text-white/90 font-medium">
+          <p className="text-primary font-medium">
             {displayName}
-            {isCurrentUser && <span className="text-white/50 text-sm ml-2">(You)</span>}
+            {isCurrentUser && <span className="text-secondary text-sm ml-2">(You)</span>}
           </p>
-          <p className="text-white/60 text-sm capitalize">
+          <p className="text-secondary text-sm capitalize">
             {member.role}
             {isMemberOwner && ' 👑'}
           </p>
@@ -131,7 +131,7 @@ function MemberItem({
                 size="sm"
                 variant="ghost"
                 onClick={() => onTransferOwnership(member.id)}
-                className="text-[#E6A65D] hover:text-[#E6A65D]/80"
+                className="text-[var(--accent-primary)] hover:text-[var(--accent-primary)]/80"
               >
                 Make Owner
               </LoadingButton>
@@ -139,7 +139,7 @@ function MemberItem({
                 size="sm"
                 variant="ghost"
                 onClick={() => onRemove(member.id)}
-                className="text-red-400 hover:text-red-400/80"
+                className="text-[var(--accent-error)] hover:text-[var(--accent-error)]/80"
               >
                 Remove
               </LoadingButton>
@@ -184,7 +184,7 @@ export function MemberManagement() {
     return (
       <Card>
         <CardContent>
-          <p className="text-white/60 text-center py-8">
+          <p className="text-secondary text-center py-8">
             No workspace selected
           </p>
         </CardContent>
@@ -265,14 +265,14 @@ export function MemberManagement() {
         </CardHeader>
         <CardContent>
           {error && (
-            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-              <p className="text-sm text-red-400">{error}</p>
+            <div className="mb-4 p-3 bg-[var(--accent-error)]/10 border border-[var(--accent-error)]/20 rounded-lg">
+              <p className="text-sm text-[var(--accent-error)]">{error}</p>
             </div>
           )}
 
           <div className="space-y-3">
             {members.length === 0 ? (
-              <p className="text-white/60 text-center py-8">
+              <p className="text-secondary text-center py-8">
                 No members found
               </p>
             ) : (
@@ -302,11 +302,11 @@ export function MemberManagement() {
               {invitations.map((invitation) => (
                 <div
                   key={invitation.id}
-                  className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10"
+                  className="flex items-center justify-between p-4 bg-glass rounded-xl border border-glass"
                 >
                   <div>
-                    <p className="text-white/90 font-medium">{invitation.email}</p>
-                    <p className="text-white/60 text-sm">
+                    <p className="text-primary font-medium">{invitation.email}</p>
+                    <p className="text-secondary text-sm">
                       Invited {invitation.created_at ? new Date(invitation.created_at).toLocaleDateString() : 'Unknown'}
                       {' • '}
                       Expires {invitation.expires_at ? new Date(invitation.expires_at).toLocaleDateString() : 'Unknown'}
@@ -322,7 +322,7 @@ export function MemberManagement() {
                         // You could add a toast notification here
                         console.log('Invite link copied:', inviteUrl)
                       }}
-                      className="text-[#E6A65D] hover:text-[#E6A65D]/80 text-xs"
+                      className="text-[var(--accent-primary)] hover:text-[var(--accent-primary)]/80 text-xs"
                     >
                       Copy Link
                     </Button>

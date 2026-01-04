@@ -12,7 +12,7 @@ export function Skeleton({ className }: SkeletonProps) {
   return (
     <div
       className={cn(
-        'animate-pulse rounded-lg bg-white/5 backdrop-blur-sm',
+        'animate-pulse rounded-lg bg-[var(--bg-glass)] backdrop-blur-sm',
         className
       )}
     />
@@ -46,7 +46,7 @@ export function CardSkeleton({ className }: SkeletonProps) {
  */
 export function TableRowSkeleton({ columns = 4 }: { columns?: number }) {
   return (
-    <tr className="border-b border-white/10">
+    <tr className="border-b border-[var(--glass-border)]">
       {Array.from({ length: columns }).map((_, i) => (
         <td key={i} className="px-6 py-4">
           <Skeleton className="h-4 w-full" />

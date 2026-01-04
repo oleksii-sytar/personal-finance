@@ -29,7 +29,7 @@ export default async function StatusPage() {
   }
 
   return (
-    <div className="min-h-screen bg-primary p-8">
+    <div className="min-h-screen bg-[var(--bg-primary)] p-8">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-3xl font-bold text-primary mb-8">System Status</h1>
         
@@ -59,7 +59,7 @@ export default async function StatusPage() {
             <h2 className="text-xl font-semibold text-primary mb-4">Supabase Connection</h2>
             <div className="flex items-center gap-3">
               <div className={`w-3 h-3 rounded-full ${
-                supabaseStatus === 'Connected' ? 'bg-green-500' : 'bg-red-500'
+                supabaseStatus === 'Connected' ? 'bg-[var(--accent-success)]' : 'bg-[var(--accent-error)]'
               }`} />
               <span className="text-secondary">{supabaseStatus}</span>
             </div>
@@ -70,7 +70,7 @@ export default async function StatusPage() {
             <h2 className="text-xl font-semibold text-primary mb-4">Database Status</h2>
             <div className="flex items-center gap-3">
               <div className={`w-3 h-3 rounded-full ${
-                databaseStatus === 'Working' ? 'bg-green-500' : 'bg-red-500'
+                databaseStatus === 'Working' ? 'bg-[var(--accent-success)]' : 'bg-[var(--accent-error)]'
               }`} />
               <span className="text-secondary">{databaseStatus}</span>
             </div>
@@ -103,8 +103,8 @@ export default async function StatusPage() {
 
           {/* Error Details */}
           {error && (
-            <div className="glass-card p-6 border-red-500/20">
-              <h2 className="text-xl font-semibold text-red-400 mb-4">Error Details</h2>
+            <div className="glass-card p-6 border-[var(--accent-error)]/20">
+              <h2 className="text-xl font-semibold text-[var(--accent-error)] mb-4">Error Details</h2>
               <pre className="text-red-300 text-sm whitespace-pre-wrap overflow-x-auto">
                 {error}
               </pre>
@@ -112,8 +112,8 @@ export default async function StatusPage() {
           )}
 
           {/* Instructions */}
-          <div className="glass-card p-6 border-blue-500/20">
-            <h2 className="text-xl font-semibold text-blue-400 mb-4">Troubleshooting</h2>
+          <div className="glass-card p-6 border-[var(--accent-info)]/20">
+            <h2 className="text-xl font-semibold text-[var(--accent-info)] mb-4">Troubleshooting</h2>
             <div className="text-blue-300 text-sm space-y-2">
               <p>If Supabase is not working:</p>
               <ol className="list-decimal list-inside space-y-1 ml-4">

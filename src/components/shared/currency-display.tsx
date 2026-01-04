@@ -40,7 +40,7 @@ export function CurrencyDisplay({
 
   const colorClasses = showSign ? {
     positive: 'text-accent-success',
-    negative: 'text-red-500',
+    negative: 'text-[var(--accent-error)]',
     neutral: 'text-text-primary',
   } : {
     positive: 'text-text-primary',

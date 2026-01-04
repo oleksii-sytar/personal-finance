@@ -31,24 +31,23 @@ export function UserProfile() {
   }
 
   return (
-    <div className="glass-card">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-glass rounded-lg flex items-center justify-center">
-            <User className="w-4 h-4 text-secondary" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-primary truncate">
-              {user?.user_metadata?.full_name || user?.email || 'User'}
-            </p>
-            <p className="text-xs text-muted">Family Account</p>
-          </div>
+    <div className="bg-[var(--bg-glass)] backdrop-blur-[var(--glass-blur)] border border-[var(--glass-border)] rounded-2xl p-4 transition-all duration-300 w-full max-w-sm">
+      <div className="flex items-center gap-3">
+        <div className="flex-shrink-0 w-8 h-8 bg-[var(--bg-glass)] border border-[var(--glass-border)] rounded-lg flex items-center justify-center">
+          <User className="w-4 h-4 text-[var(--text-secondary)]" />
+        </div>
+        <div className="flex-1 min-w-0 overflow-hidden">
+          <p className="text-sm font-medium text-[var(--text-primary)] truncate" title={user?.user_metadata?.full_name || user?.email || 'User'}>
+            {user?.user_metadata?.full_name || user?.email || 'User'}
+          </p>
+          <p className="text-xs text-[var(--text-secondary)] truncate">Family Account</p>
         </div>
         <button 
           onClick={handleSignOut}
           disabled={isSigningOut}
-          className="ml-3 p-2 text-muted hover:text-primary hover:bg-glass rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-shrink-0 p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-glass)] rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           title={isSigningOut ? "Signing out..." : "Sign Out"}
+          aria-label={isSigningOut ? "Signing out..." : "Sign Out"}
         >
           {isSigningOut ? (
             <Loader2 className="h-4 w-4 animate-spin" />

@@ -134,8 +134,8 @@ export function InviteAcceptanceForm() {
       <Card>
         <CardContent>
           <div className="text-center py-8">
-            <div className="animate-spin w-8 h-8 border-2 border-[#E6A65D] border-t-transparent rounded-full mx-auto mb-4" />
-            <p className="text-white/60">Loading invitation...</p>
+            <div className="animate-spin w-8 h-8 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full mx-auto mb-4" />
+            <p className="text-[var(--text-secondary)]">Loading invitation...</p>
           </div>
         </CardContent>
       </Card>
@@ -147,10 +147,10 @@ export function InviteAcceptanceForm() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-red-400">Invalid Invitation</CardTitle>
+          <CardTitle className="text-[var(--accent-error)]">Invalid Invitation</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-white/60 mb-6">{error}</p>
+          <p className="text-[var(--text-secondary)] mb-6">{error}</p>
           <Button 
             onClick={() => router.push('/')}
             variant="secondary"
@@ -178,7 +178,7 @@ export function InviteAcceptanceForm() {
           <CardTitle>Join {invitationData.workspace.name}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-white/60 mb-6">
+          <p className="text-[var(--text-secondary)] mb-6">
             {invitationData.inviterName} has invited you to join <strong>{invitationData.workspace.name}</strong>.
             Please log in or create an account to accept this invitation.
           </p>
@@ -210,20 +210,20 @@ export function InviteAcceptanceForm() {
       <CardContent>
         <div className="space-y-6">
           <div className="text-center">
-            <p className="text-white/60 mb-2">
-              <strong className="text-white/90">{invitationData.inviterName}</strong> has invited you to join
+            <p className="text-[var(--text-secondary)] mb-2">
+              <strong className="text-[var(--text-primary)]">{invitationData.inviterName}</strong> has invited you to join
             </p>
-            <h2 className="text-xl font-semibold text-[#E6A65D] mb-4">
+            <h2 className="text-xl font-semibold text-[var(--accent-primary)] mb-4">
               {invitationData.workspace.name}
             </h2>
-            <p className="text-sm text-white/50">
+            <p className="text-sm text-[var(--text-secondary)] opacity-80">
               Currency: {invitationData.workspace.currency}
             </p>
           </div>
 
           {error && (
-            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-              <p className="text-sm text-red-400">{error}</p>
+            <div className="p-3 bg-[var(--accent-error)]/10 border border-[var(--accent-error)]/20 rounded-lg">
+              <p className="text-sm text-[var(--accent-error)]">{error}</p>
             </div>
           )}
 
@@ -245,7 +245,7 @@ export function InviteAcceptanceForm() {
             </Button>
           </div>
 
-          <p className="text-xs text-white/40 text-center">
+          <p className="text-xs text-[var(--text-secondary)] opacity-60 text-center">
             By accepting, you'll be able to view and manage finances in this workspace
           </p>
         </div>

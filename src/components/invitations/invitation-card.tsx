@@ -28,14 +28,14 @@ export function InvitationCard({
     <Card 
       className={`cursor-pointer transition-all duration-200 ${
         selected 
-          ? 'ring-2 ring-[#E6A65D] bg-[#E6A65D]/5' 
-          : 'hover:bg-white/5'
+          ? 'ring-2 ring-[var(--accent-primary)] bg-[var(--accent-primary)]/5' 
+          : 'hover:bg-[var(--bg-glass)]'
       } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
       onClick={() => !disabled && onToggle(!selected)}
     >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
-          <CardTitle className="text-lg text-[#E6A65D]">
+          <CardTitle className="text-lg text-[var(--accent-primary)]">
             {invitation.workspace.name}
           </CardTitle>
           <div className="flex items-center">
@@ -44,7 +44,7 @@ export function InvitationCard({
               checked={selected}
               onChange={(e) => !disabled && onToggle(e.target.checked)}
               disabled={disabled}
-              className="w-4 h-4 text-[#E6A65D] bg-white/5 border-white/20 rounded focus:ring-[#E6A65D]/20"
+              className="w-4 h-4 text-[var(--accent-primary)] bg-[var(--bg-glass)] border-[var(--glass-border)] rounded focus:ring-[var(--accent-primary)]/20"
               onClick={(e) => e.stopPropagation()}
             />
           </div>
@@ -54,25 +54,25 @@ export function InvitationCard({
       <CardContent className="space-y-3">
         {/* Inviter Info */}
         <div>
-          <p className="text-sm text-white/60">Invited by</p>
-          <p className="text-white/90 font-medium">{invitation.inviter.full_name}</p>
+          <p className="text-sm text-[var(--text-secondary)]">Invited by</p>
+          <p className="text-[var(--text-primary)] font-medium">{invitation.inviter.full_name}</p>
         </div>
 
         {/* Workspace Details */}
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div>
-            <p className="text-white/60">Currency</p>
-            <p className="text-white/90">{invitation.workspace.currency}</p>
+            <p className="text-[var(--text-secondary)]">Currency</p>
+            <p className="text-[var(--text-primary)]">{invitation.workspace.currency}</p>
           </div>
           <div>
-            <p className="text-white/60">Invited</p>
-            <p className="text-white/90">{createdAt}</p>
+            <p className="text-[var(--text-secondary)]">Invited</p>
+            <p className="text-[var(--text-primary)]">{createdAt}</p>
           </div>
         </div>
 
         {/* Expiration Warning */}
-        <div className="pt-2 border-t border-white/10">
-          <p className="text-xs text-white/50">
+        <div className="pt-2 border-t border-[var(--glass-border)]">
+          <p className="text-xs text-[var(--text-secondary)] opacity-80">
             Expires {expiresIn}
           </p>
         </div>

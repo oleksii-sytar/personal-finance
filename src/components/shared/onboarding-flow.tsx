@@ -24,10 +24,10 @@ function FeatureAccessNotice({ onCreateWorkspace }: FeatureAccessNoticeProps) {
     <div className="space-y-8">
       {/* Header */}
       <div className="mb-8 text-center">
-        <h1 className="text-4xl font-space-grotesk font-bold text-white/90 mb-2">
+        <h1 className="text-4xl font-space-grotesk font-bold text-[var(--text-primary)] mb-2">
           Welcome to Forma
         </h1>
-        <p className="text-white/60 text-lg">
+        <p className="text-[var(--text-secondary)] text-lg">
           Create a workspace to unlock all features
         </p>
       </div>
@@ -39,33 +39,33 @@ function FeatureAccessNotice({ onCreateWorkspace }: FeatureAccessNoticeProps) {
             <div className="w-16 h-16 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto">
               <Shield className="w-8 h-8 text-amber-400" />
             </div>
-            <h2 className="text-2xl font-semibold text-white/90">
+            <h2 className="text-2xl font-semibold text-[var(--text-primary)]">
               Limited Access Mode
             </h2>
-            <p className="text-white/60">
+            <p className="text-[var(--text-secondary)]">
               You're currently in limited access mode. Create a workspace to unlock all features.
             </p>
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-white/90 text-center mb-4">
+            <h3 className="text-lg font-medium text-[var(--text-primary)] text-center mb-4">
               Features requiring a workspace:
             </h3>
             
             <div className="grid gap-4">
-              <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg opacity-50">
-                <TrendingUp className="w-5 h-5 text-white/40" />
-                <span className="text-white/60">Transaction tracking and management</span>
+              <div className="flex items-center gap-3 p-3 bg-[var(--bg-glass)] rounded-lg opacity-50">
+                <TrendingUp className="w-5 h-5 text-[var(--text-secondary)] opacity-60" />
+                <span className="text-[var(--text-secondary)]">Transaction tracking and management</span>
               </div>
               
-              <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg opacity-50">
-                <Users className="w-5 h-5 text-white/40" />
-                <span className="text-white/60">Family member collaboration</span>
+              <div className="flex items-center gap-3 p-3 bg-[var(--bg-glass)] rounded-lg opacity-50">
+                <Users className="w-5 h-5 text-[var(--text-secondary)] opacity-60" />
+                <span className="text-[var(--text-secondary)]">Family member collaboration</span>
               </div>
               
-              <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg opacity-50">
-                <Target className="w-5 h-5 text-white/40" />
-                <span className="text-white/60">Financial goals and forecasting</span>
+              <div className="flex items-center gap-3 p-3 bg-[var(--bg-glass)] rounded-lg opacity-50">
+                <Target className="w-5 h-5 text-[var(--text-secondary)] opacity-60" />
+                <span className="text-[var(--text-secondary)]">Financial goals and forecasting</span>
               </div>
             </div>
           </div>
@@ -156,49 +156,49 @@ export function OnboardingFlow() {
         <Card className="w-full max-w-2xl mx-auto p-8 text-center">
           <div className="space-y-8">
             <div className="space-y-4">
-              <div className="w-20 h-20 bg-gradient-to-br from-[#E6A65D] to-[#F4B76D] rounded-2xl flex items-center justify-center mx-auto">
+              <div className="w-20 h-20 bg-gradient-to-br from-[var(--accent-primary)] to-[#F4B76D] rounded-2xl flex items-center justify-center mx-auto">
                 <span className="text-[#1C1917] font-bold text-2xl font-space-grotesk">F</span>
               </div>
-              <h1 className="text-3xl font-bold text-white/90">
+              <h1 className="text-3xl font-bold text-[var(--text-primary)]">
                 Welcome to Forma
               </h1>
-              <p className="text-lg text-white/60">
+              <p className="text-lg text-[var(--text-secondary)]">
                 Your family's financial management starts here
               </p>
             </div>
 
             <div className="grid gap-6 text-left">
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-xl bg-[#E6A65D]/20 flex items-center justify-center flex-shrink-0">
-                  <Users className="w-5 h-5 text-[#E6A65D]" />
+                <div className="w-10 h-10 rounded-xl bg-[var(--accent-primary)]/20 flex items-center justify-center flex-shrink-0">
+                  <Users className="w-5 h-5 text-[var(--accent-primary)]" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-white/90 mb-1">Create a Workspace</h3>
-                  <p className="text-sm text-white/60">
+                  <h3 className="font-semibold text-[var(--text-primary)] mb-1">Create a Workspace</h3>
+                  <p className="text-sm text-[var(--text-secondary)]">
                     Set up a shared space where your family can collaborate on financial goals and track expenses together.
                   </p>
                 </div>
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-xl bg-[#E6A65D]/20 flex items-center justify-center flex-shrink-0">
-                  <TrendingUp className="w-5 h-5 text-[#E6A65D]" />
+                <div className="w-10 h-10 rounded-xl bg-[var(--accent-primary)]/20 flex items-center justify-center flex-shrink-0">
+                  <TrendingUp className="w-5 h-5 text-[var(--accent-primary)]" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-white/90 mb-1">Track Transactions</h3>
-                  <p className="text-sm text-white/60">
+                  <h3 className="font-semibold text-[var(--text-primary)] mb-1">Track Transactions</h3>
+                  <p className="text-sm text-[var(--text-secondary)]">
                     Record income, expenses, and transfers with our fast, intuitive interface designed for daily use.
                   </p>
                 </div>
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-xl bg-[#E6A65D]/20 flex items-center justify-center flex-shrink-0">
-                  <Target className="w-5 h-5 text-[#E6A65D]" />
+                <div className="w-10 h-10 rounded-xl bg-[var(--accent-primary)]/20 flex items-center justify-center flex-shrink-0">
+                  <Target className="w-5 h-5 text-[var(--accent-primary)]" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-white/90 mb-1">Achieve Goals</h3>
-                  <p className="text-sm text-white/60">
+                  <h3 className="font-semibold text-[var(--text-primary)] mb-1">Achieve Goals</h3>
+                  <p className="text-sm text-[var(--text-secondary)]">
                     Set financial targets, track progress, and get intelligent forecasting to stay on track.
                   </p>
                 </div>
@@ -251,10 +251,10 @@ export function OnboardingFlow() {
             </div>
 
             <div className="space-y-2">
-              <h2 className="text-2xl font-semibold text-white/90">
+              <h2 className="text-2xl font-semibold text-[var(--text-primary)]">
                 {hasSkipped ? 'Welcome to Forma!' : 'Workspace Created!'}
               </h2>
-              <p className="text-white/60">
+              <p className="text-[var(--text-secondary)]">
                 {hasSkipped 
                   ? 'You can create a workspace anytime from your settings'
                   : 'Your workspace is ready. Loading your dashboard...'

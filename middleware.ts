@@ -49,7 +49,17 @@ export async function middleware(request: NextRequest) {
 
   // Handle unauthenticated users
   if (!user && isProtectedRoute) {
-    // Redirect unauthenticated users to login
+    // Check if this is a page refresh by looking for specific headers
+    const isPageRefresh = request.headers.get('cache-control') === 'max-age=0' ||
+                         request.headers.get('sec-fetch-mode') === 'navigate'
+    
+    // For page refreshes, let the client-side AuthGuard handle authentication
+    // This prevents redirect loops during session refresh
+    if (isPageRefresh) {
+      return response
+    }
+    
+    // For direct navigation without auth, redirect to login
     const redirectUrl = new URL('/auth/login', request.url)
     redirectUrl.searchParams.set('redirectTo', request.nextUrl.pathname)
     return NextResponse.redirect(redirectUrl)

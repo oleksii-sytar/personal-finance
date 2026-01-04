@@ -66,9 +66,6 @@ export function ThemeToggle({
         {themeOptions.map((option) => {
           const Icon = option.icon
           const isActive = theme === option.value
-          const isCurrentlyApplied = theme === 'system' 
-            ? resolvedTheme === option.value 
-            : theme === option.value
 
           return (
             <button
@@ -82,10 +79,6 @@ export function ThemeToggle({
                 ${isActive 
                   ? 'bg-[var(--accent-primary)]/10 border-[var(--accent-primary)]/50 text-[var(--accent-primary)]' 
                   : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                }
-                ${isCurrentlyApplied && theme === 'system' 
-                  ? 'ring-2 ring-[var(--accent-primary)]/30' 
-                  : ''
                 }
               `}
               role="radio"
@@ -114,24 +107,11 @@ export function ThemeToggle({
               >
                 {option.description}
                 {isActive && ', currently selected'}
-                {isCurrentlyApplied && theme === 'system' && ', currently applied by system'}
               </span>
             </button>
           )
         })}
       </div>
-      
-      {/* Additional context for system theme */}
-      {theme === 'system' && (
-        <div className="mt-3 p-3 rounded-lg bg-[var(--bg-glass)] border border-[var(--glass-border)]">
-          <p className="text-xs text-[var(--text-secondary)]">
-            Following system preference: 
-            <span className="text-[var(--accent-primary)] font-medium ml-1">
-              {resolvedTheme === 'dark' ? 'Dark' : 'Light'}
-            </span>
-          </p>
-        </div>
-      )}
     </div>
   )
 }
