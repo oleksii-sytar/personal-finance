@@ -16,7 +16,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label 
             htmlFor={inputId}
-            className="block text-sm font-medium text-white/90"
+            className="block text-sm font-medium text-primary"
           >
             {label}
           </label>
@@ -24,12 +24,12 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         <input
           id={inputId}
           aria-describedby={errorId}
-          className={`w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white/90 placeholder-white/40 focus:border-[#E6A65D] focus:ring-2 focus:ring-[#E6A65D]/20 focus:outline-none transition-all ${error ? 'border-red-400/50 focus:ring-red-400/20 focus:border-red-400' : ''} ${className}`}
+          className={`form-input w-full ${error ? 'border-[var(--accent-error)]/50 focus:ring-[var(--accent-error)]/20 focus:border-[var(--accent-error)]' : ''} ${className}`}
           ref={ref}
           {...props}
         />
         {error && (
-          <p id={errorId} className="text-sm text-red-400">
+          <p id={errorId} className="text-sm text-[var(--accent-error)]">
             {error}
           </p>
         )}

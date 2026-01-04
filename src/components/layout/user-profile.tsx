@@ -31,23 +31,23 @@ export function UserProfile() {
   }
 
   return (
-    <div className="bg-white/5 backdrop-blur-md border border-white/8 rounded-xl p-4">
+    <div className="glass-card">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center">
-            <User className="w-4 h-4 text-white/70" />
+          <div className="w-8 h-8 bg-glass rounded-lg flex items-center justify-center">
+            <User className="w-4 h-4 text-secondary" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-white/90 truncate">
+            <p className="text-sm font-medium text-primary truncate">
               {user?.user_metadata?.full_name || user?.email || 'User'}
             </p>
-            <p className="text-xs text-white/50">Family Account</p>
+            <p className="text-xs text-muted">Family Account</p>
           </div>
         </div>
         <button 
           onClick={handleSignOut}
           disabled={isSigningOut}
-          className="ml-3 p-2 text-white/50 hover:text-white/90 hover:bg-white/10 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="ml-3 p-2 text-muted hover:text-primary hover:bg-glass rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           title={isSigningOut ? "Signing out..." : "Sign Out"}
         >
           {isSigningOut ? (

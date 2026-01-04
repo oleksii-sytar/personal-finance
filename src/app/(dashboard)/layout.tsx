@@ -26,24 +26,24 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <AuthGuard requireWorkspace={false}>
-      <div className="min-h-screen bg-[#1C1917] relative overflow-hidden">
+      <div className="min-h-screen bg-primary relative overflow-hidden">
       {/* Ambient Glow */}
-      <div className="fixed top-[-50%] right-[-50%] w-full h-full bg-gradient-radial from-[#E6A65D]/15 via-transparent to-transparent pointer-events-none z-0" />
+      <div className="ambient-glow" />
       
       {/* Sidebar */}
-      <div className="fixed inset-y-0 left-0 z-50 w-72 bg-[#2A1D15] border-r border-white/5">
+      <div className="fixed inset-y-0 left-0 z-50 w-72 bg-secondary border-r border-primary">
         {/* Logo */}
-        <div className="flex h-20 items-center px-8 border-b border-white/5">
+        <div className="flex h-20 items-center px-8 border-b border-primary">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-[#E6A65D] to-[#F4B76D] rounded-lg flex items-center justify-center">
-              <span className="text-[#1C1917] font-bold text-sm font-space-grotesk">F</span>
+            <div className="w-8 h-8 bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-primary)] rounded-lg flex items-center justify-center">
+              <span className="text-inverse font-bold text-sm font-space-grotesk">F</span>
             </div>
-            <span className="text-white/90 font-space-grotesk font-semibold text-lg">Forma</span>
+            <span className="text-primary font-space-grotesk font-semibold text-lg">Forma</span>
           </div>
         </div>
         
         {/* Workspace Selector */}
-        <div className="px-6 py-4 border-b border-white/5">
+        <div className="px-6 py-4 border-b border-primary">
           <WorkspaceSelector />
         </div>
         
@@ -54,9 +54,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               <Link
                 key={item.name}
                 href={item.href}
-                className="group flex items-center px-4 py-3 text-sm font-medium text-white/70 rounded-xl hover:text-white/90 hover:bg-white/5 transition-all duration-300"
+                className="nav-item group flex items-center text-sm font-medium"
               >
-                <item.icon className="mr-4 h-5 w-5 group-hover:text-[#E6A65D] transition-colors" />
+                <item.icon className="mr-4 h-5 w-5 group-hover:text-accent transition-colors" />
                 {item.name}
               </Link>
             ))}
@@ -64,7 +64,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </nav>
 
         {/* User Profile */}
-        <div className="absolute bottom-0 w-full p-6 border-t border-white/5">
+        <div className="absolute bottom-0 w-full p-6 border-t border-primary">
           <UserProfile />
         </div>
       </div>

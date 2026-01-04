@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { Space_Grotesk, Inter } from 'next/font/google'
 import { SpeedInsights } from '@vercel/speed-insights/next'
+import { Analytics } from '@vercel/analytics/next'
+import { ThemeProvider } from '@/contexts/theme-context'
 import { AuthProvider } from '@/contexts/auth-context'
 import { WorkspaceProvider } from '@/contexts/workspace-context'
 import { WorkspaceModalProvider } from '@/contexts/workspace-modal-context'
@@ -31,21 +33,24 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${spaceGrotesk.variable} ${inter.variable}`}>
       <body 
-        className={`${inter.className} antialiased bg-[#1C1917] text-white`}
+        className={`${inter.className} antialiased`}
         suppressHydrationWarning={true}
       >
         <ErrorBoundary>
-          <ToastProvider>
-            <AuthProvider>
-              <WorkspaceProvider>
-                <WorkspaceModalProvider>
-                  {children}
-                </WorkspaceModalProvider>
-              </WorkspaceProvider>
-            </AuthProvider>
-          </ToastProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <AuthProvider>
+                <WorkspaceProvider>
+                  <WorkspaceModalProvider>
+                    {children}
+                  </WorkspaceModalProvider>
+                </WorkspaceProvider>
+              </AuthProvider>
+            </ToastProvider>
+          </ThemeProvider>
         </ErrorBoundary>
         <SpeedInsights />
+        <Analytics />
       </body>
     </html>
   )
