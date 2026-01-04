@@ -86,12 +86,12 @@ describe('Property 5: Theme Toggle Interaction', () => {
             }
             
             const targetButton = screen.getByRole('radio', { 
-              name: (name, element) => {
+              name: (name: string, element: Element): boolean => {
                 // Get the button text content and check if it contains the exact theme label
                 const buttonText = element?.textContent || ''
-                return buttonText.includes(themeLabels[targetTheme as keyof typeof themeLabels]) &&
+                return (buttonText.includes(themeLabels[targetTheme as keyof typeof themeLabels]) &&
                        // Ensure we're getting the right button by checking the title attribute
-                       element?.getAttribute('title')?.toLowerCase().includes(targetTheme === 'system' ? 'operating system' : targetTheme)
+                       (element?.getAttribute('title')?.toLowerCase().includes(targetTheme === 'system' ? 'operating system' : targetTheme) || false)) || false
               }
             })
             expect(targetButton).toBeInTheDocument()
@@ -132,13 +132,13 @@ describe('Property 5: Theme Toggle Interaction', () => {
           try {
             // Get all theme option buttons by their exact labels
             const lightButton = screen.getByRole('radio', { 
-              name: (name, element) => element?.textContent?.includes('Light') && element?.getAttribute('title')?.includes('light')
+              name: (name: string, element: Element): boolean => (element?.textContent?.includes('Light') && element?.getAttribute('title')?.includes('light')) || false
             })
             const darkButton = screen.getByRole('radio', { 
-              name: (name, element) => element?.textContent?.includes('Dark') && element?.getAttribute('title')?.includes('dark')
+              name: (name: string, element: Element): boolean => (element?.textContent?.includes('Dark') && element?.getAttribute('title')?.includes('dark')) || false
             })
             const systemButton = screen.getByRole('radio', { 
-              name: (name, element) => element?.textContent?.includes('System') && element?.getAttribute('title')?.includes('operating system')
+              name: (name: string, element: Element): boolean => (element?.textContent?.includes('System') && element?.getAttribute('title')?.includes('operating system')) || false
             })
 
             // Verify only the active theme button is checked

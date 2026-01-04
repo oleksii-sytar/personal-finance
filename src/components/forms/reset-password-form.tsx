@@ -31,7 +31,7 @@ export function ResetPasswordForm() {
     return (
       <Card className="w-full max-w-md mx-auto">
         <CardContent className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E6A65D]"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-primary)]"></div>
         </CardContent>
       </Card>
     )
@@ -42,7 +42,7 @@ export function ResetPasswordForm() {
     return (
       <Card className="w-full max-w-md mx-auto">
         <CardContent className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E6A65D]"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-primary)]"></div>
         </CardContent>
       </Card>
     )
@@ -161,18 +161,18 @@ function ResetPasswordFormContent() {
               </svg>
             </div>
             
-            <p className="text-white/80">
+            <p className="text-[var(--text-primary)]">
               If an account with that email exists, you will receive a password reset link.
             </p>
             
-            <p className="text-white/60 text-sm">
+            <p className="text-[var(--text-secondary)] text-sm">
               Check your email and follow the instructions to reset your password.
             </p>
             
             <div className="pt-4">
               <Link
                 href="/auth/login"
-                className="text-[#E6A65D] hover:text-[#F4B76D] transition-colors text-sm"
+                className="text-[var(--accent-primary)] hover:text-[#F4B76D] transition-colors text-sm"
               >
                 ← Back to Sign In
               </Link>
@@ -189,7 +189,7 @@ function ResetPasswordFormContent() {
         <CardTitle as="h1" className="text-center text-2xl">
           Reset Password
         </CardTitle>
-        <p className="text-center text-white/60 mt-2">
+        <p className="text-center text-[var(--text-secondary)] mt-2">
           Enter your email address and we'll send you a link to reset your password
         </p>
       </CardHeader>
@@ -223,7 +223,7 @@ function ResetPasswordFormContent() {
         <div className="mt-6 text-center">
           <Link
             href="/auth/login"
-            className="text-[#E6A65D] hover:text-[#F4B76D] transition-colors text-sm"
+            className="text-[var(--accent-primary)] hover:text-[#F4B76D] transition-colors text-sm"
           >
             ← Back to Sign In
           </Link>

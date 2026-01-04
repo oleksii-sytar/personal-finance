@@ -185,8 +185,8 @@ export function AcceptInvitationsContent() {
       <Card>
         <CardContent>
           <div className="text-center py-8">
-            <div className="animate-spin w-8 h-8 border-2 border-[#E6A65D] border-t-transparent rounded-full mx-auto mb-4" />
-            <p className="text-white/60">Loading your invitations...</p>
+            <div className="animate-spin w-8 h-8 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full mx-auto mb-4" />
+            <p className="text-[var(--text-secondary)]">Loading your invitations...</p>
           </div>
         </CardContent>
       </Card>
@@ -197,10 +197,10 @@ export function AcceptInvitationsContent() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-red-400">Error Loading Invitations</CardTitle>
+          <CardTitle className="text-[var(--accent-error)]">Error Loading Invitations</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-white/60 mb-6">{error}</p>
+          <p className="text-[var(--text-secondary)] mb-6">{error}</p>
           <div className="flex gap-3">
             <Button onClick={loadInvitations} variant="secondary">
               Try Again
@@ -221,7 +221,7 @@ export function AcceptInvitationsContent() {
           <CardTitle>No Pending Invitations</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-white/60 mb-6">
+          <p className="text-[var(--text-secondary)] mb-6">
             You don't have any pending workspace invitations at this time.
           </p>
           <Button onClick={handleSkipForNow}>
@@ -238,7 +238,7 @@ export function AcceptInvitationsContent() {
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">Workspace Invitations</CardTitle>
-          <p className="text-white/60">
+          <p className="text-[var(--text-secondary)]">
             You have {invitations.length} pending workspace invitation{invitations.length !== 1 ? 's' : ''}. 
             Review and choose which workspaces you'd like to join.
           </p>
@@ -263,15 +263,15 @@ export function AcceptInvitationsContent() {
             >
               Select None
             </Button>
-            <span className="text-sm text-white/60">
+            <span className="text-sm text-[var(--text-secondary)]">
               {selectedInvitations.size} of {invitations.length} selected
             </span>
           </div>
 
           {/* Error Display */}
           {error && (
-            <div className="mb-6 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-              <p className="text-sm text-red-400">{error}</p>
+            <div className="mb-6 p-3 bg-[var(--accent-error)]/10 border border-[var(--accent-error)]/20 rounded-lg">
+              <p className="text-sm text-[var(--accent-error)]">{error}</p>
             </div>
           )}
 

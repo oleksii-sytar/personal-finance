@@ -477,6 +477,8 @@ describe('Task 13: Final Theme Switching Validation', () => {
         addEventListener: vi.fn(),
         removeEventListener: vi.fn(),
         dispatchEvent: vi.fn(),
+        _triggerChange: vi.fn(),
+        _listeners: [],
       }))
 
       const { unmount } = render(
@@ -505,6 +507,8 @@ describe('Task 13: Final Theme Switching Validation', () => {
         addEventListener: vi.fn(),
         removeEventListener: vi.fn(),
         dispatchEvent: vi.fn(),
+        _triggerChange: vi.fn(),
+        _listeners: [],
       }))
 
       const { unmount } = render(

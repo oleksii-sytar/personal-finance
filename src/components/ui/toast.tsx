@@ -126,15 +126,15 @@ function ToastItem({ toast, onRemove }: ToastItemProps) {
   const getToastStyles = (type: ToastType) => {
     switch (type) {
       case 'success':
-        return 'border-green-500/20 bg-green-500/10 text-green-400'
+        return 'border-[var(--accent-success)]/20 bg-[var(--accent-success)]/10 text-[var(--accent-success)]'
       case 'error':
-        return 'border-red-500/20 bg-red-500/10 text-red-400'
+        return 'border-[var(--accent-error)]/20 bg-[var(--accent-error)]/10 text-[var(--accent-error)]'
       case 'warning':
-        return 'border-yellow-500/20 bg-yellow-500/10 text-yellow-400'
+        return 'border-[var(--accent-warning)]/20 bg-[var(--accent-warning)]/10 text-[var(--accent-warning)]'
       case 'info':
-        return 'border-blue-500/20 bg-blue-500/10 text-blue-400'
+        return 'border-[var(--accent-info)]/20 bg-[var(--accent-info)]/10 text-[var(--accent-info)]'
       default:
-        return 'border-white/20 bg-white/10 text-white'
+        return 'border-[var(--glass-border)] bg-[var(--bg-glass)] text-[var(--text-primary)]'
     }
   }
 

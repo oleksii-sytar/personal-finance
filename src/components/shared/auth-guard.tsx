@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { useWorkspace } from '@/contexts/workspace-context'
 import { LoadingSpinner } from '@/components/shared/loading-spinner'
@@ -24,6 +24,7 @@ export function AuthGuard({
   const { user, loading: authLoading } = useAuth()
   const { currentWorkspace, loading: workspaceLoading } = useWorkspace()
   const router = useRouter()
+  const pathname = usePathname()
 
   useEffect(() => {
     if (authLoading || workspaceLoading) return
@@ -42,11 +43,14 @@ export function AuthGuard({
 
     // Check workspace requirement (Requirements 4.5)
     if (requireWorkspace && !currentWorkspace) {
-      // Redirect to workspace creation or selection
-      router.push('/dashboard') // Dashboard will handle workspace creation flow
+      // Only redirect to dashboard if not already there
+      // This prevents redirect loops and preserves user's intended destination
+      if (pathname !== '/dashboard') {
+        router.push('/dashboard') // Dashboard will handle workspace creation flow
+      }
       return
     }
-  }, [user, currentWorkspace, authLoading, workspaceLoading, requireWorkspace, redirectTo, router])
+  }, [user, currentWorkspace, authLoading, workspaceLoading, requireWorkspace, redirectTo, router, pathname])
 
   // Show loading while checking authentication
   if (authLoading || workspaceLoading) {

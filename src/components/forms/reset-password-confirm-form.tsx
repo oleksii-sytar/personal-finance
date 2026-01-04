@@ -137,9 +137,9 @@ export function ResetPasswordConfirmForm() {
         
         <CardContent>
           <div className="text-center space-y-4">
-            <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto">
+            <div className="w-16 h-16 bg-[var(--accent-error)]/20 rounded-full flex items-center justify-center mx-auto">
               <svg 
-                className="w-8 h-8 text-red-400" 
+                className="w-8 h-8 text-[var(--accent-error)]" 
                 fill="none" 
                 stroke="currentColor" 
                 viewBox="0 0 24 24"
@@ -153,7 +153,7 @@ export function ResetPasswordConfirmForm() {
               </svg>
             </div>
             
-            <p className="text-white/80">
+            <p className="text-[var(--text-primary)]">
               {tokenError}
             </p>
             
@@ -169,7 +169,7 @@ export function ResetPasswordConfirmForm() {
               
               <Link
                 href="/auth/login"
-                className="text-[#E6A65D] hover:text-[#F4B76D] transition-colors text-sm"
+                className="text-[var(--accent-primary)] hover:text-[#F4B76D] transition-colors text-sm"
               >
                 ← Back to Sign In
               </Link>
@@ -208,17 +208,17 @@ export function ResetPasswordConfirmForm() {
               </svg>
             </div>
             
-            <p className="text-white/80">
+            <p className="text-[var(--text-primary)]">
               Your password has been successfully reset.
             </p>
             
-            <p className="text-white/60 text-sm">
+            <p className="text-[var(--text-secondary)] text-sm">
               You will be redirected to the sign in page in a few seconds.
             </p>
             
             <Link
               href="/auth/login"
-              className="text-[#E6A65D] hover:text-[#F4B76D] transition-colors text-sm"
+              className="text-[var(--accent-primary)] hover:text-[#F4B76D] transition-colors text-sm"
             >
               Sign In Now →
             </Link>
@@ -234,7 +234,7 @@ export function ResetPasswordConfirmForm() {
         <CardTitle as="h1" className="text-center text-2xl">
           Set New Password
         </CardTitle>
-        <p className="text-center text-white/60 mt-2">
+        <p className="text-center text-[var(--text-secondary)] mt-2">
           Enter your new password below
         </p>
       </CardHeader>
@@ -266,7 +266,7 @@ export function ResetPasswordConfirmForm() {
           />
           
           {/* Password Requirements */}
-          <div className="text-xs text-white/60 space-y-1">
+          <div className="text-xs text-[var(--text-secondary)] space-y-1">
             <p>Password must:</p>
             <ul className="list-disc list-inside space-y-1 ml-2">
               <li>Be at least 8 characters long</li>
@@ -290,7 +290,7 @@ export function ResetPasswordConfirmForm() {
         <div className="mt-6 text-center">
           <Link
             href="/auth/login"
-            className="text-[#E6A65D] hover:text-[#F4B76D] transition-colors text-sm"
+            className="text-[var(--accent-primary)] hover:text-[#F4B76D] transition-colors text-sm"
           >
             ← Back to Sign In
           </Link>

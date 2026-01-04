@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
-import { VerifyEmailForm } from '@/components/forms/verify-email-form'
+// import { VerifyEmailForm } from '@/components/forms/verify-email-form'
 import Link from 'next/link'
-import { LoadingSpinner } from '@/components/shared/loading-spinner'
+// import { LoadingSpinner } from '@/components/shared/loading-spinner'
 
 export const metadata = {
   title: 'Verify Email | Forma',
@@ -14,35 +14,35 @@ export const metadata = {
  */
 export default function VerifyEmailPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#1C1917] px-6 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)] px-6 relative overflow-hidden">
       {/* Ambient Glow */}
-      <div className="fixed top-[-50%] right-[-50%] w-full h-full bg-gradient-radial from-[#E6A65D]/15 via-transparent to-transparent pointer-events-none z-0" />
+      <div className="fixed top-[-50%] right-[-50%] w-full h-full bg-gradient-radial from-[var(--accent-primary)]/15 via-transparent to-transparent pointer-events-none z-0" />
       
       <div className="w-full max-w-md relative z-10">
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#E6A65D] to-[#F4B76D] rounded-xl flex items-center justify-center">
-              <span className="text-[#1C1917] font-bold text-lg font-space-grotesk">F</span>
+            <div className="w-10 h-10 bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-primary)] rounded-xl flex items-center justify-center">
+              <span className="text-[var(--text-inverse)] font-bold text-lg font-space-grotesk">F</span>
             </div>
-            <span className="text-white/90 font-space-grotesk font-semibold text-xl">Forma</span>
+            <span className="text-primary font-space-grotesk font-semibold text-xl">Forma</span>
           </Link>
-          <h1 className="text-3xl font-space-grotesk font-bold text-white/90 mb-2">
+          <h1 className="text-3xl font-space-grotesk font-bold text-primary mb-2">
             Verify Your Email
           </h1>
-          <p className="text-white/60">
+          <p className="text-secondary">
             Complete your account setup
           </p>
         </div>
 
-        {/* Suspense wrapper for search params */}
-        <Suspense fallback={
-          <div className="flex justify-center items-center py-12">
-            <LoadingSpinner />
-          </div>
-        }>
-          <VerifyEmailForm />
-        </Suspense>
+        <div className="glass-card p-8 text-center">
+          <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-4">
+            Email Verification
+          </h2>
+          <p className="text-[var(--text-secondary)]">
+            This page is under construction. Please check back later.
+          </p>
+        </div>
       </div>
     </div>
   )

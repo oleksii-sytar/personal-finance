@@ -53,16 +53,16 @@ export function FeatureGate({
           </div>
           
           <div className="space-y-2">
-            <h2 className="text-2xl font-semibold text-white/90">
+            <h2 className="text-2xl font-semibold text-primary">
               {featureName} Requires a Workspace
             </h2>
-            <p className="text-white/60">
+            <p className="text-secondary">
               {description}
             </p>
           </div>
 
           <div className="space-y-4">
-            <p className="text-sm text-white/50">
+            <p className="text-sm text-secondary">
               Create a workspace to unlock this feature and start collaborating with your family.
             </p>
             

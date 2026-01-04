@@ -20,7 +20,14 @@ export function RegisterForm() {
   const router = useRouter()
   const { signUp, user, loading } = useAuth()
   
-  // Post-login invitation check (also works after signup)
+  // Check if we're on the correct page
+  const [isOnSignupPage, setIsOnSignupPage] = useState(false)
+  
+  useEffect(() => {
+    setIsOnSignupPage(window.location.pathname === '/auth/signup')
+  }, [])
+  
+  // Post-login invitation check (also works after signup) - only when on signup page
   const { 
     hasPendingInvitations, 
     pendingInvitations, 
@@ -30,8 +37,10 @@ export function RegisterForm() {
   
   const [showInvitationsModal, setShowInvitationsModal] = useState(false)
   
-  // Handle post-signup invitation flow
+  // Handle post-signup invitation flow - only when on signup page
   useEffect(() => {
+    if (!isOnSignupPage) return
+    
     if (user && checkComplete && !checkingInvitations) {
       if (hasPendingInvitations && pendingInvitations.length > 0) {
         console.log('New user has pending invitations, showing modal')
@@ -41,23 +50,30 @@ export function RegisterForm() {
         router.replace('/dashboard')
       }
     }
-  }, [user, checkComplete, checkingInvitations, hasPendingInvitations, pendingInvitations, router])
+  }, [isOnSignupPage, user, checkComplete, checkingInvitations, hasPendingInvitations, pendingInvitations, router])
   
-  // Redirect authenticated users to dashboard (client-side guard)
+  // Redirect authenticated users to dashboard (client-side guard) - only when on signup page
   useEffect(() => {
+    if (!isOnSignupPage) return
+    
     if (user && !checkingInvitations && checkComplete && !hasPendingInvitations) {
       console.log('Redirecting authenticated user from register page')
       router.replace('/dashboard')
     }
-  }, [user, router, checkingInvitations, checkComplete, hasPendingInvitations])
+  }, [isOnSignupPage, user, router, checkingInvitations, checkComplete, hasPendingInvitations])
+  
+  // Don't render anything if not on signup page
+  if (!isOnSignupPage) {
+    return null
+  }
   
   // Early return for loading state - don't render anything while checking auth or invitations
   if (loading || (user && checkingInvitations)) {
     return (
       <Card className="w-full max-w-md mx-auto">
         <CardContent className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E6A65D]"></div>
-          <p className="ml-3 text-white/60">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-primary)]"></div>
+          <p className="ml-3 text-[var(--text-secondary)]">
             {loading ? 'Checking authentication...' : 'Checking for invitations...'}
           </p>
         </CardContent>
@@ -70,7 +86,7 @@ export function RegisterForm() {
     return (
       <Card className="w-full max-w-md mx-auto">
         <CardContent className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E6A65D]"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-primary)]"></div>
         </CardContent>
       </Card>
     )
@@ -236,7 +252,7 @@ function RegisterFormContent() {
         <CardTitle as="h1" className="text-center text-2xl">
           Create Your Account
         </CardTitle>
-        <p className="text-center text-white/60 mt-2">
+        <p className="text-center text-[var(--text-secondary)] mt-2">
           Join Forma to start managing your family finances
         </p>
       </CardHeader>
@@ -304,7 +320,7 @@ function RegisterFormContent() {
           />
           
           {/* Password Requirements Helper Text */}
-          <div className="text-xs text-white/50 space-y-1">
+          <div className="text-xs text-[var(--text-secondary)] space-y-1">
             <p>Password must contain:</p>
             <ul className="list-disc list-inside space-y-1 ml-2">
               <li>At least 8 characters</li>
@@ -326,12 +342,12 @@ function RegisterFormContent() {
         
         {/* Login Link */}
         <div className="mt-6 text-center">
-          <p className="text-white/60 text-sm">
+          <p className="text-[var(--text-secondary)] text-sm">
             Already have an account?{' '}
             <button
               type="button"
               onClick={() => router.push('/auth/login')}
-              className="text-[#E6A65D] hover:text-[#F4B76D] transition-colors"
+              className="text-[var(--accent-primary)] hover:text-[#F4B76D] transition-colors"
               disabled={isLoading}
             >
               Sign in here

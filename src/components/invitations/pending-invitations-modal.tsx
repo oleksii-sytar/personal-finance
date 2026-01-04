@@ -109,7 +109,7 @@ export function PendingInvitationsModal({
               <CardTitle className="text-xl">Pending Invitations</CardTitle>
               <button
                 onClick={onClose}
-                className="text-white/60 hover:text-white/90 transition-colors"
+                className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                 disabled={isProcessing}
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -117,7 +117,7 @@ export function PendingInvitationsModal({
                 </svg>
               </button>
             </div>
-            <p className="text-white/60">
+            <p className="text-[var(--text-secondary)]">
               You have {invitations.length} pending workspace invitation{invitations.length !== 1 ? 's' : ''}.
             </p>
           </CardHeader>
@@ -125,8 +125,8 @@ export function PendingInvitationsModal({
           <CardContent className="space-y-4">
             {/* Error Display */}
             {error && (
-              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-                <p className="text-sm text-red-400">{error}</p>
+              <div className="p-3 bg-[var(--accent-error)]/10 border border-[var(--accent-error)]/20 rounded-lg">
+                <p className="text-sm text-[var(--accent-error)]">{error}</p>
               </div>
             )}
 
@@ -171,7 +171,7 @@ export function PendingInvitationsModal({
               
               {invitations.length > 3 && (
                 <div className="text-center py-2">
-                  <p className="text-sm text-white/60">
+                  <p className="text-sm text-[var(--text-secondary)]">
                     And {invitations.length - 3} more invitation{invitations.length - 3 !== 1 ? 's' : ''}...
                   </p>
                   <Button
@@ -187,7 +187,7 @@ export function PendingInvitationsModal({
             </div>
 
             {/* Footer Actions */}
-            <div className="flex justify-between pt-4 border-t border-white/10">
+            <div className="flex justify-between pt-4 border-t border-[var(--glass-border)]">
               <Button
                 onClick={onClose}
                 variant="secondary"

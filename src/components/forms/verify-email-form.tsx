@@ -135,12 +135,12 @@ export function VerifyEmailForm() {
         return <CheckCircle className="w-16 h-16 text-[#4E7A58] mx-auto mb-4" />
       case 'error':
       case 'expired':
-        return <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+        return <XCircle className="w-16 h-16 text-[var(--accent-error)] mx-auto mb-4" />
       case 'pending':
-        return <Mail className="w-16 h-16 text-[#E6A65D] mx-auto mb-4" />
+        return <Mail className="w-16 h-16 text-[var(--accent-primary)] mx-auto mb-4" />
       case 'loading':
       default:
-        return <Clock className="w-16 h-16 text-white/60 mx-auto mb-4 animate-spin" />
+        return <Clock className="w-16 h-16 text-[var(--text-secondary)] mx-auto mb-4 animate-spin" />
     }
   }
 
@@ -153,12 +153,12 @@ export function VerifyEmailForm() {
         return 'text-[#4E7A58]'
       case 'error':
       case 'expired':
-        return 'text-red-400'
+        return 'text-[var(--accent-error)]'
       case 'pending':
-        return 'text-[#E6A65D]'
+        return 'text-[var(--accent-primary)]'
       case 'loading':
       default:
-        return 'text-white/80'
+        return 'text-[var(--text-primary)]'
     }
   }
 
@@ -190,7 +190,7 @@ export function VerifyEmailForm() {
                 {isResending ? 'Sending...' : 'Resend Verification Email'}
               </Button>
               
-              <p className="text-xs text-white/50 text-center">
+              <p className="text-xs text-[var(--text-secondary)] opacity-80 text-center">
                 Didn't receive the email? Check your spam folder or try resending.
               </p>
             </div>
