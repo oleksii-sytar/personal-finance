@@ -57,7 +57,7 @@ export function WorkspaceSelector({ className = '' }: WorkspaceSelectorProps) {
   if (loading) {
     return (
       <div className={`animate-pulse ${className}`}>
-        <div className="h-10 bg-white/5 rounded-lg"></div>
+        <div className="h-10 bg-glass rounded-lg"></div>
       </div>
     )
   }
@@ -67,7 +67,7 @@ export function WorkspaceSelector({ className = '' }: WorkspaceSelectorProps) {
       <div className={className}>
         <button
           onClick={handleCreateWorkspace}
-          className="flex items-center gap-2 px-3 py-2 text-sm text-white/70 hover:text-white/90 hover:bg-white/5 rounded-lg transition-all duration-200"
+          className="flex items-center gap-2 px-3 py-2 text-sm text-secondary hover:text-primary hover:bg-glass rounded-lg transition-all"
         >
           <Plus className="w-4 h-4" />
           Create Workspace
@@ -81,27 +81,27 @@ export function WorkspaceSelector({ className = '' }: WorkspaceSelectorProps) {
       <div className={`relative ${className}`} ref={dropdownRef}>
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center justify-between w-full px-3 py-2 text-sm bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-all duration-200 group"
+          className="flex items-center justify-between w-full px-3 py-2 text-sm bg-glass hover:bg-glass border border-primary rounded-lg transition-all group"
         >
           <div className="flex items-center gap-2 min-w-0">
-            <div className="w-6 h-6 bg-gradient-to-br from-[#E6A65D] to-[#F4B76D] rounded-md flex items-center justify-center flex-shrink-0">
-              <span className="text-[#1C1917] font-semibold text-xs">
+            <div className="w-6 h-6 bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-primary)] rounded-md flex items-center justify-center flex-shrink-0">
+              <span className="text-inverse font-semibold text-xs">
                 {currentWorkspace.name.charAt(0).toUpperCase()}
               </span>
             </div>
-            <span className="text-white/90 font-medium truncate">
+            <span className="text-primary font-medium truncate">
               {currentWorkspace.name}
             </span>
           </div>
           <ChevronDown 
-            className={`w-4 h-4 text-white/50 group-hover:text-white/70 transition-all duration-200 ${
+            className={`w-4 h-4 text-muted group-hover:text-secondary transition-all ${
               isOpen ? 'rotate-180' : ''
             }`} 
           />
         </button>
 
         {isOpen && (
-          <div className="absolute top-full left-0 right-0 mt-2 bg-[#2A1D15] border border-white/10 rounded-xl shadow-xl backdrop-blur-md z-50">
+          <div className="absolute top-full left-0 right-0 mt-2 bg-secondary border border-primary rounded-xl executive-shadow backdrop-blur-md z-50">
             <div className="p-2">
               {/* Current Workspaces */}
               <div className="space-y-1">
@@ -109,11 +109,11 @@ export function WorkspaceSelector({ className = '' }: WorkspaceSelectorProps) {
                   <button
                     key={workspace.id}
                     onClick={() => handleWorkspaceSelect(workspace)}
-                    className="flex items-center justify-between w-full px-3 py-2 text-sm text-white/70 hover:text-white/90 hover:bg-white/5 rounded-lg transition-all duration-200"
+                    className="flex items-center justify-between w-full px-3 py-2 text-sm text-secondary hover:text-primary hover:bg-glass rounded-lg transition-all"
                   >
                     <div className="flex items-center gap-2 min-w-0">
-                      <div className="w-6 h-6 bg-gradient-to-br from-[#E6A65D] to-[#F4B76D] rounded-md flex items-center justify-center flex-shrink-0">
-                        <span className="text-[#1C1917] font-semibold text-xs">
+                      <div className="w-6 h-6 bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-primary)] rounded-md flex items-center justify-center flex-shrink-0">
+                        <span className="text-inverse font-semibold text-xs">
                           {workspace.name.charAt(0).toUpperCase()}
                         </span>
                       </div>
@@ -122,20 +122,20 @@ export function WorkspaceSelector({ className = '' }: WorkspaceSelectorProps) {
                       </span>
                     </div>
                     {workspace.id === currentWorkspace.id && (
-                      <Check className="w-4 h-4 text-[#E6A65D]" />
+                      <Check className="w-4 h-4 text-accent" />
                     )}
                   </button>
                 ))}
               </div>
 
               {/* Divider */}
-              <div className="my-2 border-t border-white/10"></div>
+              <div className="my-2 border-t border-primary"></div>
 
               {/* Actions */}
               <div className="space-y-1">
                 <button
                   onClick={handleCreateWorkspace}
-                  className="flex items-center gap-2 w-full px-3 py-2 text-sm text-white/70 hover:text-white/90 hover:bg-white/5 rounded-lg transition-all duration-200"
+                  className="flex items-center gap-2 w-full px-3 py-2 text-sm text-secondary hover:text-primary hover:bg-glass rounded-lg transition-all"
                 >
                   <Plus className="w-4 h-4" />
                   Create New Workspace
@@ -146,7 +146,7 @@ export function WorkspaceSelector({ className = '' }: WorkspaceSelectorProps) {
                     setIsOpen(false)
                     router.push('/settings')
                   }}
-                  className="flex items-center gap-2 w-full px-3 py-2 text-sm text-white/70 hover:text-white/90 hover:bg-white/5 rounded-lg transition-all duration-200"
+                  className="flex items-center gap-2 w-full px-3 py-2 text-sm text-secondary hover:text-primary hover:bg-glass rounded-lg transition-all"
                 >
                   <Settings className="w-4 h-4" />
                   Workspace Settings

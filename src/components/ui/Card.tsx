@@ -1,7 +1,7 @@
 import React from 'react'
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: 'glass' | 'solid'
+  variant?: 'glass' | 'solid' | 'elevated'
   children: React.ReactNode
 }
 
@@ -11,11 +11,12 @@ export function Card({
   children, 
   ...props 
 }: CardProps) {
-  const baseClasses = 'transition-all duration-300'
+  const baseClasses = 'transition-all'
   
   const variantClasses = {
-    glass: 'bg-white/5 backdrop-blur-md border border-white/8 rounded-3xl p-6',
-    solid: 'bg-[#2A1D15] border border-white/5 rounded-3xl p-6',
+    glass: 'glass-card p-6',
+    solid: 'bg-secondary border border-primary rounded-3xl p-6',
+    elevated: 'glass-card-elevated p-6',
   }
 
   return (
@@ -53,7 +54,7 @@ export function CardTitle({
 }: CardTitleProps) {
   return (
     <Component 
-      className={`font-space-grotesk text-lg font-semibold text-white/90 ${className}`} 
+      className={`font-space-grotesk text-lg font-semibold text-primary ${className}`} 
       {...props}
     >
       {children}
@@ -67,7 +68,7 @@ interface CardContentProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export function CardContent({ className = '', children, ...props }: CardContentProps) {
   return (
-    <div className={`text-white/70 ${className}`} {...props}>
+    <div className={`text-secondary ${className}`} {...props}>
       {children}
     </div>
   )
@@ -79,7 +80,7 @@ interface CardFooterProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export function CardFooter({ className = '', children, ...props }: CardFooterProps) {
   return (
-    <div className={`mt-4 pt-4 border-t border-white/10 ${className}`} {...props}>
+    <div className={`mt-4 pt-4 border-t border-primary ${className}`} {...props}>
       {children}
     </div>
   )

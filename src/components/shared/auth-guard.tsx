@@ -51,7 +51,7 @@ export function AuthGuard({
   // Show loading while checking authentication
   if (authLoading || workspaceLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#1C1917]">
+      <div className="min-h-screen flex items-center justify-center bg-primary">
         <LoadingSpinner />
       </div>
     )

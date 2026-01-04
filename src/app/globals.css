@@ -5,18 +5,344 @@
 @tailwind utilities;
 
 @layer base {
+  /* Theme Infrastructure - CSS Custom Properties */
+  :root {
+    /* Default to dark theme (Night Cockpit) - Executive Lounge Aesthetic */
+    /* Requirements 4.1-4.6: Dark Mode Color Palette */
+    
+    /* Background Colors - Luxury Materials */
+    --bg-primary: #1C1917; /* Peat Charcoal - Req 4.1 */
+    --bg-secondary: #2A1D15; /* Deep Leather - Req 4.2 */
+    --bg-glass: rgba(255, 255, 255, 0.04); /* Translucent white for glass surfaces - Req 4.3 */
+    --bg-tertiary: #3A2F23; /* Rich Mahogany - additional depth */
+    
+    /* Text Colors - High Contrast for Accessibility */
+    --text-primary: rgba(255, 255, 255, 0.9); /* High-contrast white text - Req 4.5 */
+    --text-secondary: rgba(255, 255, 255, 0.6); /* Secondary text with good contrast */
+    --text-muted: rgba(255, 255, 255, 0.4); /* Muted text for subtle elements */
+    --text-inverse: #1C1917; /* For use on light backgrounds */
+    
+    /* Accent Colors - Warm Luxury Palette */
+    --accent-primary: #E6A65D; /* Single Malt - Req 4.4 */
+    --accent-secondary: #5C3A21; /* Aged Oak - complementary warm tone */
+    --accent-success: #4E7A58; /* Growth Emerald - success states */
+    --accent-warning: #D97706; /* Amber - warning states */
+    --accent-error: #EF4444; /* Light Red - error states */
+    --accent-info: #8B7355; /* Warm Bronze - info states */
+    
+    /* Border Colors - Subtle Glass Effects */
+    --border-primary: rgba(255, 255, 255, 0.1); /* Primary borders */
+    --border-glass: rgba(255, 255, 255, 0.08); /* Glass surface borders */
+    --border-accent: rgba(230, 166, 93, 0.3); /* Accent borders */
+    
+    /* Shadow Colors - Warm Colored Shadows */
+    --shadow-primary: rgba(230, 166, 93, 0.4); /* Primary shadow with Single Malt tint */
+    --shadow-glass: rgba(0, 0, 0, 0.1); /* Subtle glass shadow */
+    --shadow-elevated: rgba(230, 166, 93, 0.6); /* Elevated element shadow */
+    
+    /* Ambient Effects - Luxury Atmosphere (Req 4.6) */
+    --ambient-glow: rgba(230, 166, 93, 0.15); /* Warm ambient glow */
+    --ambient-glow-strong: rgba(230, 166, 93, 0.25); /* Stronger glow for focus states */
+    --glass-blur: 16px; /* Glass blur effect */
+    
+    /* Transition timing - Smooth luxury feel */
+    --theme-transition-duration: 300ms;
+    --theme-transition-easing: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Light theme (Day Studio) - Executive Lounge Aesthetic */
+  /* Requirements 3.1-3.6: Light Mode Color Palette */
+  [data-theme="light"] {
+    /* Background Colors - Warm Luxury Materials */
+    --bg-primary: #F5F5F4; /* Warm Alabaster - Req 3.1 */
+    --bg-secondary: #E7E5E4; /* Latte Leather - Req 3.2 */
+    --bg-glass: #FFFFFF; /* Pure White for glass cards - Req 3.3 */
+    --bg-tertiary: #F0EFEE; /* Soft Cream - additional warm depth */
+    
+    /* Text Colors - High Contrast for Accessibility */
+    --text-primary: #1C1917; /* Ink Grey - Req 3.5 */
+    --text-secondary: rgba(28, 25, 23, 0.6); /* Secondary text with good contrast */
+    --text-muted: rgba(28, 25, 23, 0.4); /* Muted text for subtle elements */
+    --text-inverse: rgba(255, 255, 255, 0.9); /* For use on dark backgrounds */
+    
+    /* Accent Colors - Warm Undertones (Req 3.4, 3.6) */
+    --accent-primary: #B45309; /* Burnt Copper - Req 3.4 */
+    --accent-secondary: #92400E; /* Darker Copper - complementary warm tone */
+    --accent-success: #166534; /* Dark Green for light mode - maintains warmth */
+    --accent-warning: #A16207; /* Dark Amber - warm warning state */
+    --accent-error: #DC2626; /* Red with warm undertones */
+    --accent-info: #8B5A2B; /* Warm Brown - info states */
+    
+    /* Border Colors - Enhanced Visibility for Light Mode */
+    --border-primary: rgba(28, 25, 23, 0.15); /* Slightly stronger borders for better visibility */
+    --border-glass: rgba(28, 25, 23, 0.12); /* Enhanced glass surface borders */
+    --border-accent: rgba(180, 83, 9, 0.4); /* Stronger accent borders */
+    
+    /* Shadow Colors - Enhanced Warm Colored Shadows */
+    --shadow-primary: rgba(180, 83, 9, 0.25); /* Stronger primary shadow for better depth */
+    --shadow-glass: rgba(0, 0, 0, 0.08); /* Enhanced glass shadow for better separation */
+    --shadow-elevated: rgba(180, 83, 9, 0.35); /* Stronger elevated element shadow */
+    
+    /* Ambient Effects - Enhanced Warm Luxury Atmosphere (Req 3.6) */
+    --ambient-glow: rgba(180, 83, 9, 0.12); /* Slightly stronger warm ambient glow */
+    --ambient-glow-strong: rgba(180, 83, 9, 0.25); /* Enhanced stronger glow for focus states */
+  }
+
+  /* System theme detection fallback - Maintains warm undertones */
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme]) {
+      /* Light mode system fallback with warm Executive Lounge aesthetic */
+      --bg-primary: #F5F5F4; /* Warm Alabaster */
+      --bg-secondary: #E7E5E4; /* Latte Leather */
+      --bg-glass: #FFFFFF; /* Pure White */
+      --bg-tertiary: #F0EFEE; /* Soft Cream */
+      
+      --text-primary: #1C1917; /* Ink Grey */
+      --text-secondary: rgba(28, 25, 23, 0.6);
+      --text-muted: rgba(28, 25, 23, 0.4);
+      --text-inverse: rgba(255, 255, 255, 0.9);
+      
+      --accent-primary: #B45309; /* Burnt Copper */
+      --accent-secondary: #92400E; /* Darker Copper */
+      --accent-success: #166534; /* Dark Green */
+      --accent-warning: #A16207; /* Dark Amber */
+      --accent-error: #DC2626; /* Red */
+      --accent-info: #8B5A2B; /* Warm Brown */
+      
+      --border-primary: rgba(28, 25, 23, 0.1);
+      --border-glass: rgba(28, 25, 23, 0.08);
+      --border-accent: rgba(180, 83, 9, 0.3);
+      
+      --shadow-primary: rgba(180, 83, 9, 0.2);
+      --shadow-glass: rgba(0, 0, 0, 0.05);
+      --shadow-elevated: rgba(180, 83, 9, 0.3);
+      
+      --ambient-glow: rgba(180, 83, 9, 0.1);
+      --ambient-glow-strong: rgba(180, 83, 9, 0.2);
+    }
+  }
+
   * {
     @apply border-transparent;
+    /* Smooth theme transitions - Requirements 9.1, 9.2 */
+    transition: 
+      background-color var(--theme-transition-duration) var(--theme-transition-easing),
+      border-color var(--theme-transition-duration) var(--theme-transition-easing),
+      color var(--theme-transition-duration) var(--theme-transition-easing),
+      box-shadow var(--theme-transition-duration) var(--theme-transition-easing),
+      backdrop-filter var(--theme-transition-duration) var(--theme-transition-easing);
+    
+    /* Prevent layout shifts during transitions - Requirement 9.3 */
+    will-change: auto;
+  }
+
+  /* Respect reduced motion preference - Requirement 9.5 */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      transition-duration: 0.01ms !important;
+      transition-delay: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+      animation-delay: -0.01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+    }
   }
   
   body {
     font-family: 'Inter', sans-serif;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    /* Ambient glow effect */
+    position: relative;
+  }
+
+  /* Ambient glow background effect - Requirement 9.4 */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, var(--ambient-glow) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: -1;
+    /* Smooth transition for ambient glow */
+    transition: background var(--theme-transition-duration) var(--theme-transition-easing);
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Space Grotesk', sans-serif;
     letter-spacing: -0.02em;
     font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  /* Glass material base styles - Enhanced for both themes */
+  .glass-card {
+    background: var(--bg-glass);
+    backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--border-glass);
+    border-radius: 20px;
+    box-shadow: 0 4px 20px -5px var(--shadow-glass);
+    /* Ensure proper contrast ratios for accessibility */
+    color: var(--text-primary);
+    /* Enhanced visual separation in light mode */
+    position: relative;
+  }
+
+  /* Enhanced glass card with stronger ambient glow */
+  .glass-card-elevated {
+    background: var(--bg-glass);
+    backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--border-accent);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px -8px var(--shadow-elevated);
+    color: var(--text-primary);
+    position: relative;
+  }
+
+  /* Enhanced glass effect for light mode */
+  [data-theme="light"] .glass-card {
+    /* Add subtle inner shadow for depth in light mode */
+    box-shadow: 
+      0 4px 20px -5px var(--shadow-glass),
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  }
+
+  [data-theme="light"] .glass-card-elevated {
+    /* Enhanced shadow and inner highlight for light mode */
+    box-shadow: 
+      0 8px 32px -8px var(--shadow-elevated),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  /* Primary button styles with theme-aware gradients and accessibility */
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary) 100%);
+    border-radius: 999px;
+    box-shadow: 0 4px 20px -5px var(--shadow-primary);
+    border: none;
+    /* Ensure proper contrast - use inverse text color */
+    color: var(--text-inverse);
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    /* Smooth transitions - Requirements 9.1, 9.2 */
+    transition: 
+      all var(--theme-transition-duration) var(--theme-transition-easing),
+      transform 150ms ease-out;
+    /* Accessibility: Ensure minimum touch target size */
+    min-height: 44px;
+    padding: 12px 24px;
+    /* Prevent layout shifts - Requirement 9.3 */
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-1px) translateZ(0);
+    box-shadow: 0 6px 25px -5px var(--shadow-primary);
+    /* Enhanced glow on hover */
+    background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary) 100%);
+    filter: brightness(1.1);
+  }
+
+  .btn-primary:focus {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px var(--ambient-glow-strong);
+  }
+
+  /* Secondary button styles with enhanced accessibility */
+  .btn-secondary {
+    background: transparent;
+    border: 1px solid var(--border-primary);
+    border-radius: 999px;
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    /* Smooth transitions - Requirements 9.1, 9.2 */
+    transition: 
+      all var(--theme-transition-duration) var(--theme-transition-easing),
+      transform 150ms ease-out;
+    min-height: 44px;
+    padding: 12px 24px;
+    /* Prevent layout shifts - Requirement 9.3 */
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  .btn-secondary:hover {
+    background: var(--bg-glass);
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 1px var(--ambient-glow);
+    transform: translateZ(0);
+  }
+
+  .btn-secondary:focus {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+    background: var(--bg-glass);
+  }
+
+  /* Form input styles with enhanced accessibility and contrast */
+  .form-input {
+    background: var(--bg-glass);
+    border: 1px solid var(--border-primary);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    /* Smooth transitions - Requirements 9.1, 9.2 */
+    transition: 
+      all var(--theme-transition-duration) var(--theme-transition-easing),
+      box-shadow 150ms ease-out;
+    /* Ensure proper contrast and accessibility */
+    min-height: 44px;
+    padding: 12px 16px;
+    /* Prevent layout shifts - Requirement 9.3 */
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  .form-input:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px var(--ambient-glow);
+    outline: none;
+    background: var(--bg-glass);
+    transform: translateZ(0);
+  }
+
+  .form-input::placeholder {
+    color: var(--text-muted);
+    /* Ensure placeholder has sufficient contrast */
+    opacity: 1;
+    transition: color var(--theme-transition-duration) var(--theme-transition-easing);
+  }
+
+  /* Navigation elements with theme adaptation */
+  .nav-item {
+    color: var(--text-secondary);
+    /* Smooth transitions - Requirements 9.1, 9.2 */
+    transition: 
+      all var(--theme-transition-duration) var(--theme-transition-easing),
+      transform 150ms ease-out;
+    border-radius: 8px;
+    padding: 8px 12px;
+    /* Prevent layout shifts - Requirement 9.3 */
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  .nav-item:hover {
+    color: var(--text-primary);
+    background: var(--bg-glass);
+    transform: translateZ(0);
+  }
+
+  .nav-item.active {
+    color: var(--accent-primary);
+    background: var(--ambient-glow);
+    transform: translateZ(0);
   }
 }
 
@@ -27,5 +353,177 @@
   
   .font-space-grotesk {
     font-family: 'Space Grotesk', sans-serif;
+  }
+
+  /* Enhanced theme-aware utility classes */
+  .bg-primary {
+    background-color: var(--bg-primary);
+  }
+
+  .bg-secondary {
+    background-color: var(--bg-secondary);
+  }
+
+  .bg-tertiary {
+    background-color: var(--bg-tertiary);
+  }
+
+  .bg-glass {
+    background-color: var(--bg-glass);
+    backdrop-filter: blur(var(--glass-blur));
+  }
+
+  .text-primary {
+    color: var(--text-primary);
+  }
+
+  .text-secondary {
+    color: var(--text-secondary);
+  }
+
+  .text-muted {
+    color: var(--text-muted);
+  }
+
+  .text-inverse {
+    color: var(--text-inverse);
+  }
+
+  .text-accent {
+    color: var(--accent-primary);
+  }
+
+  .border-primary {
+    border-color: var(--border-primary);
+  }
+
+  .border-glass {
+    border-color: var(--border-glass);
+  }
+
+  .border-accent {
+    border-color: var(--border-accent);
+  }
+
+  /* Enhanced ambient glow utilities */
+  .ambient-glow {
+    position: relative;
+  }
+
+  .ambient-glow::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, var(--ambient-glow) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: -1;
+    /* Smooth transition for ambient glow - Requirement 9.4 */
+    transition: background var(--theme-transition-duration) var(--theme-transition-easing);
+  }
+
+  .ambient-glow-strong {
+    position: relative;
+  }
+
+  .ambient-glow-strong::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, var(--ambient-glow-strong) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: -1;
+    /* Smooth transition for strong ambient glow - Requirement 9.4 */
+    transition: background var(--theme-transition-duration) var(--theme-transition-easing);
+  }
+
+  /* Executive Lounge specific utilities */
+  .executive-shadow {
+    box-shadow: 0 4px 20px -5px var(--shadow-primary);
+  }
+
+  .executive-shadow-elevated {
+    box-shadow: 0 8px 32px -8px var(--shadow-elevated);
+  }
+
+  .executive-border {
+    border: 1px solid var(--border-glass);
+    border-radius: 20px;
+  }
+
+  .executive-glass {
+    background: var(--bg-glass);
+    backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--border-glass);
+    border-radius: 20px;
+  }
+
+  /* Accessibility utilities */
+  .focus-ring {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+  }
+
+  .focus-glow {
+    box-shadow: 0 0 0 3px var(--ambient-glow-strong);
+  }
+
+  /* High contrast utilities for accessibility */
+  .high-contrast-text {
+    color: var(--text-primary);
+    font-weight: 500;
+  }
+
+  .high-contrast-bg {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+  }
+
+  /* Smooth transition utilities - Requirements 9.1, 9.2, 9.3 */
+  .transition-theme {
+    transition: 
+      background-color var(--theme-transition-duration) var(--theme-transition-easing),
+      border-color var(--theme-transition-duration) var(--theme-transition-easing),
+      color var(--theme-transition-duration) var(--theme-transition-easing),
+      box-shadow var(--theme-transition-duration) var(--theme-transition-easing);
+    /* Prevent layout shifts */
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  .transition-transform {
+    transition: transform 150ms ease-out;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  .transition-glow {
+    transition: 
+      background var(--theme-transition-duration) var(--theme-transition-easing),
+      box-shadow var(--theme-transition-duration) var(--theme-transition-easing);
+  }
+
+  /* Performance optimizations for smooth transitions */
+  .gpu-accelerated {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  /* Reduced motion safe animations */
+  @media (prefers-reduced-motion: no-preference) {
+    .animate-on-motion {
+      animation: fadeIn 300ms var(--theme-transition-easing);
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
   }
 }

@@ -7,13 +7,13 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className = '', variant = 'primary', size = 'md', children, ...props }, ref) => {
-    const baseClasses = 'inline-flex items-center justify-center font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E6A65D]/20 disabled:pointer-events-none disabled:opacity-50'
+    const baseClasses = 'inline-flex items-center justify-center font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]/20 disabled:pointer-events-none disabled:opacity-50'
     
     const variantClasses = {
-      primary: 'bg-gradient-to-r from-[#E6A65D] to-[#F4B76D] text-[#1C1917] rounded-full hover:shadow-lg hover:shadow-[#E6A65D]/20 hover:scale-[1.02]',
-      secondary: 'border border-white/10 text-white/90 rounded-full hover:bg-white/5',
-      ghost: 'text-white/70 hover:text-white/90 hover:bg-white/5 rounded-xl',
-      outline: 'border border-[#E6A65D]/30 text-[#E6A65D] rounded-full hover:bg-[#E6A65D]/10 hover:border-[#E6A65D]/50',
+      primary: 'btn-primary',
+      secondary: 'btn-secondary',
+      ghost: 'text-secondary hover:text-primary hover:bg-glass rounded-xl',
+      outline: 'border border-accent text-accent rounded-full hover:bg-[var(--ambient-glow)] hover:border-[var(--accent-primary)]',
     }
     
     const sizeClasses = {
