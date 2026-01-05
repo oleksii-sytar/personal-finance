@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { createPortal } from 'react-dom'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
 import { InvitationCard } from '@/components/invitations/invitation-card'
@@ -100,8 +101,8 @@ export function PendingInvitationsModal({
     router.push('/auth/accept-invitations')
   }
 
-  return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+  return createPortal(
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center px-4 z-50">
       <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <Card>
           <CardHeader>
@@ -206,6 +207,7 @@ export function PendingInvitationsModal({
           </CardContent>
         </Card>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

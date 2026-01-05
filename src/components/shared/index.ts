@@ -6,6 +6,7 @@
 export { FeatureGate } from './feature-gate'
 export { ComingSoon } from './coming-soon'
 export { LoadingSpinner } from './loading-spinner'
+export { FullScreenLoading } from './full-screen-loading'
 export { CurrencyDisplay } from './currency-display'
 export { OnboardingFlow } from './onboarding-flow'
 export { MemberManagement } from './member-management'

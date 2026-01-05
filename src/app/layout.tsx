@@ -52,7 +52,11 @@ export default function RootLayout({
                   <WorkspaceModalProvider>
                     <HistoryProvider>
                       <PerformanceMonitorProvider>
-                        <Suspense fallback={<div>Loading...</div>}>
+                        <Suspense fallback={
+                          <div className="min-h-screen flex items-center justify-center">
+                            <div className="animate-spin rounded-full h-8 w-8 border-2 border-muted/30 border-t-accent drop-shadow-sm" />
+                          </div>
+                        }>
                           <BookmarkHandler>
                             {/* Progressive Enhancement and Offline Support */}
                             <OfflineManager />

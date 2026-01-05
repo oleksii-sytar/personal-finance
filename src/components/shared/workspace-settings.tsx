@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
@@ -39,8 +40,8 @@ function ConfirmationDialog({
 }: ConfirmationDialogProps) {
   if (!isOpen) return null
 
-  return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+  return createPortal(
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center px-4 z-50">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className={variant === 'danger' ? 'text-accent-error' : 'text-accent-warning'}>
@@ -68,7 +69,8 @@ function ConfirmationDialog({
           </div>
         </CardContent>
       </Card>
-    </div>
+    </div>,
+    document.body
   )
 }
 

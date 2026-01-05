@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { useWorkspace } from '@/contexts/workspace-context'
-import { LoadingSpinner } from '@/components/shared/loading-spinner'
+import { FullScreenLoading } from '@/components/shared/full-screen-loading'
 import { createLoginUrlWithReturn } from '@/lib/utils/return-url'
 import { historyManager } from '@/lib/navigation/history-manager'
 
@@ -32,7 +32,7 @@ function SmartRouteGuardInternal({
   requireEmailVerification = false,
   allowedRoles = [],
   fallbackComponent: FallbackComponent,
-  loadingComponent: LoadingComponent = LoadingSpinner
+  loadingComponent: LoadingComponent = () => <FullScreenLoading />
 }: SmartRouteGuardProps) {
   const { user, isAuthenticated, loading: authLoading } = useAuth()
   const { currentWorkspace, members, loading: workspaceLoading } = useWorkspace()
@@ -168,7 +168,7 @@ export function RouteGuard({
  */
 export function SmartRouteGuard(props: SmartRouteGuardProps) {
   return (
-    <Suspense fallback={<LoadingSpinner />}>
+    <Suspense fallback={<FullScreenLoading />}>
       <SmartRouteGuardInternal {...props} />
     </Suspense>
   )

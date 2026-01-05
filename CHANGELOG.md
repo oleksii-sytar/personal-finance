@@ -5,6 +5,41 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] - 2026-01-05
+
+### 🎨 UI/UX Improvements
+- **Fixed Loading Spinner Visibility**: Enhanced LoadingSpinner component with better contrast and positioning
+  - Improved visibility in light mode with better border contrast (`border-muted/30 border-t-accent`)
+  - Added drop shadow for better visual separation
+  - Created `FullScreenLoading` component for consistent full-screen loading states
+  - Added `centered` prop for flexible positioning options
+- **Resolved Modal Positioning Issues**: Completely fixed modal positioning problems caused by CSS inheritance
+  - Implemented `createPortal` for all modals to render outside normal DOM tree
+  - Fixed unwanted `margin-top` from parent `space-y-6` classes
+  - Updated all modal components: Member Management, Workspace Creation, Pending Invitations, Workspace Settings
+  - Changed modal wrappers from `p-4` to `px-4` for better centering
+  - Replaced `space-y-6` wrappers with explicit margin classes (`mb-6`, `mt-4`) in forms
+
+### 🐛 Bug Fixes
+- **Modal CSS Inheritance**: Fixed all modals being affected by parent container spacing classes
+- **Loading State Consistency**: Standardized loading states across all page-level components
+- **Form Spacing**: Resolved form layout issues in modal dialogs
+
+### 🔧 Technical Improvements
+- **Portal-Based Modals**: All modals now render via React portals for proper isolation
+- **Enhanced Test Infrastructure**: Restored critical integration tests for cloud connectivity validation
+- **Autonomous Deployment**: Improved deployment system with comprehensive test coverage
+- **TypeScript Fixes**: Resolved compilation issues and improved type safety
+
+### 📦 Components Updated
+- `LoadingSpinner` - Enhanced visibility and positioning
+- `FullScreenLoading` - New component for consistent full-screen loading
+- `MemberManagement` - Fixed modal positioning with portal rendering
+- `WorkspaceCreationModal` - Portal-based rendering and improved spacing
+- `PendingInvitationsModal` - Fixed positioning and form layout
+- `WorkspaceSettings` - Portal rendering and consistent styling
+- All form components - Improved spacing without CSS inheritance issues
+
 ## [0.2.1] - 2026-01-04
 
 ### 🎨 UI/UX Improvements

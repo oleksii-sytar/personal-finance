@@ -69,7 +69,7 @@ describe('Workspace Integration', () => {
 
   it('should handle database connection timeouts gracefully', async () => {
     // Test connection with timeout
-    const timeoutPromise = new Promise((_, reject) => {
+    const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => reject(new Error('Query timeout')), 5000)
     })
 

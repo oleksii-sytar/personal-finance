@@ -106,17 +106,16 @@ export function WorkspaceCreationForm({
 
   return (
     <Card className="w-full max-w-md mx-auto p-6">
-      <div className="space-y-6">
-        <div className="text-center space-y-2">
-          <h2 className="text-2xl font-semibold text-[var(--text-primary)]">
-            Create Your Workspace
-          </h2>
-          <p className="text-[var(--text-secondary)]">
-            Set up a workspace to start managing your family finances
-          </p>
-        </div>
+      <div className="text-center space-y-2 mb-6">
+        <h2 className="text-2xl font-semibold text-[var(--text-primary)]">
+          Create Your Workspace
+        </h2>
+        <p className="text-[var(--text-secondary)]">
+          Set up a workspace to start managing your family finances
+        </p>
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <label htmlFor="name" className="text-sm font-medium text-[var(--text-primary)]">
               Workspace Name
@@ -201,11 +200,10 @@ export function WorkspaceCreationForm({
         </form>
 
         {showSkipOption && (
-          <p className="text-xs text-[var(--text-secondary)] opacity-80 text-center">
+          <p className="text-xs text-[var(--text-secondary)] opacity-80 text-center mt-4">
             You can create a workspace later from your settings
           </p>
         )}
-      </div>
     </Card>
   )
 }

@@ -17,6 +17,7 @@ import { WorkspaceProvider } from '@/contexts/workspace-context'
 import { OfflineManager, useOfflineManager } from '@/components/shared/offline-manager'
 import { createClient } from '@/lib/supabase/client'
 import { sessionManager } from '@/lib/session/session-manager'
+import { createMockUser, createMockSession } from '../utils/mock-factories'
 
 // Mock Next.js navigation
 vi.mock('next/navigation', () => ({

@@ -67,7 +67,7 @@ describe('Supabase Cloud Connection Integration', () => {
 
   it('should handle network timeouts gracefully', async () => {
     // Test connection with a reasonable timeout
-    const timeoutPromise = new Promise((_, reject) => {
+    const timeoutPromise = new Promise<never>((_, reject) => {
       setTimeout(() => reject(new Error('Connection timeout')), 10000) // 10 second timeout
     })
 
