@@ -9,6 +9,7 @@ import { useAuth } from '@/contexts/auth-context'
 import { useWorkspace } from '@/contexts/workspace-context'
 import { useWorkspaceModal } from '@/contexts/workspace-modal-context'
 import { Card } from '@/components/ui/Card'
+import { FullScreenLoading } from '@/components/shared/full-screen-loading'
 import { LoadingSpinner } from '@/components/shared/loading-spinner'
 import { Button } from '@/components/ui/Button'
 import { Users, TrendingUp, Target, Shield } from 'lucide-react'
@@ -135,11 +136,7 @@ export function OnboardingFlow() {
   }
 
   if (step === 'loading' || workspaceLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner />
-      </div>
-    )
+    return <FullScreenLoading />
   }
 
   // If user has completed onboarding or has workspaces, don't show onboarding
@@ -224,11 +221,7 @@ export function OnboardingFlow() {
   // Remove the create-workspace step since we're using the modal now
   if (step === 'create-workspace') {
     // This should not happen anymore, but just in case
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner />
-      </div>
-    )
+    return <FullScreenLoading />
   }
 
   if (step === 'complete') {
@@ -265,7 +258,7 @@ export function OnboardingFlow() {
             </div>
 
             <div className="flex justify-center">
-              <LoadingSpinner />
+              <LoadingSpinner size="md" />
             </div>
           </div>
         </Card>

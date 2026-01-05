@@ -17,6 +17,7 @@ import { useAuth } from '@/contexts/auth-context'
 import { useWorkspace } from '@/contexts/workspace-context'
 import { historyManager } from '@/lib/navigation/history-manager'
 import { LoadingSpinner } from '@/components/shared/loading-spinner'
+import { FullScreenLoading } from '@/components/shared/full-screen-loading'
 
 interface BookmarkHandlerProps {
   children: React.ReactNode
@@ -183,14 +184,7 @@ export function BookmarkHandler({ children }: BookmarkHandlerProps) {
   // Show loading while processing bookmark
   if (isProcessingBookmark) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <LoadingSpinner />
-          <p className="mt-4 text-sm text-muted-foreground">
-            Loading your bookmarked page...
-          </p>
-        </div>
-      </div>
+      <FullScreenLoading message="Loading your bookmarked page..." />
     )
   }
 

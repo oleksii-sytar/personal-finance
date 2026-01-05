@@ -30,7 +30,7 @@ export function WorkspaceCreationModal() {
   }
 
   return createPortal(
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-[9999]">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center px-4 z-[9999]">
       <Suspense fallback={<FormLoadingSkeleton variant="workspace" />}>
         <LazyWorkspaceCreationForm
           onSuccess={handleSuccess}

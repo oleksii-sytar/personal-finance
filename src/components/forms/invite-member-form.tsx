@@ -94,17 +94,16 @@ export function InviteMemberForm({
 
   return (
     <Card className="w-full max-w-md mx-auto">
-      <div className="space-y-6">
-        <div className="text-center space-y-2">
-          <h3 className="text-xl font-semibold text-[var(--text-primary)]">
-            Invite Member
-          </h3>
-          <p className="text-[var(--text-secondary)] text-sm">
-            Send an invitation to join {currentWorkspace?.name}
-          </p>
-        </div>
+      <div className="text-center space-y-2 mb-6">
+        <h3 className="text-xl font-semibold text-[var(--text-primary)]">
+          Invite Member
+        </h3>
+        <p className="text-[var(--text-secondary)] text-sm">
+          Send an invitation to join {currentWorkspace?.name}
+        </p>
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4 mb-6">
           <Input
             label="Email Address"
             type="email"
@@ -148,7 +147,6 @@ export function InviteMemberForm({
         <div className="text-xs text-[var(--text-secondary)] opacity-80 text-center">
           Invitations expire after 7 days
         </div>
-      </div>
     </Card>
   )
 }

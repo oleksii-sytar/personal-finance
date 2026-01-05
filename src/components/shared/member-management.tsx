@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Suspense } from 'react'
+import { createPortal } from 'react-dom'
 import { LoadingButton } from '@/components/ui/loading-button'
 import { Button } from '@/components/ui/Button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card'
@@ -39,8 +40,8 @@ function ConfirmationDialog({
 }: ConfirmationDialogProps) {
   if (!isOpen) return null
 
-  return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+  return createPortal(
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center px-4 z-50">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className={variant === 'danger' ? 'text-[var(--accent-error)]' : 'text-amber-400'}>
@@ -69,7 +70,8 @@ function ConfirmationDialog({
           </div>
         </CardContent>
       </Card>
-    </div>
+    </div>,
+    document.body
   )
 }
 
@@ -340,15 +342,16 @@ export function MemberManagement() {
       )}
 
       {/* Invite Member Modal */}
-      {showInviteForm && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      {showInviteForm && createPortal(
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center px-4 z-50">
           <Suspense fallback={<FormLoadingSkeleton variant="workspace" />}>
             <LazyInviteMemberForm
               onSuccess={() => setShowInviteForm(false)}
               onCancel={() => setShowInviteForm(false)}
             />
           </Suspense>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Confirmation Dialog */}

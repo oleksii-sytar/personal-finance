@@ -208,47 +208,45 @@ export function InviteAcceptanceForm() {
         <CardTitle>Workspace Invitation</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-6">
-          <div className="text-center">
-            <p className="text-[var(--text-secondary)] mb-2">
-              <strong className="text-[var(--text-primary)]">{invitationData.inviterName}</strong> has invited you to join
-            </p>
-            <h2 className="text-xl font-semibold text-[var(--accent-primary)] mb-4">
-              {invitationData.workspace.name}
-            </h2>
-            <p className="text-sm text-[var(--text-secondary)] opacity-80">
-              Currency: {invitationData.workspace.currency}
-            </p>
-          </div>
-
-          {error && (
-            <div className="p-3 bg-[var(--accent-error)]/10 border border-[var(--accent-error)]/20 rounded-lg">
-              <p className="text-sm text-[var(--accent-error)]">{error}</p>
-            </div>
-          )}
-
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Button
-              onClick={acceptInvitationHandler}
-              disabled={isAccepting}
-              className="flex-1"
-            >
-              {isAccepting ? 'Joining...' : 'Accept Invitation'}
-            </Button>
-            <Button
-              onClick={declineInvitation}
-              variant="secondary"
-              disabled={isAccepting}
-              className="flex-1"
-            >
-              Decline
-            </Button>
-          </div>
-
-          <p className="text-xs text-[var(--text-secondary)] opacity-60 text-center">
-            By accepting, you'll be able to view and manage finances in this workspace
+        <div className="text-center mb-6">
+          <p className="text-[var(--text-secondary)] mb-2">
+            <strong className="text-[var(--text-primary)]">{invitationData.inviterName}</strong> has invited you to join
           </p>
+          <h2 className="text-xl font-semibold text-[var(--accent-primary)] mb-4">
+            {invitationData.workspace.name}
+          </h2>
+          <p className="text-sm text-[var(--text-secondary)] opacity-80">
+            Currency: {invitationData.workspace.currency}
+            </p>
         </div>
+
+        {error && (
+          <div className="p-3 bg-[var(--accent-error)]/10 border border-[var(--accent-error)]/20 rounded-lg mb-6">
+            <p className="text-sm text-[var(--accent-error)]">{error}</p>
+          </div>
+        )}
+
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+          <Button
+            onClick={acceptInvitationHandler}
+            disabled={isAccepting}
+            className="flex-1"
+          >
+            {isAccepting ? 'Joining...' : 'Accept Invitation'}
+          </Button>
+          <Button
+            onClick={declineInvitation}
+            variant="secondary"
+            disabled={isAccepting}
+            className="flex-1"
+          >
+            Decline
+          </Button>
+        </div>
+
+        <p className="text-xs text-[var(--text-secondary)] opacity-60 text-center">
+          By accepting, you'll be able to view and manage finances in this workspace
+        </p>
       </CardContent>
     </Card>
   )
