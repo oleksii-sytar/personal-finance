@@ -1,196 +1,81 @@
 /**
- * Currency utilities for multi-currency support
+ * Currency utilities for multi-currency support (client-safe)
  * Following tech.md NBU API integration patterns
  */
 
-import { format, subDays } from 'date-fns'
-
-interface ExchangeRate {
-  rate: number
-  source: 'live' | 'cached' | 'fallback'
-  date: string
-}
+import { CURRENCY_SYMBOLS, type SupportedCurrency } from '@/lib/constants/currencies'
 
 /**
- * Fallback exchange rates (used when NBU API is unavailable)
- * These should be updated periodically and are for emergency use only
- */
-const FALLBACK_RATES: Record<string, number> = {
-  'USD_UAH': 41.25,
-  'EUR_UAH': 44.80,
-  'GBP_UAH': 52.30,
-  'PLN_UAH': 10.15,
-}
-
-/**
- * Converts amount from one currency to another
+ * Formats currency amount with proper symbol and locale
  * 
- * @param amount - Amount to convert
- * @param fromCurrency - Source currency code
- * @param toCurrency - Target currency code
- * @param date - Date for exchange rate (default: today)
- * @returns Promise with converted amount and rate source
+ * @param amount - Amount to format
+ * @param currency - Currency code
+ * @param locale - Locale for formatting (auto-detected based on currency)
+ * @returns Formatted currency string
  */
-export async function convertCurrency(
+export function formatCurrency(
   amount: number,
-  fromCurrency: string,
-  toCurrency: string,
-  date: Date = new Date()
-): Promise<ExchangeRate & { amount: number }> {
-  // If same currency, no conversion needed
-  if (fromCurrency === toCurrency) {
-    return { 
-      amount, 
-      rate: 1, 
-      source: 'live', 
-      date: date.toISOString() 
-    }
-  }
-
-  // Try to get exchange rate
+  currency: string = 'UAH',
+  locale?: string
+): string {
+  // Auto-detect appropriate locale based on currency
+  const detectedLocale = locale || (currency === 'UAH' ? 'uk-UA' : 'en-US')
+  
   try {
-    const exchangeRate = await getExchangeRate(fromCurrency, toCurrency, date)
-    return {
-      amount: amount * exchangeRate.rate,
-      ...exchangeRate,
-    }
+    return new Intl.NumberFormat(detectedLocale, {
+      style: 'currency',
+      currency: currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount)
   } catch (error) {
-    console.error('Currency conversion failed:', error)
-    throw new Error(`Unable to convert ${fromCurrency} to ${toCurrency}`)
+    // Fallback to manual formatting if Intl fails
+    const symbol = CURRENCY_SYMBOLS[currency as SupportedCurrency] || currency
+    return `${symbol}${amount.toFixed(2)}`
   }
 }
 
 /**
- * Gets exchange rate between two currencies
- * Implements caching and fallback strategy from integrations.md
+ * Formats currency with both original and converted amounts
+ * 
+ * @param originalAmount - Original amount
+ * @param originalCurrency - Original currency
+ * @param convertedAmount - Converted amount
+ * @param convertedCurrency - Converted currency (usually UAH)
+ * @param showBoth - Whether to show both amounts
+ * @returns Formatted string with both amounts
  */
-async function getExchangeRate(
-  fromCurrency: string,
-  toCurrency: string,
-  date: Date
-): Promise<ExchangeRate> {
-  // For UAH conversions, use NBU API
-  if (toCurrency === 'UAH') {
-    return await getUAHExchangeRate(fromCurrency, date)
+export function formatDualCurrency(
+  originalAmount: number,
+  originalCurrency: string,
+  convertedAmount: number,
+  convertedCurrency: string = 'UAH',
+  showBoth: boolean = true
+): string {
+  const originalFormatted = formatCurrency(originalAmount, originalCurrency)
+  const convertedFormatted = formatCurrency(convertedAmount, convertedCurrency)
+  
+  if (!showBoth || originalCurrency === convertedCurrency) {
+    return originalFormatted
   }
   
-  // For other conversions, would need additional API or cross-calculation
-  throw new Error(`Conversion from ${fromCurrency} to ${toCurrency} not supported`)
+  return `${originalFormatted} (${convertedFormatted})`
 }
 
 /**
- * Gets exchange rate to UAH using NBU API with fallback strategy
+ * Gets list of supported currencies with their display information
  */
-async function getUAHExchangeRate(
-  currency: string,
-  date: Date
-): Promise<ExchangeRate> {
-  // Try live rate first
-  try {
-    const rate = await fetchNBURate(currency, date)
-    if (rate) {
-      return { 
-        rate, 
-        source: 'live', 
-        date: date.toISOString() 
-      }
-    }
-  } catch (error) {
-    console.warn('NBU API unavailable, trying fallback options')
-  }
-
-  // Try previous day (NBU doesn't have weekend rates)
-  let attempts = 0
-  let currentDate = date
-  
-  while (attempts < 5) {
-    try {
-      const rate = await fetchNBURate(currency, currentDate)
-      if (rate) {
-        return { 
-          rate, 
-          source: 'cached', 
-          date: currentDate.toISOString() 
-        }
-      }
-    } catch (error) {
-      // Continue to next day
-    }
-    
-    currentDate = subDays(currentDate, 1)
-    attempts++
-  }
-
-  // Last resort: use hardcoded fallback rate
-  const fallbackKey = `${currency}_UAH`
-  const fallbackRate = FALLBACK_RATES[fallbackKey]
-  
-  if (fallbackRate) {
-    console.error('Using fallback exchange rate - this should be investigated')
-    return { 
-      rate: fallbackRate, 
-      source: 'fallback', 
-      date: date.toISOString() 
-    }
-  }
-
-  throw new Error(`No exchange rate available for ${currency} to UAH`)
-}
-
-/**
- * Fetches exchange rate from NBU API
- * Following integrations.md NBU API patterns
- */
-async function fetchNBURate(
-  currency: string,
-  date: Date
-): Promise<number | null> {
-  const NBU_BASE_URL = 'https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange'
-  
-  const params = new URLSearchParams({
-    valcode: currency,
-    date: format(date, 'yyyyMMdd'),
-    json: '',
-  })
-
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 5000)
-
-  try {
-    const response = await fetch(`${NBU_BASE_URL}?${params}`, {
-      signal: controller.signal,
-      next: { revalidate: 86400 }, // Cache for 24 hours
-    })
-
-    if (!response.ok) {
-      console.error(`NBU API error: ${response.status}`)
-      return null
-    }
-
-    const data = await response.json()
-    return data[0]?.rate ?? null
-  } catch (error) {
-    if (error instanceof Error && error.name === 'AbortError') {
-      console.error('NBU API timeout')
-    } else {
-      console.error('NBU API fetch failed:', error)
-    }
-    return null
-  } finally {
-    clearTimeout(timeout)
-  }
-}
-
-/**
- * Gets list of supported currencies
- */
-export function getSupportedCurrencies(): Array<{ code: string; name: string }> {
+export function getSupportedCurrencies(): Array<{ 
+  code: string
+  name: string
+  symbol: string
+}> {
   return [
-    { code: 'UAH', name: 'Ukrainian Hryvnia' },
-    { code: 'USD', name: 'US Dollar' },
-    { code: 'EUR', name: 'Euro' },
-    { code: 'GBP', name: 'British Pound' },
-    { code: 'PLN', name: 'Polish Zloty' },
+    { code: 'UAH', name: 'Ukrainian Hryvnia', symbol: '₴' },
+    { code: 'USD', name: 'US Dollar', symbol: '$' },
+    { code: 'EUR', name: 'Euro', symbol: '€' },
+    { code: 'GBP', name: 'British Pound', symbol: '£' },
+    { code: 'PLN', name: 'Polish Zloty', symbol: 'zł' },
   ]
 }
 
@@ -199,4 +84,55 @@ export function getSupportedCurrencies(): Array<{ code: string; name: string }> 
  */
 export function isValidCurrencyCode(code: string): boolean {
   return /^[A-Z]{3}$/.test(code)
+}
+
+/**
+ * Gets currency symbol for a given currency code
+ */
+export function getCurrencySymbol(currency: string): string {
+  return CURRENCY_SYMBOLS[currency as SupportedCurrency] || currency
+}
+
+/**
+ * Parses currency amount from string input
+ * Handles various formats like "1,000.50", "1000.50", "$1000.50"
+ * 
+ * @param input - String input to parse
+ * @returns Parsed number or null if invalid
+ */
+export function parseCurrencyAmount(input: string): number | null {
+  if (!input || typeof input !== 'string') {
+    return null
+  }
+  
+  // Remove currency symbols and whitespace
+  const cleaned = input
+    .replace(/[₴$€£zł]/g, '')
+    .replace(/\s/g, '')
+    .replace(/,/g, '')
+  
+  const parsed = parseFloat(cleaned)
+  
+  if (isNaN(parsed) || parsed < 0) {
+    return null
+  }
+  
+  return parsed
+}
+
+/**
+ * Checks if a currency conversion is needed
+ */
+export function needsConversion(
+  fromCurrency: string,
+  toCurrency: string = 'UAH'
+): boolean {
+  return fromCurrency !== toCurrency
+}
+
+/**
+ * Gets the default currency for the application
+ */
+export function getDefaultCurrency(): string {
+  return 'UAH'
 }

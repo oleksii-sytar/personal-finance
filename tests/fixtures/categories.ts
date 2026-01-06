@@ -13,6 +13,7 @@ export const mockExpenseCategory: Category = {
   color: '#E6A65D',
   icon: 'utensils',
   type: 'expense',
+  is_default: false,
   created_at: faker.date.recent().toISOString(),
   updated_at: faker.date.recent().toISOString(),
 }
@@ -24,6 +25,7 @@ export const mockIncomeCategory: Category = {
   color: '#4E7A58',
   icon: 'briefcase',
   type: 'income',
+  is_default: false,
   created_at: faker.date.recent().toISOString(),
   updated_at: faker.date.recent().toISOString(),
 }
@@ -48,6 +50,7 @@ export function createMockCategory(
     color: defaultCategory.color,
     icon: defaultCategory.icon,
     type,
+    is_default: false,
     created_at: faker.date.recent().toISOString(),
     updated_at: faker.date.recent().toISOString(),
     ...overrides,

@@ -5,6 +5,29 @@
 @tailwind utilities;
 
 @layer base {
+  /* Ensure proper stacking context for popovers and modals */
+  [data-radix-popper-content-wrapper] {
+    z-index: 100 !important;
+  }
+  
+  [data-state="open"][data-radix-popper-content-wrapper] {
+    z-index: 100 !important;
+  }
+
+  /* Calendar specific fixes */
+  .rdp {
+    --rdp-cell-size: 36px;
+    --rdp-accent-color: var(--accent-primary);
+    --rdp-background-color: var(--bg-primary);
+    margin: 0;
+  }
+
+  /* Ensure calendar doesn't overflow */
+  .rdp-months {
+    position: relative;
+    z-index: 1;
+  }
+
   /* Theme Infrastructure - CSS Custom Properties */
   :root {
     /* Default to dark theme (Night Cockpit) - Executive Lounge Aesthetic */

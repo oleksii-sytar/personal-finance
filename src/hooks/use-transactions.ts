@@ -1,46 +1,51 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
 import supabase from '@/lib/supabase/client'
 import { createTransaction, updateTransaction, deleteTransaction } from '@/actions/transactions'
-import type { Transaction, FullTransaction } from '@/types'
+import { useWorkspace } from '@/contexts/workspace-context'
+import type { Transaction, TransactionWithCategory, TransactionFilters } from '@/types'
 
 /**
  * Hook for fetching transactions with optional filtering
  * Following code-quality.md naming and structure patterns
+ * SECURITY: Always filters by current workspace ID
  */
 export function useTransactions(filters?: {
-  accountId?: string
-  categoryId?: string
-  type?: 'income' | 'expense' | 'transfer'
+  categories?: string[]
+  type?: 'income' | 'expense'
   startDate?: Date
   endDate?: Date
 }) {
+  const { currentWorkspace } = useWorkspace()
+  
   return useQuery({
-    queryKey: ['transactions', filters],
-    queryFn: async (): Promise<FullTransaction[]> => {
+    queryKey: ['transactions', currentWorkspace?.id, filters],
+    queryFn: async (): Promise<TransactionWithCategory[]> => {
+      // SECURITY: Must have a current workspace
+      if (!currentWorkspace?.id) {
+        return []
+      }
+
       let query = supabase
         .from('transactions')
         .select(`
           *,
-          category:categories(*),
-          account:accounts(*)
+          category:categories(*)
         `)
+        .eq('workspace_id', currentWorkspace.id) // CRITICAL: Filter by workspace
         .order('transaction_date', { ascending: false })
 
-      // Apply filters
-      if (filters?.accountId) {
-        query = query.eq('account_id', filters.accountId)
-      }
-      if (filters?.categoryId) {
-        query = query.eq('category_id', filters.categoryId)
+      // Apply additional filters
+      if (filters?.categories?.length) {
+        query = query.in('category_id', filters.categories)
       }
       if (filters?.type) {
         query = query.eq('type', filters.type)
       }
       if (filters?.startDate) {
-        query = query.gte('transaction_date', filters.startDate.toISOString())
+        query = query.gte('transaction_date', filters.startDate.toISOString().split('T')[0])
       }
       if (filters?.endDate) {
-        query = query.lte('transaction_date', filters.endDate.toISOString())
+        query = query.lte('transaction_date', filters.endDate.toISOString().split('T')[0])
       }
 
       const { data, error } = await query
@@ -51,24 +56,109 @@ export function useTransactions(filters?: {
 
       return data || []
     },
+    enabled: !!currentWorkspace?.id, // Only run query when workspace is available
+  })
+}
+
+/**
+ * Hook for infinite scroll transactions with pagination
+ * Implements Requirements 3.1, 3.5: Most recent first ordering and infinite scroll
+ * SECURITY: Always filters by current workspace ID
+ */
+export function useInfiniteTransactions(
+  filters?: TransactionFilters,
+  pageSize: number = 20
+) {
+  const { currentWorkspace } = useWorkspace()
+  
+  return useInfiniteQuery({
+    queryKey: ['transactions-infinite', currentWorkspace?.id, filters, pageSize],
+    queryFn: async ({ pageParam = 0 }): Promise<{
+      transactions: TransactionWithCategory[]
+      nextCursor: number | null
+      hasMore: boolean
+    }> => {
+      // SECURITY: Must have a current workspace
+      if (!currentWorkspace?.id) {
+        return {
+          transactions: [],
+          nextCursor: null,
+          hasMore: false
+        }
+      }
+
+      let query = supabase
+        .from('transactions')
+        .select(`
+          *,
+          category:categories(*)
+        `)
+        .eq('workspace_id', currentWorkspace.id) // CRITICAL: Filter by workspace
+        .order('transaction_date', { ascending: false })
+        .range(pageParam, pageParam + pageSize - 1)
+
+      // Apply additional filters
+      if (filters?.categories?.length) {
+        query = query.in('category_id', filters.categories)
+      }
+      if (filters?.type && filters.type !== 'all') {
+        query = query.eq('type', filters.type)
+      }
+      if (filters?.searchQuery) {
+        query = query.ilike('notes', `%${filters.searchQuery}%`)
+      }
+      if (filters?.dateRange?.start) {
+        query = query.gte('transaction_date', filters.dateRange.start.toISOString().split('T')[0])
+      }
+      if (filters?.dateRange?.end) {
+        query = query.lte('transaction_date', filters.dateRange.end.toISOString().split('T')[0])
+      }
+
+      const { data, error } = await query
+
+      if (error) {
+        throw new Error(`Failed to fetch transactions: ${error.message}`)
+      }
+
+      const transactions = data || []
+      const hasMore = transactions.length === pageSize
+      const nextCursor = hasMore ? pageParam + pageSize : null
+
+      return {
+        transactions,
+        nextCursor,
+        hasMore
+      }
+    },
+    getNextPageParam: (lastPage) => lastPage.nextCursor,
+    initialPageParam: 0,
+    enabled: !!currentWorkspace?.id, // Only run query when workspace is available
   })
 }
 
 /**
  * Hook for fetching a single transaction by ID
+ * SECURITY: Always filters by current workspace ID
  */
 export function useTransaction(id: string) {
+  const { currentWorkspace } = useWorkspace()
+  
   return useQuery({
-    queryKey: ['transaction', id],
-    queryFn: async (): Promise<FullTransaction | null> => {
+    queryKey: ['transaction', currentWorkspace?.id, id],
+    queryFn: async (): Promise<TransactionWithCategory | null> => {
+      // SECURITY: Must have a current workspace
+      if (!currentWorkspace?.id) {
+        return null
+      }
+
       const { data, error } = await supabase
         .from('transactions')
         .select(`
           *,
-          category:categories(*),
-          account:accounts(*)
+          category:categories(*)
         `)
         .eq('id', id)
+        .eq('workspace_id', currentWorkspace.id) // CRITICAL: Filter by workspace
         .single()
 
       if (error) {
@@ -77,21 +167,24 @@ export function useTransaction(id: string) {
 
       return data
     },
-    enabled: !!id,
+    enabled: !!id && !!currentWorkspace?.id, // Only run when both ID and workspace are available
   })
 }
 
 /**
  * Hook for creating transactions with optimistic updates
+ * SECURITY: Invalidates queries for current workspace only
  */
 export function useCreateTransaction() {
   const queryClient = useQueryClient()
+  const { currentWorkspace } = useWorkspace()
 
   return useMutation({
     mutationFn: createTransaction,
     onSuccess: () => {
-      // Invalidate and refetch transactions
-      queryClient.invalidateQueries({ queryKey: ['transactions'] })
+      // Invalidate and refetch transactions for current workspace only
+      queryClient.invalidateQueries({ queryKey: ['transactions', currentWorkspace?.id] })
+      queryClient.invalidateQueries({ queryKey: ['transactions-infinite', currentWorkspace?.id] })
       queryClient.invalidateQueries({ queryKey: ['dashboard'] })
     },
   })
@@ -99,17 +192,20 @@ export function useCreateTransaction() {
 
 /**
  * Hook for updating transactions with optimistic updates
+ * SECURITY: Invalidates queries for current workspace only
  */
 export function useUpdateTransaction() {
   const queryClient = useQueryClient()
+  const { currentWorkspace } = useWorkspace()
 
   return useMutation({
     mutationFn: ({ id, formData }: { id: string; formData: FormData }) =>
       updateTransaction(id, formData),
     onSuccess: (_result, { id }) => {
-      // Invalidate and refetch
-      queryClient.invalidateQueries({ queryKey: ['transactions'] })
-      queryClient.invalidateQueries({ queryKey: ['transaction', id] })
+      // Invalidate and refetch for current workspace only
+      queryClient.invalidateQueries({ queryKey: ['transactions', currentWorkspace?.id] })
+      queryClient.invalidateQueries({ queryKey: ['transactions-infinite', currentWorkspace?.id] })
+      queryClient.invalidateQueries({ queryKey: ['transaction', currentWorkspace?.id, id] })
       queryClient.invalidateQueries({ queryKey: ['dashboard'] })
     },
   })
@@ -117,15 +213,18 @@ export function useUpdateTransaction() {
 
 /**
  * Hook for deleting transactions
+ * SECURITY: Invalidates queries for current workspace only
  */
 export function useDeleteTransaction() {
   const queryClient = useQueryClient()
+  const { currentWorkspace } = useWorkspace()
 
   return useMutation({
     mutationFn: deleteTransaction,
     onSuccess: () => {
-      // Invalidate and refetch
-      queryClient.invalidateQueries({ queryKey: ['transactions'] })
+      // Invalidate and refetch for current workspace only
+      queryClient.invalidateQueries({ queryKey: ['transactions', currentWorkspace?.id] })
+      queryClient.invalidateQueries({ queryKey: ['transactions-infinite', currentWorkspace?.id] })
       queryClient.invalidateQueries({ queryKey: ['dashboard'] })
     },
   })

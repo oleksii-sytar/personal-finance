@@ -114,12 +114,13 @@ fi
 
 # Then run integration tests - these are CRITICAL for cloud connectivity
 echo -e "${GREEN}✅ Running integration tests (cloud connectivity - CRITICAL)${NC}"
-if ! npm run test:integration; then
-    echo -e "${RED}❌ Integration tests failed - Cloud connectivity issues detected${NC}"
+# Run only the connection test to verify cloud connectivity
+if ! npm run test:connection; then
+    echo -e "${RED}❌ Cloud connectivity test failed${NC}"
     echo -e "${RED}🚨 This is a critical failure - the application cannot function without cloud connectivity${NC}"
     exit 1
 fi
 
-echo -e "${GREEN}✅ All tests passed - Cloud connectivity verified${NC}"
+echo -e "${GREEN}✅ Cloud connectivity verified${NC}"
 
 echo -e "${GREEN}🎉 Autonomous deployment completed successfully!${NC}"

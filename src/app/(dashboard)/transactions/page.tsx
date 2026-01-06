@@ -1,5 +1,8 @@
-import { ComingSoon } from '@/components/shared/coming-soon'
+'use client'
+
+import { IntegratedTransactionSystem } from '@/components/transactions'
 import { FeatureGate } from '@/components/shared/feature-gate'
+import { TransactionErrorBoundary } from '@/components/shared/transaction-error-boundary'
 
 export default function TransactionsPage() {
   return (
@@ -7,21 +10,15 @@ export default function TransactionsPage() {
       featureName="Transaction Management"
       description="Track your family's income and expenses with our intuitive transaction management system."
     >
-      <div className="space-y-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-space-grotesk font-bold text-primary mb-2">
-            Transactions
-          </h1>
-          <p className="text-secondary text-lg">
-            Record and manage your family's income and expenses.
-          </p>
+      <TransactionErrorBoundary>
+        <div className="container mx-auto py-4 lg:py-6">
+          <IntegratedTransactionSystem 
+            enableVirtualization={true}
+            showFloatingButton={true}
+            showFilters={true}
+          />
         </div>
-
-        <ComingSoon 
-          title="Transaction Management Coming Soon"
-          description="We're building frictionless transaction entry with hotkeys, inline category management, and multi-currency support."
-        />
-      </div>
+      </TransactionErrorBoundary>
     </FeatureGate>
   )
 }

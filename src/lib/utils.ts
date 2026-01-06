@@ -14,4 +14,7 @@ export function cn(...inputs: ClassValue[]) {
 
 // Re-export formatting utilities for backward compatibility
 export { formatCurrency, formatDate, calculatePercentage, formatNumber } from './utils/format'
-export { convertCurrency, getSupportedCurrencies, isValidCurrencyCode } from './utils/currency'
+export { getSupportedCurrencies, isValidCurrencyCode, getCurrencySymbol, formatDualCurrency, parseCurrencyAmount } from './utils/currency'
+
+// Note: convertCurrency is not exported here as it requires server-side imports
+// Import it directly from './utils/currency' in server components only

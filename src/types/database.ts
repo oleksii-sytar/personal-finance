@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.1"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       accounts: {
@@ -82,30 +57,33 @@ export type Database = {
       }
       categories: {
         Row: {
-          color: string
+          color: string | null
           created_at: string | null
-          icon: string
+          icon: string | null
           id: string
+          is_default: boolean
           name: string
           type: string
           updated_at: string | null
           workspace_id: string
         }
         Insert: {
-          color: string
+          color?: string | null
           created_at?: string | null
-          icon: string
+          icon?: string | null
           id?: string
+          is_default?: boolean
           name: string
           type: string
           updated_at?: string | null
           workspace_id: string
         }
         Update: {
-          color?: string
+          color?: string | null
           created_at?: string | null
-          icon?: string
+          icon?: string | null
           id?: string
+          is_default?: boolean
           name?: string
           type?: string
           updated_at?: string | null
@@ -145,59 +123,271 @@ export type Database = {
         }
         Relationships: []
       }
-      transactions: {
+      expected_transactions: {
         Row: {
-          account_id: string
-          amount: number
-          category_id: string
-          created_at: string | null
+          actual_transaction_id: string | null
+          created_at: string
           currency: string
-          description: string
+          expected_amount: number
+          expected_date: string
           id: string
-          transaction_date: string
-          type: string
-          updated_at: string | null
+          recurring_transaction_id: string
+          status: string
           workspace_id: string
         }
         Insert: {
-          account_id: string
-          amount: number
-          category_id: string
-          created_at?: string | null
+          actual_transaction_id?: string | null
+          created_at?: string
           currency?: string
-          description: string
+          expected_amount: number
+          expected_date: string
           id?: string
-          transaction_date: string
-          type: string
-          updated_at?: string | null
+          recurring_transaction_id: string
+          status?: string
           workspace_id: string
         }
         Update: {
-          account_id?: string
-          amount?: number
-          category_id?: string
-          created_at?: string | null
+          actual_transaction_id?: string | null
+          created_at?: string
           currency?: string
-          description?: string
+          expected_amount?: number
+          expected_date?: string
           id?: string
-          transaction_date?: string
-          type?: string
-          updated_at?: string | null
+          recurring_transaction_id?: string
+          status?: string
           workspace_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "transactions_account_id_fkey"
-            columns: ["account_id"]
+            foreignKeyName: "expected_transactions_actual_transaction_id_fkey"
+            columns: ["actual_transaction_id"]
             isOneToOne: false
-            referencedRelation: "accounts"
+            referencedRelation: "admin_transactions"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "expected_transactions_actual_transaction_id_fkey"
+            columns: ["actual_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expected_transactions_recurring_transaction_id_fkey"
+            columns: ["recurring_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "recurring_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expected_transactions_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recurring_transactions: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          frequency: string
+          id: string
+          interval_count: number
+          is_active: boolean
+          next_due_date: string
+          start_date: string
+          template_data: Json
+          updated_at: string
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          frequency: string
+          id?: string
+          interval_count?: number
+          is_active?: boolean
+          next_due_date: string
+          start_date: string
+          template_data: Json
+          updated_at?: string
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          frequency?: string
+          id?: string
+          interval_count?: number
+          is_active?: boolean
+          next_due_date?: string
+          start_date?: string
+          template_data?: Json
+          updated_at?: string
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurring_transactions_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transaction_types: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          family: string
+          icon: string | null
+          id: string
+          is_default: boolean
+          is_system: boolean
+          name: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          family: string
+          icon?: string | null
+          id?: string
+          is_default?: boolean
+          is_system?: boolean
+          name: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          family?: string
+          icon?: string | null
+          id?: string
+          is_default?: boolean
+          is_system?: boolean
+          name?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transaction_types_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transactions: {
+        Row: {
+          amount: number
+          category_id: string | null
+          created_at: string | null
+          created_by: string
+          currency: string
+          deleted_at: string | null
+          description: string
+          expected_transaction_id: string | null
+          id: string
+          is_expected: boolean
+          notes: string | null
+          original_amount: number | null
+          original_currency: string | null
+          recurring_transaction_id: string | null
+          transaction_date: string
+          transaction_type_id: string | null
+          type: string
+          updated_at: string | null
+          updated_by: string | null
+          user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          amount: number
+          category_id?: string | null
+          created_at?: string | null
+          created_by: string
+          currency?: string
+          deleted_at?: string | null
+          description: string
+          expected_transaction_id?: string | null
+          id?: string
+          is_expected?: boolean
+          notes?: string | null
+          original_amount?: number | null
+          original_currency?: string | null
+          recurring_transaction_id?: string | null
+          transaction_date: string
+          transaction_type_id?: string | null
+          type: string
+          updated_at?: string | null
+          updated_by?: string | null
+          user_id: string
+          workspace_id: string
+        }
+        Update: {
+          amount?: number
+          category_id?: string | null
+          created_at?: string | null
+          created_by?: string
+          currency?: string
+          deleted_at?: string | null
+          description?: string
+          expected_transaction_id?: string | null
+          id?: string
+          is_expected?: boolean
+          notes?: string | null
+          original_amount?: number | null
+          original_currency?: string | null
+          recurring_transaction_id?: string | null
+          transaction_date?: string
+          transaction_type_id?: string | null
+          type?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
           {
             foreignKeyName: "transactions_category_id_fkey"
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_expected_transaction_id_fkey"
+            columns: ["expected_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "expected_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_recurring_transaction_id_fkey"
+            columns: ["recurring_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "recurring_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_transaction_type_id_fkey"
+            columns: ["transaction_type_id"]
+            isOneToOne: false
+            referencedRelation: "transaction_types"
             referencedColumns: ["id"]
           },
           {
@@ -335,15 +525,135 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      admin_transactions: {
+        Row: {
+          amount: number | null
+          category_id: string | null
+          created_at: string | null
+          created_by: string | null
+          currency: string | null
+          deleted_at: string | null
+          description: string | null
+          expected_transaction_id: string | null
+          id: string | null
+          is_deleted: boolean | null
+          is_expected: boolean | null
+          notes: string | null
+          original_amount: number | null
+          original_currency: string | null
+          recurring_transaction_id: string | null
+          transaction_date: string | null
+          type: string | null
+          updated_at: string | null
+          updated_by: string | null
+          user_id: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          amount?: number | null
+          category_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          expected_transaction_id?: string | null
+          id?: string | null
+          is_deleted?: never
+          is_expected?: boolean | null
+          notes?: string | null
+          original_amount?: number | null
+          original_currency?: string | null
+          recurring_transaction_id?: string | null
+          transaction_date?: string | null
+          type?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+          user_id?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          amount?: number | null
+          category_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency?: string | null
+          deleted_at?: string | null
+          description?: string | null
+          expected_transaction_id?: string | null
+          id?: string | null
+          is_deleted?: never
+          is_expected?: boolean | null
+          notes?: string | null
+          original_amount?: number | null
+          original_currency?: string | null
+          recurring_transaction_id?: string | null
+          transaction_date?: string | null
+          type?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+          user_id?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_expected_transaction_id_fkey"
+            columns: ["expected_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "expected_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_recurring_transaction_id_fkey"
+            columns: ["recurring_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "recurring_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      create_default_transaction_types: {
+        Args: { workspace_id: string }
+        Returns: undefined
+      }
+      create_user_profile: {
+        Args: { full_name?: string; user_email: string; user_id: string }
+        Returns: undefined
+      }
+      get_current_user_email: { Args: never; Returns: string }
       get_user_workspace_context: {
         Args: never
         Returns: {
           role: string
           workspace_id: string
         }[]
+      }
+      get_user_workspace_memberships: {
+        Args: { p_user_id: string }
+        Returns: {
+          role: string
+          workspace_id: string
+        }[]
+      }
+      verify_workspace_access: {
+        Args: { p_user_id: string; p_workspace_id: string }
+        Returns: boolean
       }
     }
     Enums: {
@@ -473,9 +783,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {},
   },
