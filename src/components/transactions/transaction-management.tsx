@@ -10,6 +10,7 @@ import { TransactionList } from './transaction-list'
 import { TransactionEditModal } from './transaction-edit-modal'
 import { DetailedEntryForm } from './detailed-entry-form'
 import { deleteTransaction, restoreTransaction } from '@/actions/transactions'
+import { useDeleteTransaction } from '@/hooks/use-transactions'
 import { useWorkspace } from '@/contexts/workspace-context'
 import { useFilterContext } from '@/contexts/transaction-filter-context'
 import { cn } from '@/lib/utils'
@@ -33,6 +34,9 @@ export function TransactionManagement({
   const { currentWorkspace } = useWorkspace()
   const filterContext = useFilterContext()
   const { showUndoToast } = useUndoToast()
+  
+  // React Query mutations
+  const deleteTransactionMutation = useDeleteTransaction()
   
   // State management
   const [transactions, setTransactions] = useState<TransactionWithCategory[]>(initialTransactions)
@@ -122,7 +126,7 @@ export function TransactionManagement({
     setIsDeleting(true)
 
     try {
-      const result = await deleteTransaction(transactionId)
+      const result = await deleteTransactionMutation.mutateAsync(transactionId)
       
       if (result.error) {
         console.error('Delete transaction error:', result.error)

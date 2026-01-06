@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { createTransaction } from '@/actions/transactions'
+import { useCreateTransaction } from '@/hooks/use-transactions'
 import { useWorkspace } from '@/contexts/workspace-context'
 import { useFilterContext } from '@/contexts/transaction-filter-context'
 import { CategorySelectorWithInlineCreate } from '@/components/categories'
@@ -44,6 +45,9 @@ export function QuickEntryForm({
   const { currentWorkspace } = useWorkspace()
   const filterContext = useFilterContext()
   const amountInputRef = useRef<HTMLInputElement>(null)
+  
+  // React Query mutation for cache invalidation
+  const createTransactionMutation = useCreateTransaction()
   
   // Apply filter context for pre-population (Requirement 4.8)
   const getDefaultType = () => {
@@ -141,7 +145,8 @@ export function QuickEntryForm({
         formData.set('category_id', state.categoryId)
       }
 
-      const result = await createTransaction(formData)
+      // Use React Query mutation for proper cache invalidation
+      const result = await createTransactionMutation.mutateAsync(formData)
 
       if (result.error) {
         setError(typeof result.error === 'string' ? result.error : 'Failed to create transaction')

@@ -47,7 +47,7 @@ export function CurrencySelector({
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
         className={cn(
-          'flex items-center justify-between w-full bg-glass border border-glass rounded-xl',
+          'flex items-center justify-between w-full bg-glass-interactive border border-glass rounded-xl',
           'text-primary font-medium transition-all duration-200',
           'hover:border-accent focus:border-accent focus:ring-2 focus:ring-accent/20',
           'disabled:opacity-50 disabled:cursor-not-allowed',
@@ -78,7 +78,7 @@ export function CurrencySelector({
           />
           
           {/* Dropdown */}
-          <div className="absolute top-full left-0 right-0 mt-1 z-20 bg-glass backdrop-blur-xl border border-glass rounded-xl shadow-lg overflow-hidden">
+          <div className="absolute top-full left-0 right-0 mt-1 z-20 bg-glass-interactive backdrop-blur-xl border border-glass rounded-xl shadow-lg overflow-hidden">
             {currencies.map((currency) => (
               <button
                 key={currency.code}

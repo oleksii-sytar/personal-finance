@@ -57,7 +57,7 @@ export function WorkspaceSelector({ className = '' }: WorkspaceSelectorProps) {
   if (loading) {
     return (
       <div className={`animate-pulse ${className}`}>
-        <div className="h-10 bg-glass rounded-lg"></div>
+        <div className="h-10 bg-glass-interactive rounded-lg"></div>
       </div>
     )
   }
@@ -67,7 +67,7 @@ export function WorkspaceSelector({ className = '' }: WorkspaceSelectorProps) {
       <div className={className}>
         <button
           onClick={handleCreateWorkspace}
-          className="flex items-center gap-2 px-3 py-2 text-sm text-secondary hover:text-primary hover:bg-glass rounded-lg transition-all"
+          className="flex items-center gap-2 px-3 py-2 text-sm text-secondary hover:text-primary hover:bg-glass-interactive rounded-lg transition-all"
         >
           <Plus className="w-4 h-4" />
           Create Workspace
@@ -81,7 +81,7 @@ export function WorkspaceSelector({ className = '' }: WorkspaceSelectorProps) {
       <div className={`relative ${className}`} ref={dropdownRef}>
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center justify-between w-full px-3 py-2 text-sm bg-glass hover:bg-glass border border-primary rounded-lg transition-all group"
+          className="flex items-center justify-between w-full px-3 py-2 text-sm bg-glass-interactive hover:bg-glass-elevated border border-primary rounded-lg transition-all group"
         >
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-6 h-6 bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-primary)] rounded-md flex items-center justify-center flex-shrink-0">
@@ -109,7 +109,7 @@ export function WorkspaceSelector({ className = '' }: WorkspaceSelectorProps) {
                   <button
                     key={workspace.id}
                     onClick={() => handleWorkspaceSelect(workspace)}
-                    className="flex items-center justify-between w-full px-3 py-2 text-sm text-secondary hover:text-primary hover:bg-glass rounded-lg transition-all"
+                    className="flex items-center justify-between w-full px-3 py-2 text-sm text-secondary hover:text-primary hover:bg-glass-interactive rounded-lg transition-all"
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <div className="w-6 h-6 bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-primary)] rounded-md flex items-center justify-center flex-shrink-0">
@@ -135,7 +135,7 @@ export function WorkspaceSelector({ className = '' }: WorkspaceSelectorProps) {
               <div className="space-y-1">
                 <button
                   onClick={handleCreateWorkspace}
-                  className="flex items-center gap-2 w-full px-3 py-2 text-sm text-secondary hover:text-primary hover:bg-glass rounded-lg transition-all"
+                  className="flex items-center gap-2 w-full px-3 py-2 text-sm text-secondary hover:text-primary hover:bg-glass-interactive rounded-lg transition-all"
                 >
                   <Plus className="w-4 h-4" />
                   Create New Workspace
@@ -146,7 +146,7 @@ export function WorkspaceSelector({ className = '' }: WorkspaceSelectorProps) {
                     setIsOpen(false)
                     router.push('/settings')
                   }}
-                  className="flex items-center gap-2 w-full px-3 py-2 text-sm text-secondary hover:text-primary hover:bg-glass rounded-lg transition-all"
+                  className="flex items-center gap-2 w-full px-3 py-2 text-sm text-secondary hover:text-primary hover:bg-glass-interactive rounded-lg transition-all"
                 >
                   <Settings className="w-4 h-4" />
                   Workspace Settings
