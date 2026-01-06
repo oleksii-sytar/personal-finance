@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.6] - 2026-01-06
+
+### 🎨 UI/UX Improvements
+- **Enhanced Dropdown Hover Effects**: Added premium hover effects to all dropdown components
+  - Color-based highlighting without layout shifts to prevent horizontal scrolling
+  - Smooth transitions with brightness and drop-shadow effects
+  - Consistent hover states across category and currency selectors
+- **Fixed Calendar Component**: Completely rebuilt date picker for better functionality
+  - Replaced broken calendar layout with clean, reliable implementation
+  - Fixed invisible navigation buttons (previous/next month)
+  - Corrected day names alignment and proper 7-column grid layout
+  - Enhanced date range selection with proper visual feedback
+  - Improved contrast and readability on dark backgrounds
+- **Removed Loading Message**: Cleaned up Forma logo loader by removing text for premium aesthetic
+  - Pure animated logo without distracting "Loading..." text
+  - Maintains magical animations while keeping sophisticated look
+
+### 🐛 Bug Fixes
+- Fixed dropdown transparency issues causing poor readability in dark theme
+- Resolved calendar layout breaking into vertical single column
+- Fixed navigation buttons being invisible on dark backgrounds
+- Corrected date picker range selection functionality
+- Eliminated layout shifts caused by hover scaling effects
+
+### 🔧 Technical Improvements
+- **Enhanced CSS Custom Properties**: Added `--bg-glass-dropdown` with 95% opacity for excellent readability
+- **Improved Component Architecture**: Simplified calendar component structure
+- **Better Hover States**: Implemented color-only hover effects to prevent layout issues
+- **Consistent Theming**: All interactive elements now use unified opacity levels
+
 ## [0.2.5] - 2026-01-06
 
 ### 🎨 UI/UX Improvements
