@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { useWorkspace } from '@/contexts/workspace-context'
 import { OnboardingFlow } from '@/components/shared/onboarding-flow'
 import { ComingSoon } from '@/components/shared/coming-soon'
+import { FloatingAddButton } from '@/components/transactions'
 
 export default function DashboardPage() {
   const { currentWorkspace, workspaces, loading } = useWorkspace()
@@ -76,6 +77,14 @@ export default function DashboardPage() {
       <ComingSoon 
         title="Dashboard Coming Soon"
         description="We're building your family finance dashboard with balance tracking, recent transactions, and intelligent forecasting."
+      />
+
+      {/* Floating Add Button for quick transaction entry */}
+      <FloatingAddButton 
+        onTransactionCreated={(transaction) => {
+          console.log('Transaction created:', transaction)
+          // TODO: Refresh dashboard data when implemented
+        }}
       />
     </div>
   )

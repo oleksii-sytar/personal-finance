@@ -307,6 +307,7 @@ export async function createWorkspaceInvitation(workspaceId: string, email: stri
 /**
  * Create a new workspace
  * Uses service role to ensure proper workspace and membership creation
+ * Implements Requirement 7.6: Create default categories for new workspace
  */
 export async function createWorkspace(name: string): Promise<{
   data?: Workspace
@@ -379,6 +380,39 @@ export async function createWorkspace(name: string): Promise<{
         console.error('Server: Error creating membership:', createMembershipError)
         // Don't fail the workspace creation for this
       }
+    }
+
+    // Create default categories for the new workspace (Requirement 7.6)
+    try {
+      const { createDefaultCategories } = await import('@/actions/categories')
+      const categoriesResult = await createDefaultCategories(workspace.id)
+      
+      if (categoriesResult.error) {
+        console.warn('Server: Failed to create default categories:', categoriesResult.error)
+        // Don't fail workspace creation if categories fail - user can create them later
+      } else {
+        console.log('Server: Created default categories:', categoriesResult.data?.length)
+      }
+    } catch (categoriesError) {
+      console.warn('Server: Error creating default categories:', categoriesError)
+      // Don't fail workspace creation if categories fail
+    }
+
+    // Create default transaction types for the new workspace (Requirements 8.1, 8.4)
+    try {
+      // Call the database function to create default transaction types
+      const { error: transactionTypesError } = await supabaseAdmin
+        .rpc('create_default_transaction_types', { workspace_id: workspace.id })
+      
+      if (transactionTypesError) {
+        console.warn('Server: Failed to create default transaction types:', transactionTypesError)
+        // Don't fail workspace creation if transaction types fail - user can create them later
+      } else {
+        console.log('Server: Created default transaction types for workspace:', workspace.id)
+      }
+    } catch (transactionTypesError) {
+      console.warn('Server: Error creating default transaction types:', transactionTypesError)
+      // Don't fail workspace creation if transaction types fail
     }
 
     return { data: workspace }

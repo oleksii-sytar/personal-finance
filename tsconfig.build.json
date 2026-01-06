@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "exclude": [
+    "node_modules",
+    "vitest.config.ts",
+    "playwright.config.ts",
+    "supabase/functions/**/*",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "tests/**/*",
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx"
+  ]
+}

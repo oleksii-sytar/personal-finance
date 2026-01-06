@@ -1,71 +1,100 @@
-import { useMemo } from 'react'
-import { formatCurrency } from '@/lib/utils/format'
-import { CURRENCY_SYMBOLS } from '@/lib/constants/currencies'
+/**
+ * Currency display component with multi-currency support
+ * Shows original amount and UAH conversion when applicable
+ */
+
+import { formatCurrency, formatDualCurrency, getCurrencySymbol } from '@/lib/utils/currency'
 import { cn } from '@/lib/utils'
-import type { SupportedCurrency } from '@/lib/constants/currencies'
 
 interface CurrencyDisplayProps {
   amount: number
-  currency: SupportedCurrency
+  currency: string
+  originalAmount?: number
+  originalCurrency?: string
   className?: string
-  showSign?: boolean
+  showBoth?: boolean
   size?: 'sm' | 'md' | 'lg'
+  variant?: 'default' | 'muted' | 'accent'
 }
 
-/**
- * Component for displaying currency amounts with proper formatting
- * Following code-quality.md component organization patterns
- */
-export function CurrencyDisplay({ 
-  amount, 
-  currency, 
+export function CurrencyDisplay({
+  amount,
+  currency,
+  originalAmount,
+  originalCurrency,
   className,
-  showSign = false,
-  size = 'md'
+  showBoth = true,
+  size = 'md',
+  variant = 'default'
 }: CurrencyDisplayProps) {
-  // Derived state / memoization
-  const formattedAmount = useMemo(
-    () => formatCurrency(amount, currency),
-    [amount, currency]
-  )
-
-  const isNegative = amount < 0
-  const isPositive = amount > 0
-
   const sizeClasses = {
     sm: 'text-sm',
     md: 'text-base',
-    lg: 'text-lg',
+    lg: 'text-lg font-semibold'
   }
-
-  const colorClasses = showSign ? {
-    positive: 'text-accent-success',
-    negative: 'text-[var(--accent-error)]',
-    neutral: 'text-text-primary',
-  } : {
-    positive: 'text-text-primary',
-    negative: 'text-text-primary',
-    neutral: 'text-text-primary',
+  
+  const variantClasses = {
+    default: 'text-primary',
+    muted: 'text-secondary',
+    accent: 'text-accent-primary'
   }
-
-  const colorClass = isPositive 
-    ? colorClasses.positive 
-    : isNegative 
-      ? colorClasses.negative 
-      : colorClasses.neutral
-
+  
+  // If we have original currency info and it's different, show dual display
+  if (originalAmount && originalCurrency && originalCurrency !== currency && showBoth) {
+    return (
+      <div className={cn('flex flex-col', className)}>
+        <span className={cn(sizeClasses[size], variantClasses[variant])}>
+          {formatCurrency(originalAmount, originalCurrency)}
+        </span>
+        <span className={cn('text-xs text-muted', size === 'lg' && 'text-sm')}>
+          {formatCurrency(amount, currency)}
+        </span>
+      </div>
+    )
+  }
+  
+  // Standard single currency display
   return (
-    <span 
-      className={cn(
-        'font-medium tabular-nums',
-        sizeClasses[size],
-        colorClass,
-        className
-      )}
-      title={`${amount} ${currency}`}
-    >
-      {showSign && isPositive && '+'}
-      {formattedAmount}
+    <span className={cn(sizeClasses[size], variantClasses[variant], className)}>
+      {formatCurrency(amount, currency)}
     </span>
+  )
+}
+
+interface CurrencySymbolProps {
+  currency: string
+  className?: string
+}
+
+export function CurrencySymbol({ currency, className }: CurrencySymbolProps) {
+  return (
+    <span className={cn('font-medium', className)}>
+      {getCurrencySymbol(currency)}
+    </span>
+  )
+}
+
+interface CurrencyInputDisplayProps {
+  value: string
+  currency: string
+  className?: string
+  placeholder?: string
+}
+
+export function CurrencyInputDisplay({
+  value,
+  currency,
+  className,
+  placeholder = '0.00'
+}: CurrencyInputDisplayProps) {
+  const symbol = getCurrencySymbol(currency)
+  
+  return (
+    <div className={cn('flex items-center space-x-1', className)}>
+      <CurrencySymbol currency={currency} className="text-muted" />
+      <span className="font-mono">
+        {value || placeholder}
+      </span>
+    </div>
   )
 }

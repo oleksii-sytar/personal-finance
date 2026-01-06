@@ -50,26 +50,12 @@ export function WorkspaceProvider({ children }: WorkspaceProviderProps) {
   const { user, session } = useAuth()
   const supabase = createClient()
 
-  // Load workspaces when user is authenticated
-  useEffect(() => {
-    if (user && session) {
-      loadWorkspaces()
-    } else {
-      // Clear workspace data when user logs out
-      setCurrentWorkspace(null)
-      setWorkspaces([])
-      setMembers([])
-      setInvitations([])
-      setLoading(false)
-    }
-  }, [user, session])
-
   /**
    * Load all workspaces for the current user
    * Requirements: 4.1, 4.3
    * Security: Server-side filtering ensures users only see their workspaces
    */
-  const loadWorkspaces = async () => {
+  const loadWorkspaces = useCallback(async () => {
     if (!user) return
 
     try {
@@ -96,7 +82,21 @@ export function WorkspaceProvider({ children }: WorkspaceProviderProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user, currentWorkspace])
+
+  // Load workspaces when user is authenticated
+  useEffect(() => {
+    if (user && session) {
+      loadWorkspaces()
+    } else {
+      // Clear workspace data when user logs out
+      setCurrentWorkspace(null)
+      setWorkspaces([])
+      setMembers([])
+      setInvitations([])
+      setLoading(false)
+    }
+  }, [user, session, loadWorkspaces])
 
   /**
    * Load members and invitations for a specific workspace
@@ -143,7 +143,7 @@ export function WorkspaceProvider({ children }: WorkspaceProviderProps) {
     } catch (error) {
       console.error('Error in loadWorkspaceDetails:', error)
     }
-  }, [user?.id]) // Only depend on user.id, not the entire user object
+  }, [user])
 
   // Load current workspace details when currentWorkspace changes
   useEffect(() => {
@@ -158,7 +158,7 @@ export function WorkspaceProvider({ children }: WorkspaceProviderProps) {
       setMembers([])
       setInvitations([])
     }
-  }, [currentWorkspace?.id, user?.id]) // Removed loadWorkspaceDetails from dependencies to prevent infinite loops
+  }, [currentWorkspace?.id, user?.id, loadWorkspaceDetails])
 
   /**
    * Create a new workspace

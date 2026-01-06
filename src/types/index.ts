@@ -1,6 +1,39 @@
 // Re-export action types
 export * from './actions'
 
+// Re-export database types
+export * from './database'
+
+// Re-export transaction types (avoiding conflicts with actions)
+export type {
+  Transaction,
+  TransactionInsert,
+  TransactionUpdate,
+  Category,
+  CategoryInsert,
+  CategoryUpdate,
+  RecurringTransaction,
+  RecurringTransactionInsert,
+  RecurringTransactionUpdate,
+  ExpectedTransaction,
+  ExpectedTransactionInsert,
+  ExpectedTransactionUpdate,
+  TransactionType,
+  RecurrenceFrequency,
+  ExpectedTransactionStatus,
+  TransactionWithCategory,
+  TransactionWithDetails,
+  TransactionFilters,
+  PaginationParams,
+  TransactionPage,
+  QuickEntryFormData,
+  DetailedEntryFormData,
+  RecurrencePattern,
+  RecurringTransactionTemplate,
+  DateRangePreset,
+  CurrencyConversionResult,
+} from './transactions'
+
 /**
  * Core domain types following structure.md and code-quality.md standards
  */
@@ -32,31 +65,6 @@ export interface Account {
   updated_at: string
 }
 
-export interface Category {
-  id: string
-  workspace_id: string
-  name: string
-  color: string
-  icon: string
-  type: 'income' | 'expense'
-  created_at: string
-  updated_at: string
-}
-
-export interface Transaction {
-  id: string
-  workspace_id: string
-  account_id: string
-  category_id: string
-  amount: number
-  currency: string
-  description: string
-  type: 'income' | 'expense' | 'transfer'
-  transaction_date: string
-  created_at: string
-  updated_at: string
-}
-
 export interface Budget {
   id: string
   workspace_id: string
@@ -73,23 +81,5 @@ export interface Budget {
 /**
  * Derived types for better type safety
  */
-export type TransactionType = Transaction['type']
 export type AccountType = Account['type']
-export type CategoryType = Category['type']
 export type BudgetPeriod = Budget['period']
-
-/**
- * Composite types for complex operations
- */
-export type TransactionWithCategory = Transaction & {
-  category: Category
-}
-
-export type TransactionWithAccount = Transaction & {
-  account: Account
-}
-
-export type FullTransaction = Transaction & {
-  category: Category
-  account: Account
-}

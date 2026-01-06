@@ -7,8 +7,11 @@ import { ThemeProvider } from '@/contexts/theme-context'
 import { AuthProvider } from '@/contexts/auth-context'
 import { WorkspaceProvider } from '@/contexts/workspace-context'
 import { WorkspaceModalProvider } from '@/contexts/workspace-modal-context'
+import { QueryProvider } from '@/contexts/query-provider'
+import { TransactionFilterProvider } from '@/contexts/transaction-filter-context'
 import { ErrorBoundary } from '@/components/shared/error-boundary'
 import { ToastProvider } from '@/components/ui/toast'
+import { UndoToastProvider } from '@/components/ui/undo-toast'
 import { OfflineManager } from '@/components/shared/offline-manager'
 import { AuthSyncManager } from '@/components/shared/auth-sync-manager'
 import { SessionExpiryHandler } from '@/components/shared/session-expiry-handler'
@@ -46,39 +49,45 @@ export default function RootLayout({
       >
         <ErrorBoundary>
           <ThemeProvider>
-            <ToastProvider>
-              <AuthProvider>
-                <WorkspaceProvider>
-                  <WorkspaceModalProvider>
-                    <HistoryProvider>
-                      <PerformanceMonitorProvider>
-                        <Suspense fallback={
-                          <div className="min-h-screen flex items-center justify-center">
-                            <div className="animate-spin rounded-full h-8 w-8 border-2 border-muted/30 border-t-accent drop-shadow-sm" />
-                          </div>
-                        }>
-                          <BookmarkHandler>
-                            {/* Progressive Enhancement and Offline Support */}
-                            <OfflineManager />
-                            
-                            {/* Cross-Tab Authentication Synchronization */}
-                            <AuthSyncManager />
-                            
-                            {/* Session Expiry Notifications */}
-                            <SessionExpiryHandler />
-                            
-                            {children}
-                          </BookmarkHandler>
-                        </Suspense>
-                        
-                        {/* Development Performance Dashboard */}
-                        <PerformanceDashboardWrapper />
-                      </PerformanceMonitorProvider>
-                    </HistoryProvider>
-                  </WorkspaceModalProvider>
-                </WorkspaceProvider>
-              </AuthProvider>
-            </ToastProvider>
+            <QueryProvider>
+              <ToastProvider>
+                <UndoToastProvider>
+                  <AuthProvider>
+                    <WorkspaceProvider>
+                      <WorkspaceModalProvider>
+                        <TransactionFilterProvider>
+                          <HistoryProvider>
+                            <PerformanceMonitorProvider>
+                              <Suspense fallback={
+                                <div className="min-h-screen flex items-center justify-center">
+                                  <div className="animate-spin rounded-full h-8 w-8 border-2 border-muted/30 border-t-accent drop-shadow-sm" />
+                                </div>
+                              }>
+                                <BookmarkHandler>
+                                  {/* Progressive Enhancement and Offline Support */}
+                                  <OfflineManager />
+                                  
+                                  {/* Cross-Tab Authentication Synchronization */}
+                                  <AuthSyncManager />
+                                  
+                                  {/* Session Expiry Notifications */}
+                                  <SessionExpiryHandler />
+                                  
+                                  {children}
+                                </BookmarkHandler>
+                              </Suspense>
+                              
+                              {/* Development Performance Dashboard */}
+                              <PerformanceDashboardWrapper />
+                            </PerformanceMonitorProvider>
+                          </HistoryProvider>
+                        </TransactionFilterProvider>
+                      </WorkspaceModalProvider>
+                    </WorkspaceProvider>
+                  </AuthProvider>
+                </UndoToastProvider>
+              </ToastProvider>
+            </QueryProvider>
           </ThemeProvider>
         </ErrorBoundary>
         <SpeedInsights />
