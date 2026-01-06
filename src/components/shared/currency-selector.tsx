@@ -78,26 +78,31 @@ export function CurrencySelector({
           />
           
           {/* Dropdown */}
-          <div className="absolute top-full left-0 right-0 mt-1 z-20 bg-glass-interactive backdrop-blur-xl border border-glass rounded-xl shadow-lg overflow-hidden">
+          <div className="absolute top-full left-0 right-0 mt-1 z-20 bg-glass-dropdown backdrop-blur-xl border border-glass rounded-xl shadow-lg overflow-hidden">
             {currencies.map((currency) => (
               <button
                 key={currency.code}
                 type="button"
                 onClick={() => handleSelect(currency.code)}
                 className={cn(
-                  'w-full flex items-center justify-between px-3 py-2 text-left',
-                  'hover:bg-accent/10 transition-colors duration-150',
+                  'w-full flex items-center justify-between px-3 py-2 text-left rounded-lg group',
+                  'hover:bg-accent-primary/10 hover:shadow-sm transition-all duration-200 ease-out',
+                  'focus:bg-accent-primary/10 focus:outline-none focus:ring-2 focus:ring-accent-primary/20',
                   'text-primary',
-                  value === currency.code && 'bg-accent/5'
+                  value === currency.code && 'bg-accent-primary/15 shadow-sm'
                 )}
               >
                 <div className="flex items-center space-x-3">
-                  <span className="font-mono text-accent-primary w-6">
+                  <span className="font-mono text-accent-primary w-6 transition-all duration-200 group-hover:brightness-125 group-hover:drop-shadow-sm">
                     {currency.symbol}
                   </span>
                   <div>
-                    <div className="font-medium">{currency.code}</div>
-                    <div className="text-xs text-muted">{currency.name}</div>
+                    <div className="font-medium transition-colors duration-200 group-hover:text-accent-primary">
+                      {currency.code}
+                    </div>
+                    <div className="text-xs text-muted transition-colors duration-200 group-hover:text-secondary">
+                      {currency.name}
+                    </div>
                   </div>
                 </div>
                 {value === currency.code && (

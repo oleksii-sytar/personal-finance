@@ -139,36 +139,7 @@ export function FormaLogoLoader({
       </div>
 
       {/* Loading Message */}
-      {message && (
-        <div className="mt-8 text-center">
-          <p 
-            className={cn(
-              'text-[var(--text-primary)] font-medium mb-2',
-              textSizeClasses[size]
-            )}
-            style={{ fontFamily: 'Inter, sans-serif' }}
-          >
-            {message}
-          </p>
-          
-          {/* Animated Dots */}
-          <div className="flex items-center justify-center space-x-1">
-            {[...Array(3)].map((_, i) => (
-              <div
-                key={i}
-                className={cn(
-                  'w-2 h-2 bg-[var(--accent-primary)] rounded-full',
-                  'animate-bounce'
-                )}
-                style={{
-                  animationDelay: `${i * 0.2}s`,
-                  animationDuration: '1.4s'
-                }}
-              />
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Removed loading message for cleaner, more premium aesthetic */}
     </div>
   )
 }
@@ -177,9 +148,8 @@ export function FormaLogoLoader({
  * Full-screen version of the Forma logo loader
  */
 export function FullScreenFormaLoader({ 
-  message = 'Loading...', 
   size = 'xl' 
-}: FormaLogoLoaderProps) {
+}: Omit<FormaLogoLoaderProps, 'message'>) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)] relative overflow-hidden">
       {/* Background Ambient Glow */}
@@ -190,7 +160,7 @@ export function FullScreenFormaLoader({
         }}
       />
       
-      <FormaLogoLoader size={size} message={message} />
+      <FormaLogoLoader size={size} />
     </div>
   )
 }

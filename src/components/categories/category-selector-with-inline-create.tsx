@@ -173,7 +173,7 @@ export function CategorySelectorWithInlineCreate({
       {showDropdown && !showCreateForm && (
         <div
           ref={dropdownRef}
-          className="absolute z-10 w-full mt-1 bg-glass-interactive border border-glass rounded-xl shadow-lg max-h-64 overflow-y-auto"
+          className="absolute z-10 w-full mt-1 bg-glass-dropdown backdrop-blur-xl border border-glass rounded-xl shadow-lg max-h-64 overflow-y-auto"
         >
           {/* Existing Categories */}
           {filteredCategories.map((category, index) => (
@@ -181,16 +181,24 @@ export function CategorySelectorWithInlineCreate({
               key={category.id}
               type="button"
               onClick={() => handleCategorySelect(category)}
-              className={`w-full p-3 text-left hover:bg-ambient-glow transition-colors flex items-center gap-2 ${
-                index === selectedIndex ? 'bg-ambient-glow' : ''
-              }`}
+              className={`w-full p-3 text-left transition-all duration-200 ease-out flex items-center gap-2 rounded-lg group
+                hover:bg-accent-primary/10 hover:border-accent-primary/20 hover:shadow-sm
+                focus:bg-accent-primary/10 focus:border-accent-primary/20 focus:outline-none focus:ring-2 focus:ring-accent-primary/20
+                ${index === selectedIndex ? 'bg-accent-primary/15 border-accent-primary/30 shadow-sm' : 'border border-transparent'}
+              `}
             >
-              {category.icon && <span className="text-lg">{category.icon}</span>}
+              {category.icon && (
+                <span className="text-lg transition-colors duration-200 group-hover:brightness-125">
+                  {category.icon}
+                </span>
+              )}
               <div
-                className="w-3 h-3 rounded-full border border-glass"
+                className="w-3 h-3 rounded-full border border-glass transition-all duration-200 group-hover:border-accent-primary/50 group-hover:shadow-md"
                 style={{ backgroundColor: category.color || '#8B7355' }}
               />
-              <span className="text-primary font-medium">{category.name}</span>
+              <span className="text-primary font-medium transition-colors duration-200 group-hover:text-accent-primary">
+                {category.name}
+              </span>
               {category.usage_count > 0 && (
                 <span className="text-xs text-secondary ml-auto">
                   {category.usage_count}
@@ -207,12 +215,16 @@ export function CategorySelectorWithInlineCreate({
             <button
               type="button"
               onClick={() => setShowCreateForm(true)}
-              className={`w-full p-3 text-left hover:bg-ambient-glow transition-colors flex items-center gap-2 ${
-                selectedIndex === filteredCategories.length ? 'bg-ambient-glow' : ''
-              }`}
+              className={`w-full p-3 text-left transition-all duration-200 ease-out flex items-center gap-2 rounded-lg group
+                hover:bg-accent-primary/10 hover:border-accent-primary/20 hover:shadow-sm
+                focus:bg-accent-primary/10 focus:border-accent-primary/20 focus:outline-none focus:ring-2 focus:ring-accent-primary/20
+                ${selectedIndex === filteredCategories.length ? 'bg-accent-primary/15 border-accent-primary/30 shadow-sm' : 'border border-transparent'}
+              `}
             >
-              <span className="text-accent-primary">+</span>
-              <span className="text-primary">
+              <span className="text-accent-primary transition-all duration-200 group-hover:brightness-125 group-hover:drop-shadow-sm">
+                +
+              </span>
+              <span className="text-primary transition-colors duration-200 group-hover:text-accent-primary">
                 Create "{searchTerm}"
               </span>
             </button>
