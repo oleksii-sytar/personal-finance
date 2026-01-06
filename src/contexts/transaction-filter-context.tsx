@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react'
+import { createContext, useContext, useState, useEffect, ReactNode, useMemo, useRef } from 'react'
 import type { TransactionFilters } from '@/types/transactions'
 
 interface TransactionFilterContextType {
@@ -23,34 +23,25 @@ export function TransactionFilterProvider({
   children, 
   initialFilters = {} 
 }: TransactionFilterProviderProps) {
-  // Extract values for stable dependencies
-  const searchQuery = initialFilters.searchQuery
-  const type = initialFilters.type
-  const categoriesKey = initialFilters.categories?.join(',')
-  const membersKey = initialFilters.members?.join(',')
-  const startTime = initialFilters.dateRange?.start?.getTime()
-  const endTime = initialFilters.dateRange?.end?.getTime()
-
-  // Memoize initialFilters to prevent infinite re-renders
-  const memoizedInitialFilters = useMemo(() => initialFilters, [
-    searchQuery,
-    type,
-    categoriesKey,
-    membersKey,
-    startTime,
-    endTime
-  ])
-
+  // Use ref to track if we've initialized from props
+  const initializedFromProps = useRef(false)
+  
   const [filters, setFiltersState] = useState<TransactionFilters>(() => {
     // Initialize with stored filters if available, but prioritize initialFilters
     if (typeof window === 'undefined') {
       // Server-side rendering: use initialFilters only
-      return memoizedInitialFilters
+      return initialFilters
+    }
+    
+    // If initialFilters are provided, use them
+    if (Object.keys(initialFilters).length > 0) {
+      initializedFromProps.current = true
+      return initialFilters
     }
     
     try {
       const stored = sessionStorage.getItem(STORAGE_KEY)
-      if (stored && Object.keys(memoizedInitialFilters).length === 0) {
+      if (stored) {
         const parsedFilters = JSON.parse(stored)
         // Convert date strings back to Date objects
         if (parsedFilters.dateRange) {
@@ -64,7 +55,7 @@ export function TransactionFilterProvider({
     } catch (error) {
       console.warn('Failed to load transaction filters from storage:', error)
     }
-    return memoizedInitialFilters
+    return {}
   })
 
   // Load filters from sessionStorage on mount only if no initialFilters provided
@@ -72,11 +63,11 @@ export function TransactionFilterProvider({
     // Skip on server-side rendering
     if (typeof window === 'undefined') return
     
-    if (Object.keys(memoizedInitialFilters).length > 0) {
-      // If initialFilters are provided, use them (for testing)
-      setFiltersState(memoizedInitialFilters)
-      return
-    }
+    // Skip if we already initialized from props
+    if (initializedFromProps.current) return
+    
+    // Skip if initialFilters are provided
+    if (Object.keys(initialFilters).length > 0) return
 
     try {
       const stored = sessionStorage.getItem(STORAGE_KEY)
@@ -94,7 +85,8 @@ export function TransactionFilterProvider({
     } catch (error) {
       console.warn('Failed to load transaction filters from storage:', error)
     }
-  }, [memoizedInitialFilters, initialFilters])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Empty dependency array - only run on mount, intentionally excluding initialFilters to prevent infinite loops
 
   // Save filters to sessionStorage whenever they change
   useEffect(() => {

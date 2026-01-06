@@ -1,28 +1,17 @@
-import { LoadingSpinner } from './loading-spinner'
+import { FullScreenFormaLoader } from './forma-logo-loader'
 
 interface FullScreenLoadingProps {
   message?: string
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'sm' | 'md' | 'lg' | 'xl'
 }
 
 /**
- * Full-screen loading component with proper centering and visibility
- * Use this for page-level loading states to avoid positioning issues
+ * Full-screen loading component with magical Forma logo
+ * Use this for page-level loading states with premium Executive Lounge aesthetic
  */
 export function FullScreenLoading({ 
   message = 'Loading...', 
-  size = 'lg' 
+  size = 'xl' 
 }: FullScreenLoadingProps) {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--bg-primary)]">
-      <div className="text-center">
-        <LoadingSpinner size={size} centered />
-        {message && (
-          <p className="mt-4 text-sm text-[var(--text-secondary)]">
-            {message}
-          </p>
-        )}
-      </div>
-    </div>
-  )
+  return <FullScreenFormaLoader message={message} size={size} />
 }

@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.4] - 2026-01-06
+
+### ✨ New Features
+- **Magical Logo Loader**: Replaced basic spinner with premium animated Forma logo loader
+  - Animated Forma logo with gradient text and Executive Lounge aesthetic
+  - Rotating outer ring with conic gradient effects
+  - Pulsing inner ring and floating particles animation
+  - Ambient glow background with warm luxury atmosphere
+  - Responsive sizing (sm, md, lg, xl) for different contexts
+  - Custom loading messages support
+  - Full-screen and inline variants available
+
+### 🐛 Bug Fixes
+- **Fixed Critical React Hook Issues**: Resolved infinite re-render loops causing "Maximum update depth exceeded" errors
+  - Fixed `TransactionFilterProvider` infinite loop by removing unstable object dependencies
+  - Used `useRef` to track initialization state instead of complex memoization
+  - Simplified `useEffect` dependency arrays to prevent re-render cycles
+  - Added proper ESLint suppressions for intentional dependency exclusions
+
+### 🎨 UI/UX Improvements
+- **Enhanced Loading Experience**: All loading states now use the magical logo loader
+  - Onboarding flow loading states
+  - Route guard loading states
+  - Bookmark handling loading
+  - Full-screen loading components
+- **Executive Lounge Aesthetic**: Consistent premium design language throughout loading states
+
+### 🔧 Technical Improvements
+- **CSS Gradient Utilities**: Added `bg-gradient-conic` utility class for advanced gradient effects
+- **Component Architecture**: Improved loading component organization and exports
+- **Performance**: Eliminated unnecessary re-renders and console errors
+
 ## [0.2.3] - 2026-01-06
 
 ### 🐛 Bug Fixes

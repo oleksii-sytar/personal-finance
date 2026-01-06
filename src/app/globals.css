@@ -401,6 +401,10 @@
     background-image: radial-gradient(var(--tw-gradient-stops));
   }
   
+  .bg-gradient-conic {
+    background-image: conic-gradient(var(--tw-gradient-stops));
+  }
+  
   .font-space-grotesk {
     font-family: 'Space Grotesk', sans-serif;
   }
