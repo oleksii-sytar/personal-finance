@@ -184,7 +184,7 @@ export function BookmarkHandler({ children }: BookmarkHandlerProps) {
   // Show loading while processing bookmark
   if (isProcessingBookmark) {
     return (
-      <FullScreenLoading message="Loading your bookmarked page..." />
+      <FullScreenLoading />
     )
   }
 

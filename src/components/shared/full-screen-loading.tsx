@@ -1,7 +1,6 @@
 import { FullScreenFormaLoader } from './forma-logo-loader'
 
 interface FullScreenLoadingProps {
-  message?: string
   size?: 'sm' | 'md' | 'lg' | 'xl'
 }
 
@@ -10,8 +9,7 @@ interface FullScreenLoadingProps {
  * Use this for page-level loading states with premium Executive Lounge aesthetic
  */
 export function FullScreenLoading({ 
-  message = 'Loading...', 
   size = 'xl' 
 }: FullScreenLoadingProps) {
-  return <FullScreenFormaLoader message={message} size={size} />
+  return <FullScreenFormaLoader size={size} />
 }
