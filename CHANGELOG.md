@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.5] - 2026-01-06
+
+### 🎨 UI/UX Improvements
+- **Fixed Dark Theme Transparency Issues**: Enhanced visibility of interactive elements in dark mode
+  - Added new CSS custom properties: `--bg-glass-interactive` (8% opacity) and `--bg-glass-elevated` (12% opacity)
+  - Updated category selector dropdown to use more opaque background for better visibility
+  - Enhanced currency selector dropdown with improved transparency
+  - Fixed transaction filter dropdowns to use theme-aware backgrounds instead of hardcoded colors
+  - Updated workspace selector with better opacity levels for interactive states
+  - Improved category manager components with elevated glass backgrounds
+  - Enhanced inline category creator with better visibility
+  - All interactive dropdowns now use consistent opacity levels for optimal readability
+
+### 🔧 Technical Improvements
+- **Autocomplete Disabled**: Turned off autocomplete for category input fields as requested
+- **CSS Custom Properties**: Enhanced theme system with better opacity variants for interactive elements
+- **Consistent Theming**: Replaced hardcoded background colors with CSS custom properties throughout filter components
+- **Removed Test Directories**: Cleaned up empty test directories that were causing TypeScript compilation errors
+
+### 🐛 Bug Fixes
+- Fixed TypeScript compilation errors caused by empty test directories
+- Resolved build issues with missing page components
+- Enhanced theme consistency across all dropdown and interactive components
+
 ## [0.2.4] - 2026-01-06
 
 ### ✨ New Features

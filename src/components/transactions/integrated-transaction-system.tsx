@@ -19,6 +19,7 @@ import { DetailedEntryForm } from './detailed-entry-form'
 import { TransactionFilters } from './transaction-filters'
 import { EnhancedLoadingState, TransactionErrorBoundary } from '@/components/shared'
 import { deleteTransaction, restoreTransaction } from '@/actions/transactions'
+import { useDeleteTransaction } from '@/hooks/use-transactions'
 import { useWorkspace } from '@/contexts/workspace-context'
 import { useFilterContext } from '@/contexts/transaction-filter-context'
 import { useTransactions } from '@/hooks/use-transactions'
@@ -48,6 +49,9 @@ export function IntegratedTransactionSystem({
   const { currentWorkspace } = useWorkspace()
   const filterContext = useFilterContext()
   const { showUndoToast } = useUndoToast()
+  
+  // React Query mutations
+  const deleteTransactionMutation = useDeleteTransaction()
   
   // Memoize filters to prevent infinite re-renders
   const memoizedFilters = useMemo(() => {
@@ -146,7 +150,7 @@ export function IntegratedTransactionSystem({
     setIsDeleting(true)
 
     try {
-      const result = await deleteTransaction(transactionId)
+      const result = await deleteTransactionMutation.mutateAsync(transactionId)
       
       if (result.error) {
         console.error('Delete transaction error:', result.error)

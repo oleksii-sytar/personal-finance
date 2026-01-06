@@ -37,6 +37,8 @@
     --bg-primary: #1C1917; /* Peat Charcoal - Req 4.1 */
     --bg-secondary: #2A1D15; /* Deep Leather - Req 4.2 */
     --bg-glass: rgba(255, 255, 255, 0.04); /* Translucent white for glass surfaces - Req 4.3 */
+    --bg-glass-interactive: rgba(255, 255, 255, 0.08); /* More opaque for dropdowns and interactive elements */
+    --bg-glass-elevated: rgba(255, 255, 255, 0.12); /* Even more opaque for elevated interactive elements */
     --bg-tertiary: #3A2F23; /* Rich Mahogany - additional depth */
     
     /* Text Colors - High Contrast for Accessibility */
@@ -80,6 +82,8 @@
     --bg-primary: #F5F5F4; /* Warm Alabaster - Req 3.1 */
     --bg-secondary: #E7E5E4; /* Latte Leather - Req 3.2 */
     --bg-glass: #FFFFFF; /* Pure White for glass cards - Req 3.3 */
+    --bg-glass-interactive: #FFFFFF; /* Same as bg-glass for light mode */
+    --bg-glass-elevated: #FFFFFF; /* Same as bg-glass for light mode */
     --bg-tertiary: #F0EFEE; /* Soft Cream - additional warm depth */
     
     /* Text Colors - High Contrast for Accessibility */
@@ -424,6 +428,16 @@
 
   .bg-glass {
     background-color: var(--bg-glass);
+    backdrop-filter: blur(var(--glass-blur));
+  }
+
+  .bg-glass-interactive {
+    background-color: var(--bg-glass-interactive);
+    backdrop-filter: blur(var(--glass-blur));
+  }
+
+  .bg-glass-elevated {
+    background-color: var(--bg-glass-elevated);
     backdrop-filter: blur(var(--glass-blur));
   }
 

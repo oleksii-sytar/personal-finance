@@ -166,13 +166,14 @@ export function CategorySelectorWithInlineCreate({
         onKeyDown={handleKeyDown}
         className="w-full"
         autoFocus={autoFocus}
+        autoComplete="off"
       />
 
       {/* Dropdown */}
       {showDropdown && !showCreateForm && (
         <div
           ref={dropdownRef}
-          className="absolute z-10 w-full mt-1 bg-glass border border-glass rounded-xl shadow-lg max-h-64 overflow-y-auto"
+          className="absolute z-10 w-full mt-1 bg-glass-interactive border border-glass rounded-xl shadow-lg max-h-64 overflow-y-auto"
         >
           {/* Existing Categories */}
           {filteredCategories.map((category, index) => (

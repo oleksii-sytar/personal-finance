@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { createTransaction, updateTransaction } from '@/actions/transactions'
 import { createRecurringTransaction } from '@/actions/recurring-transactions'
+import { useCreateTransaction, useUpdateTransaction } from '@/hooks/use-transactions'
 import { useWorkspace } from '@/contexts/workspace-context'
 import { useFilterContext } from '@/contexts/transaction-filter-context'
 import { DEFAULT_CURRENCY } from '@/lib/constants/currencies'
@@ -60,6 +61,10 @@ export function DetailedEntryForm({
   const filterContext = useFilterContext()
   const formRef = useRef<HTMLFormElement>(null)
   const amountInputRef = useRef<HTMLInputElement>(null)
+  
+  // React Query mutations for cache invalidation
+  const createTransactionMutation = useCreateTransaction()
+  const updateTransactionMutation = useUpdateTransaction()
   
   // Apply filter context for pre-population (Requirement 4.8)
   const getDefaultType = () => {
@@ -220,8 +225,11 @@ export function DetailedEntryForm({
       let result: ActionResult<Transaction>
       
       if (transaction) {
-        // Update existing transaction (no recurring support for edits)
-        result = await updateTransaction(transaction.id, formData)
+        // Update existing transaction using React Query mutation
+        result = await updateTransactionMutation.mutateAsync({ 
+          id: transaction.id, 
+          formData 
+        })
       } else if (state.isRecurring) {
         // Create recurring transaction instead of regular transaction
         const recurringFormData = new FormData()
@@ -276,8 +284,8 @@ export function DetailedEntryForm({
         
         result = { data: mockTransaction }
       } else {
-        // Create new regular transaction
-        result = await createTransaction(formData)
+        // Create new regular transaction using React Query mutation
+        result = await createTransactionMutation.mutateAsync(formData)
       }
 
       if (result.error) {

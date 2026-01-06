@@ -214,7 +214,7 @@ export function TransactionFilters({
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0 z-[100]" align="end" side="bottom" sideOffset={8}>
-              <div className="p-3 space-y-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg">
+              <div className="p-3 space-y-3 bg-glass-elevated border border-glass rounded-lg shadow-lg">
                 <div className="space-y-1">
                   <Button
                     variant="ghost"
@@ -277,7 +277,7 @@ export function TransactionFilters({
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-64 z-[100]" align="end" side="bottom" sideOffset={8}>
-              <div className="space-y-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3">
+              <div className="space-y-3 bg-glass-elevated border border-glass rounded-lg shadow-lg p-3">
                 <div className="flex items-center justify-between">
                   <h4 className="font-medium">Categories</h4>
                   {filters.categories?.length && (
@@ -329,7 +329,7 @@ export function TransactionFilters({
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-64 z-[100]" align="end" side="bottom" sideOffset={8}>
-                <div className="space-y-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3">
+                <div className="space-y-3 bg-glass-elevated border border-glass rounded-lg shadow-lg p-3">
                   <div className="flex items-center justify-between">
                     <h4 className="font-medium">Members</h4>
                     {filters.members?.length && (

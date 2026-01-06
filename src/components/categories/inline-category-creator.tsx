@@ -105,7 +105,7 @@ export function InlineCategoryCreator({
   }
 
   return (
-    <div className={`bg-glass backdrop-blur-[16px] border border-glass rounded-xl p-4 space-y-4 ${className}`}>
+    <div className={`bg-glass-elevated backdrop-blur-[16px] border border-glass rounded-xl p-4 space-y-4 ${className}`}>
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold text-primary">
           Create New {type === 'income' ? 'Income' : 'Expense'} Category

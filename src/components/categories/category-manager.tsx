@@ -158,14 +158,14 @@ export function CategoryManager({
 
   if (isLoading) {
     return (
-      <div className={`bg-glass backdrop-blur-[16px] border border-glass rounded-xl p-6 ${className}`}>
+      <div className={`bg-glass-elevated backdrop-blur-[16px] border border-glass rounded-xl p-6 ${className}`}>
         <div className="text-center text-secondary">Loading categories...</div>
       </div>
     )
   }
 
   return (
-    <div className={`bg-glass backdrop-blur-[16px] border border-glass rounded-xl p-6 space-y-6 ${className}`}>
+    <div className={`bg-glass-elevated backdrop-blur-[16px] border border-glass rounded-xl p-6 space-y-6 ${className}`}>
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-primary">
           Category Management
@@ -174,7 +174,7 @@ export function CategoryManager({
         <div className="flex items-center gap-3">
           {/* Category Filter Toggle (only show if not filtered by type prop) */}
           {!type && (
-            <div className="flex bg-glass border border-glass rounded-lg p-1">
+            <div className="flex bg-glass-interactive border border-glass rounded-lg p-1">
               <button
                 onClick={() => {
                   setFilterType('all')
@@ -250,7 +250,7 @@ export function CategoryManager({
             {customCategories.map((category) => (
               <div
                 key={category.id}
-                className="flex items-center gap-3 p-3 bg-glass border border-glass rounded-lg hover:border-accent-primary/50 transition-colors"
+                className="flex items-center gap-3 p-3 bg-glass-interactive border border-glass rounded-lg hover:border-accent-primary/50 transition-colors"
               >
                 {/* Category Display/Edit */}
                 {editingCategory?.id === category.id ? (
@@ -267,7 +267,7 @@ export function CategoryManager({
                       type="text"
                       value={editingCategory.icon}
                       onChange={(e) => setEditingCategory(prev => prev ? { ...prev, icon: e.target.value } : null)}
-                      className="w-12 h-8 text-center bg-glass border border-glass rounded text-sm"
+                      className="w-12 h-8 text-center bg-glass-interactive border border-glass rounded text-sm"
                       placeholder="🏷️"
                       maxLength={10}
                     />
@@ -445,7 +445,7 @@ export function CategoryManager({
       {/* Merge Category Selection */}
       {mergingCategory && !mergeTargetId && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center px-4 z-50">
-          <div className="w-full max-w-md bg-glass border border-glass rounded-xl p-6">
+          <div className="w-full max-w-md bg-glass-elevated border border-glass rounded-xl p-6">
             <h3 className="text-lg font-semibold text-primary mb-4">
               Merge "{mergingCategory.name}"
             </h3>
@@ -459,7 +459,7 @@ export function CategoryManager({
                   <button
                     key={cat.id}
                     onClick={() => setMergeTargetId(cat.id)}
-                    className="w-full p-3 text-left bg-glass border border-glass rounded-lg hover:border-accent-primary transition-colors flex items-center gap-2"
+                    className="w-full p-3 text-left bg-glass-interactive border border-glass rounded-lg hover:border-accent-primary transition-colors flex items-center gap-2"
                   >
                     {cat.icon && <span>{cat.icon}</span>}
                     <div
