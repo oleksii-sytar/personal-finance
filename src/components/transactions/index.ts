@@ -15,3 +15,8 @@ export { RecurringTransactionForm } from './recurring-transaction-form'
 export { RecurringTransactionList } from './recurring-transaction-list'
 export { ExpectedTransactionList } from './expected-transaction-list'
 export { RecurringTransactionsManager } from './recurring-transactions-manager'
+
+// Checkpoint components
+export { CheckpointTimelineView } from './checkpoint-timeline-view'
+export { CheckpointCreationButton } from './checkpoint-creation-button'
+export { CheckpointCreationModal } from './checkpoint-creation-modal'

@@ -34,8 +34,8 @@ export function MobileNavigation() {
 
   return (
     <>
-      {/* Mobile menu button */}
-      <div className="lg:hidden fixed top-4 left-4 z-50">
+      {/* Mobile menu button - positioned in the header */}
+      <div className="lg:hidden fixed top-4 right-4 z-50">
         <Button
           variant="ghost"
           size="sm"
@@ -61,11 +61,11 @@ export function MobileNavigation() {
 
       {/* Mobile menu sidebar */}
       <div className={cn(
-        'lg:hidden fixed inset-y-0 left-0 z-50 w-80 bg-secondary border-r border-primary transform transition-transform duration-300 ease-in-out',
+        'lg:hidden fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] bg-secondary border-r border-primary transform transition-transform duration-300 ease-in-out flex flex-col',
         isOpen ? 'translate-x-0' : '-translate-x-full'
       )}>
         {/* Logo */}
-        <div className="flex h-20 items-center px-6 border-b border-primary">
+        <div className="flex h-16 items-center px-6 border-b border-primary flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-primary)] rounded-lg flex items-center justify-center">
               <span className="text-inverse font-bold text-sm font-space-grotesk">F</span>
@@ -75,12 +75,12 @@ export function MobileNavigation() {
         </div>
         
         {/* Workspace Selector */}
-        <div className="px-6 py-4 border-b border-primary">
+        <div className="px-6 py-4 border-b border-primary flex-shrink-0">
           <WorkspaceSelector />
         </div>
         
         {/* Navigation */}
-        <nav className="mt-4 px-6">
+        <nav className="flex-1 px-6 py-4 overflow-y-auto">
           <div className="space-y-2">
             {navigation.map((item) => {
               const isActive = pathname === item.href
@@ -90,14 +90,14 @@ export function MobileNavigation() {
                   href={item.href}
                   onClick={closeMenu}
                   className={cn(
-                    'group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors',
+                    'group flex items-center px-3 py-3 text-base font-medium rounded-lg transition-colors',
                     isActive
                       ? 'bg-[var(--accent-primary)]/10 text-[var(--accent-primary)]'
                       : 'text-secondary hover:text-primary hover:bg-glass'
                   )}
                 >
                   <item.icon className={cn(
-                    'mr-3 h-5 w-5 transition-colors',
+                    'mr-3 h-6 w-6 transition-colors',
                     isActive ? 'text-[var(--accent-primary)]' : 'text-secondary group-hover:text-primary'
                   )} />
                   {item.name}
@@ -108,7 +108,7 @@ export function MobileNavigation() {
         </nav>
 
         {/* User Profile */}
-        <div className="absolute bottom-0 w-full p-6 border-t border-primary">
+        <div className="p-6 border-t border-primary flex-shrink-0">
           <UserProfile />
         </div>
       </div>

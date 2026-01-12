@@ -262,6 +262,7 @@ export function DetailedEntryForm({
           id: 'recurring-' + recurringResult.data!.id,
           workspace_id: currentWorkspace.id,
           user_id: recurringResult.data!.user_id,
+          account_id: '', // Mock value for recurring transaction
           amount: amount,
           currency: state.currency,
           type: state.type,
@@ -269,16 +270,17 @@ export function DetailedEntryForm({
           description: state.description.trim(),
           notes: state.notes.trim() || null,
           transaction_date: state.date,
+          transaction_type_id: null,
           is_expected: false,
           expected_transaction_id: null,
           recurring_transaction_id: recurringResult.data!.id,
+          locked: false,
+          original_amount: null,
+          original_currency: null,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
           created_by: recurringResult.data!.user_id,
           updated_by: null,
-          original_amount: null,
-          original_currency: null,
-          transaction_type_id: null,
           deleted_at: null,
         }
         

@@ -9,15 +9,23 @@
 
 import { useState, useRef } from 'react'
 import { format } from 'date-fns'
-import { EditIcon, TrashIcon } from 'lucide-react'
+import { EditIcon, TrashIcon, Lock, AlertTriangle } from 'lucide-react'
 import { CurrencyDisplay } from '@/components/shared/currency-display'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
 import type { TransactionWithCategory } from '@/types/transactions'
 
+// Enhanced transaction type that includes additional information
+interface TransactionWithAdditionalInfo extends TransactionWithCategory {
+  isLocked?: boolean
+  lockReason?: string
+  isAdjustmentTransaction?: boolean
+  isRecentlyAdded?: boolean
+}
+
 interface TransactionItemProps {
-  transaction: TransactionWithCategory
-  onEdit?: (transaction: TransactionWithCategory) => void
+  transaction: TransactionWithAdditionalInfo
+  onEdit?: (transaction: TransactionWithAdditionalInfo) => void
   onDelete?: (transactionId: string) => void
   className?: string
   showActions?: boolean
@@ -71,6 +79,11 @@ export function TransactionItem({
       return
     }
     
+    // Don't allow editing if transaction is locked
+    if (transaction.isLocked) {
+      return
+    }
+    
     if (onEdit) {
       onEdit(transaction)
     }
@@ -79,6 +92,12 @@ export function TransactionItem({
   // Handle delete with confirmation
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation()
+    
+    // Don't allow deletion if transaction is locked
+    if (transaction.isLocked) {
+      return
+    }
+    
     setShowDeleteConfirm(true)
   }
   
@@ -98,23 +117,35 @@ export function TransactionItem({
   
   // Visual distinction for expected transactions (Requirement 9.5)
   const isExpected = transaction.is_expected
+  const isLocked = transaction.isLocked || false
+  const isAdjustment = transaction.isAdjustmentTransaction || false
+  const isRecentlyAdded = transaction.isRecentlyAdded || false
   
   return (
     <div 
       ref={itemRef}
       className={cn(
-        'relative overflow-hidden bg-glass rounded-xl transition-all duration-200 cursor-pointer select-none',
+        'relative overflow-hidden bg-glass rounded-xl transition-all duration-200 select-none',
         // Expected transactions have dashed border and different styling
         isExpected 
           ? 'border-2 border-dashed border-amber-300 bg-amber-50/30 hover:bg-amber-50/50' 
           : 'border border-glass hover:border-accent/30',
-        'active:scale-[0.98] touch-manipulation', // Better mobile interaction
+        // Locked transactions have different styling
+        isLocked
+          ? 'opacity-75 cursor-not-allowed border-gray-400'
+          : 'cursor-pointer active:scale-[0.98]',
+        // Adjustment transactions have special styling
+        isAdjustment && 'border-blue-300 bg-blue-50/20',
+        // Recently added transactions have green glow
+        isRecentlyAdded && 'border-accent-success bg-accent-success/10 shadow-lg shadow-accent-success/20',
+        'touch-manipulation', // Better mobile interaction
         className
       )}
       onClick={handleItemClick}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      title={isLocked ? transaction.lockReason : undefined}
     >
       {/* Main content */}
       <div className={cn(
@@ -156,6 +187,24 @@ export function TransactionItem({
                   Expected
                 </span>
               )}
+              {isRecentlyAdded && (
+                <span className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-accent-success/20 text-accent-success border border-accent-success/30 animate-pulse">
+                  <span className="w-2 h-2 bg-accent-success rounded-full"></span>
+                  Recently added
+                </span>
+              )}
+              {isLocked && (
+                <span className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
+                  <Lock className="w-3 h-3" />
+                  Locked
+                </span>
+              )}
+              {isAdjustment && (
+                <span className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
+                  <AlertTriangle className="w-3 h-3" />
+                  Adjustment
+                </span>
+              )}
               {transaction.category && (
                 <span className="text-muted text-xs sm:text-sm">
                   {transaction.category.icon} {transaction.category.name}
@@ -182,7 +231,7 @@ export function TransactionItem({
           )}
         </div>
         
-        {showActions && (onEdit || onDelete) && !isSwipeRevealed && (
+        {showActions && (onEdit || onDelete) && !isSwipeRevealed && !isLocked && (
           <div className="hidden sm:flex items-center space-x-2 ml-4">
             {onEdit && (
               <Button

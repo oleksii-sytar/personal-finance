@@ -131,12 +131,18 @@ export function usePageRefreshMonitor() {
         
         trackPageRefresh(pathname, authState)
         
-        // Log success/failure of route preservation
+        // Log route preservation status (only in development for debugging)
         const expectedRoute = sessionStorage.getItem('expected-route-after-refresh')
         if (expectedRoute && expectedRoute !== pathname) {
-          console.error(`❌ Route not preserved after refresh. Expected: ${expectedRoute}, Got: ${pathname}`)
+          // Only log if this seems like an unintentional redirect (e.g., auth issues)
+          if (pathname === '/login' && expectedRoute !== '/login') {
+            console.warn(`🔄 Redirected to login after refresh. Expected: ${expectedRoute}`)
+          } else {
+            // Normal navigation - just track silently
+            console.debug(`📍 Route changed: ${expectedRoute} → ${pathname}`)
+          }
         } else if (expectedRoute === pathname) {
-          console.log(`✅ Route preserved after refresh: ${pathname}`)
+          console.debug(`✅ Route preserved: ${pathname}`)
         }
         
         // Clear the expected route

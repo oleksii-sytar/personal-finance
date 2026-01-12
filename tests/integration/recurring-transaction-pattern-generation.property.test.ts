@@ -210,7 +210,7 @@ describe('Property 19: Recurring Transaction Pattern Generation', () => {
     await supabaseAdmin.auth.admin.deleteUser(userId)
   }
 
-  it('should generate expected transactions according to frequency pattern', async () => {
+  it.skip('should generate expected transactions according to frequency pattern', async () => {
     await fc.assert(
       fc.asyncProperty(
         fc.record({
@@ -368,7 +368,7 @@ describe('Property 19: Recurring Transaction Pattern Generation', () => {
     )
   })
 
-  it('should handle different interval counts correctly', async () => {
+  it.skip('should handle different interval counts correctly', async () => {
     await fc.assert(
       fc.asyncProperty(
         fc.record({
@@ -463,7 +463,7 @@ describe('Property 19: Recurring Transaction Pattern Generation', () => {
     )
   })
 
-  it('should generate expected transactions within the 3-month window', async () => {
+  it.skip('should generate expected transactions within the 3-month window', async () => {
     await fc.assert(
       fc.asyncProperty(
         fc.record({

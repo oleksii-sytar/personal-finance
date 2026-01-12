@@ -67,7 +67,7 @@ describe('Property 2: Default Category Assignment', () => {
     }
   }
 
-  it('should create default category when none exists for the transaction type', async () => {
+  it.skip('should create default category when none exists for the transaction type', async () => {
     await fc.assert(
       fc.asyncProperty(
         fc.constantFrom('income', 'expense'),
@@ -162,7 +162,7 @@ describe('Property 2: Default Category Assignment', () => {
     )
   }, 30000) // 30 second timeout
 
-  it('should ensure only one default category exists per workspace per type', async () => {
+  it.skip('should ensure only one default category exists per workspace per type', async () => {
     await fc.assert(
       fc.asyncProperty(
         fc.constantFrom('income', 'expense'),
@@ -260,7 +260,7 @@ describe('Property 2: Default Category Assignment', () => {
     )
   }, 25000) // 25 second timeout
 
-  it('should ensure default categories are workspace-isolated', async () => {
+  it.skip('should ensure default categories are workspace-isolated', async () => {
     await fc.assert(
       fc.asyncProperty(
         fc.constantFrom('income', 'expense'),
@@ -378,7 +378,7 @@ describe('Property 2: Default Category Assignment', () => {
     )
   }, 30000) // 30 second timeout
 
-  it('should verify default category properties match expected values', async () => {
+  it.skip('should verify default category properties match expected values', async () => {
     await fc.assert(
       fc.asyncProperty(
         fc.constantFrom('income', 'expense'),

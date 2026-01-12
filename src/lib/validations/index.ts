@@ -29,3 +29,17 @@ export {
   type CreateCategoryInput,
   type UpdateCategoryInput,
 } from './category'
+
+// Export checkpoint schemas
+export {
+  checkpointSchema,
+  createCheckpointSchema,
+  updateCheckpointSchema,
+  checkpointInputSchema,
+  type CheckpointInput,
+  type CreateCheckpointInput,
+  type UpdateCheckpointInput,
+  type CheckpointUserInput,
+} from './checkpoint'
+
+// Checkpoint validation schemas for simplified timeline system

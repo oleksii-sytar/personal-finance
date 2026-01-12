@@ -17,7 +17,7 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { createClient } from '@supabase/supabase-js'
-import { createTestUser, createTestWorkspace, createTestCategory, cleanupTestData } from '../helpers/test-helpers'
+import { createTestUser, createTestWorkspace, createTestCategory, createTestAccount, cleanupTestData } from '../helpers/test-helpers'
 import { format, addDays, addMonths } from 'date-fns'
 
 // Create admin client for test operations
@@ -37,6 +37,7 @@ describe('Complete Transaction Workflows Integration Tests', () => {
   let workspaceId: string
   let categoryId: string
   let expenseCategoryId: string
+  let accountId: string
 
   beforeEach(async () => {
     // Setup test environment
@@ -44,11 +45,13 @@ describe('Complete Transaction Workflows Integration Tests', () => {
     const workspace = await createTestWorkspace(user.id)
     const category = await createTestCategory(workspace.id, 'Test Income Category', 'income')
     const expenseCategory = await createTestCategory(workspace.id, 'Test Expense Category', 'expense')
+    const account = await createTestAccount(workspace.id, 'Test Account', 'checking')
     
     userId = user.id
     workspaceId = workspace.id
     categoryId = category.id
     expenseCategoryId = expenseCategory.id
+    accountId = account.id
 
     // Clean up any existing test data for this workspace
     await supabase
@@ -80,6 +83,7 @@ describe('Complete Transaction Workflows Integration Tests', () => {
         description: 'Freelance payment',
         notes: 'Payment for web development project',
         category_id: categoryId,
+        account_id: accountId,
         currency: 'UAH',
         transaction_date: format(new Date(), 'yyyy-MM-dd'),
         workspace_id: workspaceId,
@@ -234,6 +238,7 @@ describe('Complete Transaction Workflows Integration Tests', () => {
           .from('transactions')
           .insert({
             ...txData,
+            account_id: accountId,
             currency: 'UAH',
             transaction_date: format(new Date(), 'yyyy-MM-dd'),
             workspace_id: workspaceId,
@@ -336,6 +341,7 @@ describe('Complete Transaction Workflows Integration Tests', () => {
             description: txData.description,
             notes: txData.notes,
             category_id: txData.category_id,
+            account_id: accountId,
             currency: 'UAH',
             transaction_date: txData.date,
             workspace_id: workspaceId,
@@ -601,6 +607,7 @@ describe('Complete Transaction Workflows Integration Tests', () => {
           currency: 'UAH',
           type: 'income',
           category_id: categoryId,
+          account_id: accountId,
           description: 'Monthly Salary',
           notes: 'Regular monthly salary payment',
           transaction_date: firstExpected.expected_date,
@@ -733,6 +740,7 @@ describe('Complete Transaction Workflows Integration Tests', () => {
           currency: 'UAH',
           type: 'expense',
           category_id: expenseCategoryId,
+          account_id: accountId,
           description: 'Weekly Groceries',
           notes: 'Regular grocery shopping',
           transaction_date: firstExpected.expected_date,
@@ -857,6 +865,7 @@ describe('Complete Transaction Workflows Integration Tests', () => {
           currency: 'UAH',
           type: 'expense',
           category_id: expenseCategoryId,
+          account_id: accountId,
           description: 'Daily Coffee',
           transaction_date: dailyExpected[0].expected_date,
           workspace_id: workspaceId,
@@ -876,6 +885,7 @@ describe('Complete Transaction Workflows Integration Tests', () => {
           currency: 'UAH',
           type: 'expense',
           category_id: expenseCategoryId,
+          account_id: accountId,
           description: 'Monthly Rent',
           transaction_date: monthlyExpected[0].expected_date,
           workspace_id: workspaceId,
@@ -944,6 +954,7 @@ describe('Complete Transaction Workflows Integration Tests', () => {
           currency: 'UAH',
           type: 'income',
           category_id: categoryId,
+          account_id: accountId,
           description: 'Freelance Payment',
           transaction_date: format(new Date(), 'yyyy-MM-dd'),
           workspace_id: workspaceId,
@@ -978,6 +989,7 @@ describe('Complete Transaction Workflows Integration Tests', () => {
           currency: 'UAH',
           type: 'income',
           category_id: categoryId,
+          account_id: accountId,
           description: 'Bi-weekly Salary',
           transaction_date: expectedTransaction.expected_date,
           workspace_id: workspaceId,
@@ -1050,6 +1062,7 @@ describe('Complete Transaction Workflows Integration Tests', () => {
           currency: 'UAH',
           type: 'expense',
           category_id: expenseCategoryId,
+          account_id: accountId,
           description: 'Regular Expense',
           transaction_date: format(new Date(), 'yyyy-MM-dd'),
           workspace_id: workspaceId,
@@ -1109,6 +1122,7 @@ describe('Complete Transaction Workflows Integration Tests', () => {
           currency: 'UAH',
           type: 'expense',
           category_id: expenseCategoryId,
+          account_id: accountId,
           description: 'Recurring Expense',
           transaction_date: expectedTransaction.expected_date,
           workspace_id: workspaceId,

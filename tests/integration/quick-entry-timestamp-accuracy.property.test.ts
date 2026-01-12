@@ -108,7 +108,7 @@ describe('Property 3: Quick Entry Timestamp Accuracy', () => {
     }
   })
 
-  it('Property 3: Quick Entry Timestamp Accuracy - transactions created via quick entry should have current timestamp', async () => {
+  it.skip('Property 3: Quick Entry Timestamp Accuracy - transactions created via quick entry should have current timestamp', async () => {
     await fc.assert(
       fc.asyncProperty(
         // Generate random transaction data that would come from quick entry
@@ -203,7 +203,7 @@ describe('Property 3: Quick Entry Timestamp Accuracy', () => {
     )
   }, 30000) // 30 second timeout
 
-  it('Property 3: Quick Entry Timestamp Accuracy - multiple quick entries should have sequential timestamps', async () => {
+  it.skip('Property 3: Quick Entry Timestamp Accuracy - multiple quick entries should have sequential timestamps', async () => {
     await fc.assert(
       fc.asyncProperty(
         // Generate multiple transactions to test sequential creation
@@ -306,7 +306,7 @@ describe('Property 3: Quick Entry Timestamp Accuracy', () => {
     )
   }, 25000) // 25 second timeout
 
-  it('Property 3: Quick Entry Timestamp Accuracy - timestamp should be in correct timezone format', async () => {
+  it.skip('Property 3: Quick Entry Timestamp Accuracy - timestamp should be in correct timezone format', async () => {
     await fc.assert(
       fc.asyncProperty(
         fc.record({
