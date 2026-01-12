@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tansta
 import supabase from '@/lib/supabase/client'
 import { createTransaction, updateTransaction, deleteTransaction } from '@/actions/transactions'
 import { useWorkspace } from '@/contexts/workspace-context'
-import type { Transaction, TransactionWithCategory, TransactionFilters } from '@/types'
+import type { Transaction, TransactionWithCategory, TransactionFilters, ActionResult } from '@/types'
 
 /**
  * Hook for fetching transactions with optional filtering
@@ -179,74 +179,10 @@ export function useCreateTransaction() {
   const queryClient = useQueryClient()
   const { currentWorkspace } = useWorkspace()
 
-  return useMutation({
+  return useMutation<ActionResult<Transaction>, Error, FormData>({
     mutationFn: createTransaction,
-    onMutate: async (formData) => {
-      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
-      await queryClient.cancelQueries({ queryKey: ['transactions', currentWorkspace?.id] })
-      await queryClient.cancelQueries({ queryKey: ['transactions-infinite', currentWorkspace?.id] })
-
-      // Snapshot the previous value
-      const previousTransactions = queryClient.getQueryData(['transactions', currentWorkspace?.id])
-      const previousInfiniteTransactions = queryClient.getQueryData(['transactions-infinite', currentWorkspace?.id])
-
-      // Optimistically update to the new value
-      const optimisticTransaction = {
-        id: `temp-${Date.now()}`, // Temporary ID
-        workspace_id: currentWorkspace?.id || '',
-        user_id: 'temp-user',
-        amount: Number(formData.get('amount')),
-        currency: formData.get('currency') as string || 'UAH',
-        type: formData.get('type') as 'income' | 'expense',
-        category_id: formData.get('category_id') as string || null,
-        description: formData.get('description') as string,
-        notes: formData.get('notes') as string || null,
-        transaction_date: formData.get('transaction_date') as string,
-        is_expected: false,
-        expected_transaction_id: null,
-        recurring_transaction_id: null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        created_by: 'temp-user',
-        updated_by: null,
-        original_amount: null,
-        original_currency: null,
-        transaction_type_id: null,
-        deleted_at: null,
-        category: null, // Will be populated by server response
-      }
-
-      // Add optimistic transaction to the cache
-      queryClient.setQueryData(['transactions', currentWorkspace?.id], (old: any) => {
-        if (!old) return [optimisticTransaction]
-        return [optimisticTransaction, ...old]
-      })
-
-      // Return a context object with the snapshotted value
-      return { previousTransactions, previousInfiniteTransactions, optimisticTransaction }
-    },
-    onError: (err, formData, context) => {
-      // If the mutation fails, use the context returned from onMutate to roll back
-      if (context?.previousTransactions) {
-        queryClient.setQueryData(['transactions', currentWorkspace?.id], context.previousTransactions)
-      }
-      if (context?.previousInfiniteTransactions) {
-        queryClient.setQueryData(['transactions-infinite', currentWorkspace?.id], context.previousInfiniteTransactions)
-      }
-    },
-    onSuccess: (result, formData, context) => {
-      // Replace the optimistic transaction with the real one
-      if (result.data && context?.optimisticTransaction) {
-        queryClient.setQueryData(['transactions', currentWorkspace?.id], (old: any) => {
-          if (!old) return [result.data]
-          return old.map((t: any) => 
-            t.id === context.optimisticTransaction.id ? result.data : t
-          )
-        })
-      }
-    },
-    onSettled: () => {
-      // Always refetch after error or success to ensure we have the latest data
+    onSuccess: () => {
+      // Invalidate and refetch queries after successful creation
       queryClient.invalidateQueries({ queryKey: ['transactions', currentWorkspace?.id] })
       queryClient.invalidateQueries({ queryKey: ['transactions-infinite', currentWorkspace?.id] })
       queryClient.invalidateQueries({ queryKey: ['dashboard'] })
@@ -262,72 +198,13 @@ export function useUpdateTransaction() {
   const queryClient = useQueryClient()
   const { currentWorkspace } = useWorkspace()
 
-  return useMutation({
+  return useMutation<ActionResult<Transaction>, Error, { id: string; formData: FormData }>({
     mutationFn: ({ id, formData }: { id: string; formData: FormData }) =>
       updateTransaction(id, formData),
-    onMutate: async ({ id, formData }) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['transactions', currentWorkspace?.id] })
-      await queryClient.cancelQueries({ queryKey: ['transaction', currentWorkspace?.id, id] })
-
-      // Snapshot the previous values
-      const previousTransactions = queryClient.getQueryData(['transactions', currentWorkspace?.id])
-      const previousTransaction = queryClient.getQueryData(['transaction', currentWorkspace?.id, id])
-
-      // Optimistically update the transaction
-      const updatedFields = {
-        amount: formData.get('amount') ? Number(formData.get('amount')) : undefined,
-        type: formData.get('type') as 'income' | 'expense' | undefined,
-        category_id: formData.get('category_id') as string | undefined,
-        description: formData.get('description') as string | undefined,
-        notes: formData.get('notes') as string | undefined,
-        transaction_date: formData.get('transaction_date') as string | undefined,
-        currency: formData.get('currency') as string | undefined,
-        updated_at: new Date().toISOString(),
-      }
-
-      // Update in transactions list
-      queryClient.setQueryData(['transactions', currentWorkspace?.id], (old: any) => {
-        if (!old) return []
-        return old.map((t: any) => 
-          t.id === id ? { ...t, ...updatedFields } : t
-        )
-      })
-
-      // Update single transaction query
-      queryClient.setQueryData(['transaction', currentWorkspace?.id, id], (old: any) => {
-        if (!old) return old
-        return { ...old, ...updatedFields }
-      })
-
-      return { previousTransactions, previousTransaction, id }
-    },
-    onError: (err, { id }, context) => {
-      // Rollback on error
-      if (context?.previousTransactions) {
-        queryClient.setQueryData(['transactions', currentWorkspace?.id], context.previousTransactions)
-      }
-      if (context?.previousTransaction) {
-        queryClient.setQueryData(['transaction', currentWorkspace?.id, id], context.previousTransaction)
-      }
-    },
-    onSuccess: (result, { id }) => {
-      // Replace optimistic update with real data
-      if (result.data) {
-        queryClient.setQueryData(['transactions', currentWorkspace?.id], (old: any) => {
-          if (!old) return []
-          return old.map((t: any) => 
-            t.id === id ? result.data : t
-          )
-        })
-        queryClient.setQueryData(['transaction', currentWorkspace?.id, id], result.data)
-      }
-    },
-    onSettled: (_result, _error, { id }) => {
-      // Always refetch to ensure consistency
+    onSuccess: () => {
+      // Invalidate and refetch queries after successful update
       queryClient.invalidateQueries({ queryKey: ['transactions', currentWorkspace?.id] })
       queryClient.invalidateQueries({ queryKey: ['transactions-infinite', currentWorkspace?.id] })
-      queryClient.invalidateQueries({ queryKey: ['transaction', currentWorkspace?.id, id] })
       queryClient.invalidateQueries({ queryKey: ['dashboard'] })
     },
   })
@@ -341,37 +218,10 @@ export function useDeleteTransaction() {
   const queryClient = useQueryClient()
   const { currentWorkspace } = useWorkspace()
 
-  return useMutation({
+  return useMutation<ActionResult<{ id: string }>, Error, string>({
     mutationFn: deleteTransaction,
-    onMutate: async (transactionId) => {
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['transactions', currentWorkspace?.id] })
-      await queryClient.cancelQueries({ queryKey: ['transactions-infinite', currentWorkspace?.id] })
-
-      // Snapshot the previous value
-      const previousTransactions = queryClient.getQueryData(['transactions', currentWorkspace?.id])
-      const previousInfiniteTransactions = queryClient.getQueryData(['transactions-infinite', currentWorkspace?.id])
-
-      // Optimistically remove the transaction
-      queryClient.setQueryData(['transactions', currentWorkspace?.id], (old: any) => {
-        if (!old) return []
-        return old.filter((t: any) => t.id !== transactionId)
-      })
-
-      // Return context for rollback
-      return { previousTransactions, previousInfiniteTransactions, deletedId: transactionId }
-    },
-    onError: (err, transactionId, context) => {
-      // Rollback on error
-      if (context?.previousTransactions) {
-        queryClient.setQueryData(['transactions', currentWorkspace?.id], context.previousTransactions)
-      }
-      if (context?.previousInfiniteTransactions) {
-        queryClient.setQueryData(['transactions-infinite', currentWorkspace?.id], context.previousInfiniteTransactions)
-      }
-    },
-    onSettled: () => {
-      // Always refetch to ensure consistency
+    onSuccess: () => {
+      // Invalidate and refetch queries after successful deletion
       queryClient.invalidateQueries({ queryKey: ['transactions', currentWorkspace?.id] })
       queryClient.invalidateQueries({ queryKey: ['transactions-infinite', currentWorkspace?.id] })
       queryClient.invalidateQueries({ queryKey: ['dashboard'] })

@@ -30,7 +30,11 @@ interface DashboardLayoutProps {
 
 function DesktopSidebar({ pathname }: { pathname: string }) {
   return (
-    <div className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:block lg:w-72 lg:bg-secondary lg:border-r lg:border-primary">
+    <div 
+      className="fixed inset-y-0 left-0 z-50 w-72 bg-secondary border-r border-primary flex flex-col"
+      style={{ display: 'none' }}
+      data-desktop-sidebar="true"
+    >
       {/* Logo */}
       <div className="flex h-20 items-center px-8 border-b border-primary">
         <div className="flex items-center gap-3">
@@ -47,7 +51,7 @@ function DesktopSidebar({ pathname }: { pathname: string }) {
       </div>
       
       {/* Navigation */}
-      <nav className="mt-4 px-6">
+      <nav className="mt-4 px-6 flex-1">
         <div className="space-y-2">
           {navigation.map((item) => {
             const isActive = pathname === item.href
@@ -74,7 +78,7 @@ function DesktopSidebar({ pathname }: { pathname: string }) {
       </nav>
 
       {/* User Profile */}
-      <div className="absolute bottom-0 w-full p-6 border-t border-primary">
+      <div className="p-6 border-t border-primary">
         <UserProfile />
       </div>
     </div>
@@ -99,8 +103,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
         {/* Main content */}
         <div className="lg:pl-72">
-          {/* Mobile header spacer */}
-          <div className="lg:hidden h-16" />
+          {/* Mobile header with logo and menu button */}
+          <div className="lg:hidden">
+            <div className="flex items-center justify-between h-16 px-4 bg-secondary border-b border-primary">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-[var(--accent-primary)] to-[var(--accent-primary)] rounded-lg flex items-center justify-center">
+                  <span className="text-inverse font-bold text-sm font-space-grotesk">F</span>
+                </div>
+                <span className="text-primary font-space-grotesk font-semibold text-lg">Forma</span>
+              </div>
+              {/* Space reserved for mobile menu button (positioned absolutely in MobileNavigation) */}
+              <div className="w-12 h-12" />
+            </div>
+          </div>
           
           <main className="py-4 lg:py-8">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

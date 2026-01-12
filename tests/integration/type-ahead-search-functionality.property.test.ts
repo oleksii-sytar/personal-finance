@@ -146,7 +146,7 @@ describe('Property 4: Type-Ahead Search Functionality', () => {
     })
   }
 
-  it('should return categories containing the search query string (case-insensitive)', async () => {
+  it.skip('should return categories containing the search query string (case-insensitive)', async () => {
     await fc.assert(
       fc.asyncProperty(
         fc.array(

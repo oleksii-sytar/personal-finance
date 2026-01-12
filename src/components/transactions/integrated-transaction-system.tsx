@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react'
 import { Plus, Filter, Search, X, BarChart3 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
@@ -17,6 +18,8 @@ import { VirtualizedTransactionList } from './virtualized-transaction-list'
 import { TransactionEditModal } from './transaction-edit-modal'
 import { DetailedEntryForm } from './detailed-entry-form'
 import { TransactionFilters } from './transaction-filters'
+import { CheckpointTimelineView } from './checkpoint-timeline-view'
+import { CheckpointCreationButton } from './checkpoint-creation-button'
 import { EnhancedLoadingState, TransactionErrorBoundary } from '@/components/shared'
 import { deleteTransaction, restoreTransaction } from '@/actions/transactions'
 import { useDeleteTransaction } from '@/hooks/use-transactions'
@@ -49,6 +52,7 @@ export function IntegratedTransactionSystem({
   const { currentWorkspace } = useWorkspace()
   const filterContext = useFilterContext()
   const { showUndoToast } = useUndoToast()
+  const router = useRouter()
   
   // React Query mutations
   const deleteTransactionMutation = useDeleteTransaction()
@@ -83,6 +87,9 @@ export function IntegratedTransactionSystem({
   // Filter states
   const [searchQuery, setSearchQuery] = useState('')
   const [showFilterPanel, setShowFilterPanel] = useState(false)
+  
+  // Timeline refresh state
+  const [timelineKey, setTimelineKey] = useState(0)
   
   // Delete confirmation state
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
@@ -122,12 +129,16 @@ export function IntegratedTransactionSystem({
   const handleEditSuccess = (updatedTransaction: TransactionWithCategory) => {
     // The query will automatically refetch and update the data
     setEditingTransaction(null)
+    // Refresh timeline to show updated gap calculations
+    setTimelineKey(prev => prev + 1)
   }
 
   // Handle transaction creation success
   const handleCreateSuccess = (newTransaction: TransactionWithCategory) => {
     // The query will automatically refetch and update the data
     setShowCreateForm(false)
+    // Refresh timeline to show updated gap calculations
+    setTimelineKey(prev => prev + 1)
   }
 
   // Handle delete initiation (Requirement 6.1: Require confirmation)
@@ -163,6 +174,9 @@ export function IntegratedTransactionSystem({
       // Close confirmation dialog
       setDeleteConfirmation({ isOpen: false, transactionId: null, transactionDescription: '' })
       
+      // Refresh timeline to show updated gap calculations
+      setTimelineKey(prev => prev + 1)
+      
       // Show undo toast (Requirement 6.3: 10-second undo option)
       if (deletedTransaction) {
         showUndoToast({
@@ -177,6 +191,8 @@ export function IntegratedTransactionSystem({
               }
               
               // The query will automatically refetch and show the restored transaction
+              // Refresh timeline to show updated gap calculations
+              setTimelineKey(prev => prev + 1)
             } catch (err) {
               console.error('Undo delete error:', err)
             }
@@ -200,6 +216,12 @@ export function IntegratedTransactionSystem({
   // Handle filter changes
   const handleClearSearch = () => {
     setSearchQuery('')
+  }
+
+  // Handle checkpoint creation success
+  const handleCheckpointCreated = () => {
+    // Refresh the timeline by updating the key
+    setTimelineKey(prev => prev + 1)
   }
 
   // Determine which list component to use
@@ -227,6 +249,14 @@ export function IntegratedTransactionSystem({
           </div>
           
           <div className="flex items-center gap-2">
+            {currentWorkspace && (
+              <CheckpointCreationButton
+                workspaceId={currentWorkspace.id}
+                onCheckpointCreated={handleCheckpointCreated}
+                className="hidden sm:flex"
+              />
+            )}
+            
             <Button
               variant="secondary"
               size="sm"
@@ -315,6 +345,17 @@ export function IntegratedTransactionSystem({
           </div>
         )}
 
+        {/* Checkpoint Timeline */}
+        {currentWorkspace && (
+          <Suspense fallback={<EnhancedLoadingState variant="skeleton" />}>
+            <CheckpointTimelineView 
+              key={timelineKey}
+              workspaceId={currentWorkspace.id}
+              className="mb-4 lg:mb-6"
+            />
+          </Suspense>
+        )}
+
         {/* Loading State */}
         {isLoading && transactions.length === 0 && (
           <EnhancedLoadingState 
@@ -393,6 +434,16 @@ export function IntegratedTransactionSystem({
             >
               +
             </button>
+            
+            {/* Mobile Checkpoint Button */}
+            {currentWorkspace && (
+              <CheckpointCreationButton
+                workspaceId={currentWorkspace.id}
+                onCheckpointCreated={handleCheckpointCreated}
+                className="fixed bottom-6 left-6 z-50 sm:hidden"
+                variant="floating"
+              />
+            )}
           </div>
         )}
 

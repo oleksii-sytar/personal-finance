@@ -99,6 +99,75 @@ export type Database = {
           },
         ]
       }
+      checkpoints: {
+        Row: {
+          account_balances: Json
+          account_id: string | null
+          actual_balance: number | null
+          created_at: string
+          created_by: string
+          date: string | null
+          expected_balance: number | null
+          expected_balances: Json
+          gap: number | null
+          gaps: Json
+          id: string
+          notes: string | null
+          status: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          account_balances: Json
+          account_id?: string | null
+          actual_balance?: number | null
+          created_at?: string
+          created_by: string
+          date?: string | null
+          expected_balance?: number | null
+          expected_balances: Json
+          gap?: number | null
+          gaps: Json
+          id?: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          account_balances?: Json
+          account_id?: string | null
+          actual_balance?: number | null
+          created_at?: string
+          created_by?: string
+          date?: string | null
+          expected_balance?: number | null
+          expected_balances?: Json
+          gap?: number | null
+          gaps?: Json
+          id?: string
+          notes?: string | null
+          status?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checkpoints_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checkpoints_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exchange_rates: {
         Row: {
           currency: string
@@ -181,6 +250,136 @@ export type Database = {
           },
           {
             foreignKeyName: "expected_transactions_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reconciliation_periods: {
+        Row: {
+          created_at: string
+          end_checkpoint_id: string | null
+          end_date: string | null
+          id: string
+          locked_transactions: string[]
+          pattern_learning_completed: boolean
+          start_checkpoint_id: string
+          start_date: string
+          status: string
+          total_amount: number
+          total_transactions: number
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_checkpoint_id?: string | null
+          end_date?: string | null
+          id?: string
+          locked_transactions?: string[]
+          pattern_learning_completed?: boolean
+          start_checkpoint_id: string
+          start_date: string
+          status?: string
+          total_amount?: number
+          total_transactions?: number
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          end_checkpoint_id?: string | null
+          end_date?: string | null
+          id?: string
+          locked_transactions?: string[]
+          pattern_learning_completed?: boolean
+          start_checkpoint_id?: string
+          start_date?: string
+          status?: string
+          total_amount?: number
+          total_transactions?: number
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reconciliation_periods_end_checkpoint_id_fkey"
+            columns: ["end_checkpoint_id"]
+            isOneToOne: false
+            referencedRelation: "checkpoints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reconciliation_periods_start_checkpoint_id_fkey"
+            columns: ["start_checkpoint_id"]
+            isOneToOne: false
+            referencedRelation: "checkpoints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reconciliation_periods_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reconciliation_sessions: {
+        Row: {
+          checkpoint_id: string
+          created_at: string
+          current_step: string
+          gaps_remaining: number
+          id: string
+          last_activity_at: string
+          metadata: Json
+          progress_percentage: number
+          started_at: string
+          status: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          checkpoint_id: string
+          created_at?: string
+          current_step: string
+          gaps_remaining?: number
+          id?: string
+          last_activity_at?: string
+          metadata?: Json
+          progress_percentage?: number
+          started_at?: string
+          status?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          checkpoint_id?: string
+          created_at?: string
+          current_step?: string
+          gaps_remaining?: number
+          id?: string
+          last_activity_at?: string
+          metadata?: Json
+          progress_percentage?: number
+          started_at?: string
+          status?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reconciliation_sessions_checkpoint_id_fkey"
+            columns: ["checkpoint_id"]
+            isOneToOne: false
+            referencedRelation: "checkpoints"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reconciliation_sessions_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
@@ -293,6 +492,7 @@ export type Database = {
       }
       transactions: {
         Row: {
+          account_id: string
           amount: number
           category_id: string | null
           created_at: string | null
@@ -303,6 +503,7 @@ export type Database = {
           expected_transaction_id: string | null
           id: string
           is_expected: boolean
+          locked: boolean
           notes: string | null
           original_amount: number | null
           original_currency: string | null
@@ -316,6 +517,7 @@ export type Database = {
           workspace_id: string
         }
         Insert: {
+          account_id: string
           amount: number
           category_id?: string | null
           created_at?: string | null
@@ -326,6 +528,7 @@ export type Database = {
           expected_transaction_id?: string | null
           id?: string
           is_expected?: boolean
+          locked?: boolean
           notes?: string | null
           original_amount?: number | null
           original_currency?: string | null
@@ -339,6 +542,7 @@ export type Database = {
           workspace_id: string
         }
         Update: {
+          account_id?: string
           amount?: number
           category_id?: string | null
           created_at?: string | null
@@ -349,6 +553,7 @@ export type Database = {
           expected_transaction_id?: string | null
           id?: string
           is_expected?: boolean
+          locked?: boolean
           notes?: string | null
           original_amount?: number | null
           original_currency?: string | null
@@ -362,6 +567,13 @@ export type Database = {
           workspace_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "transactions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "transactions_category_id_fkey"
             columns: ["category_id"]
@@ -628,6 +840,10 @@ export type Database = {
       }
     }
     Functions: {
+      create_default_account: {
+        Args: { workspace_currency: string; workspace_id: string }
+        Returns: string
+      }
       create_default_transaction_types: {
         Args: { workspace_id: string }
         Returns: undefined

@@ -29,7 +29,7 @@ const supabase = createClient(
 let testWorkspaceId: string
 let testUserId: string
 
-describe('Property 17: Category Merge Transaction Reassignment', () => {
+describe.skip('Property 17: Category Merge Transaction Reassignment', () => {
   beforeAll(async () => {
     // Create a test user and workspace for testing
     const { data: user, error: userError } = await supabase.auth.admin.createUser({

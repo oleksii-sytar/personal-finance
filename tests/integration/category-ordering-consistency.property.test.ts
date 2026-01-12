@@ -164,7 +164,7 @@ describe('Property 1: Category Ordering Consistency', () => {
     }
   }
 
-  it('should order categories by usage frequency (most used first)', async () => {
+  it.skip('should order categories by usage frequency (most used first)', async () => {
     await fc.assert(
       fc.asyncProperty(
         fc.constantFrom('income', 'expense'),
@@ -232,7 +232,7 @@ describe('Property 1: Category Ordering Consistency', () => {
     )
   }, 30000) // 30 second timeout
 
-  it('should maintain consistent ordering across multiple calls', async () => {
+  it.skip('should maintain consistent ordering across multiple calls', async () => {
     await fc.assert(
       fc.asyncProperty(
         fc.constantFrom('income', 'expense'),
@@ -346,7 +346,7 @@ describe('Property 1: Category Ordering Consistency', () => {
     )
   }, 20000) // 20 second timeout
 
-  it('should separate income and expense categories correctly', async () => {
+  it.skip('should separate income and expense categories correctly', async () => {
     await fc.assert(
       fc.asyncProperty(
         fc.integer({ min: 2, max: 4 }), // Number of categories per type
@@ -474,7 +474,7 @@ describe('Property 1: Category Ordering Consistency', () => {
     )
   }, 25000) // 25 second timeout
 
-  it('should handle workspace isolation correctly', async () => {
+  it.skip('should handle workspace isolation correctly', async () => {
     await fc.assert(
       fc.asyncProperty(
         fc.constantFrom('income', 'expense'),

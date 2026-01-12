@@ -1,0 +1,253 @@
+'use server'
+
+import { revalidatePath } from 'next/cache'
+import { createClient } from '@/lib/supabase/server'
+import { createAccountSchema, updateAccountSchema } from '@/lib/validations/account'
+import { getUserWorkspaceContext } from '@/lib/middleware'
+import type { ActionResult } from '@/types'
+
+export interface Account {
+  id: string
+  workspace_id: string
+  name: string
+  type: 'checking' | 'savings' | 'credit' | 'investment'
+  balance: number
+  currency: string
+  created_at: string
+  updated_at: string
+}
+
+/**
+ * Creates a new account for the workspace
+ */
+export async function createAccount(
+  formData: FormData
+): Promise<ActionResult<Account>> {
+  const supabase = await createClient()
+  
+  // Check authentication
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return { error: 'Authentication required' }
+  }
+
+  // Get workspace context
+  const contextResult = await getUserWorkspaceContext()
+  if (!contextResult.authorized || !contextResult.workspaceId) {
+    return { error: contextResult.error || 'No workspace found' }
+  }
+
+  // Validate input data
+  const rawData = Object.fromEntries(formData)
+  const validated = createAccountSchema.safeParse({
+    ...rawData,
+    balance: Number(rawData.balance) || 0,
+  })
+
+  if (!validated.success) {
+    return { error: validated.error.flatten() }
+  }
+
+  // Create account
+  const { data: account, error } = await supabase
+    .from('accounts')
+    .insert({
+      ...validated.data,
+      workspace_id: contextResult.workspaceId,
+    })
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Account creation error:', error)
+    return { error: 'Failed to create account' }
+  }
+
+  revalidatePath('/accounts')
+  revalidatePath('/transactions')
+  
+  return { data: account }
+}
+
+/**
+ * Gets all accounts for the current workspace
+ */
+export async function getAccounts(): Promise<ActionResult<Account[]>> {
+  const supabase = await createClient()
+  
+  // Check authentication
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return { error: 'Authentication required' }
+  }
+
+  // Get workspace context
+  const contextResult = await getUserWorkspaceContext()
+  if (!contextResult.authorized || !contextResult.workspaceId) {
+    return { error: contextResult.error || 'No workspace found' }
+  }
+
+  // Fetch accounts
+  const { data: accounts, error } = await supabase
+    .from('accounts')
+    .select('*')
+    .eq('workspace_id', contextResult.workspaceId)
+    .order('created_at', { ascending: true })
+
+  if (error) {
+    console.error('Accounts fetch error:', error)
+    return { error: 'Failed to fetch accounts' }
+  }
+
+  return { data: accounts || [] }
+}
+
+/**
+ * Gets or creates a default account for the workspace
+ * This is used when no account is specified for a transaction
+ */
+export async function getOrCreateDefaultAccount(): Promise<ActionResult<Account>> {
+  const supabase = await createClient()
+  
+  // Check authentication
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return { error: 'Authentication required' }
+  }
+
+  // Get workspace context
+  const contextResult = await getUserWorkspaceContext()
+  if (!contextResult.authorized || !contextResult.workspaceId) {
+    return { error: contextResult.error || 'No workspace found' }
+  }
+
+  // Try to find existing default account
+  const { data: existingAccounts, error: fetchError } = await supabase
+    .from('accounts')
+    .select('*')
+    .eq('workspace_id', contextResult.workspaceId)
+    .order('created_at', { ascending: true })
+    .limit(1)
+
+  if (fetchError) {
+    console.error('Account fetch error:', fetchError)
+    return { error: 'Failed to fetch accounts' }
+  }
+
+  // If account exists, return it
+  if (existingAccounts && existingAccounts.length > 0) {
+    return { data: existingAccounts[0] }
+  }
+
+  // Create default account
+  const { data: account, error: createError } = await supabase
+    .from('accounts')
+    .insert({
+      workspace_id: contextResult.workspaceId,
+      name: 'Main Account',
+      type: 'checking',
+      balance: 0,
+      currency: 'UAH',
+    })
+    .select()
+    .single()
+
+  if (createError) {
+    console.error('Default account creation error:', createError)
+    return { error: 'Failed to create default account' }
+  }
+
+  return { data: account }
+}
+
+/**
+ * Updates an existing account
+ */
+export async function updateAccount(
+  id: string,
+  formData: FormData
+): Promise<ActionResult<Account>> {
+  const supabase = await createClient()
+  
+  // Check authentication
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return { error: 'Authentication required' }
+  }
+
+  // Validate input data
+  const rawData = Object.fromEntries(formData)
+  const validated = updateAccountSchema.safeParse({
+    ...rawData,
+    balance: rawData.balance ? Number(rawData.balance) : undefined,
+  })
+
+  if (!validated.success) {
+    return { error: validated.error.flatten() }
+  }
+
+  // Update account
+  const { data: account, error } = await supabase
+    .from('accounts')
+    .update(validated.data)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Account update error:', error)
+    return { error: 'Failed to update account' }
+  }
+
+  revalidatePath('/accounts')
+  revalidatePath('/transactions')
+  
+  return { data: account }
+}
+
+/**
+ * Deletes an account (soft delete)
+ */
+export async function deleteAccount(
+  id: string
+): Promise<ActionResult<{ id: string }>> {
+  const supabase = await createClient()
+  
+  // Check authentication
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return { error: 'Authentication required' }
+  }
+
+  // Check if account has transactions
+  const { data: transactions, error: transactionError } = await supabase
+    .from('transactions')
+    .select('id')
+    .eq('account_id', id)
+    .limit(1)
+
+  if (transactionError) {
+    console.error('Transaction check error:', transactionError)
+    return { error: 'Failed to check account usage' }
+  }
+
+  if (transactions && transactions.length > 0) {
+    return { error: 'Cannot delete account with existing transactions' }
+  }
+
+  // Delete account
+  const { error } = await supabase
+    .from('accounts')
+    .delete()
+    .eq('id', id)
+
+  if (error) {
+    console.error('Account deletion error:', error)
+    return { error: 'Failed to delete account' }
+  }
+
+  revalidatePath('/accounts')
+  revalidatePath('/transactions')
+  
+  return { data: { id } }
+}

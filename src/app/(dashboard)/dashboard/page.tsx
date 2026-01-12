@@ -1,11 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useWorkspace } from '@/contexts/workspace-context'
 import { OnboardingFlow } from '@/components/shared/onboarding-flow'
 import { ComingSoon } from '@/components/shared/coming-soon'
 import { FloatingAddButton } from '@/components/transactions'
+import { Card } from '@/components/ui/Card'
 
 export default function DashboardPage() {
   const { currentWorkspace, workspaces, loading } = useWorkspace()
@@ -73,11 +74,48 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Coming Soon Placeholder */}
-      <ComingSoon 
-        title="Dashboard Coming Soon"
-        description="We're building your family finance dashboard with balance tracking, recent transactions, and intelligent forecasting."
-      />
+      {/* Dashboard Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Balance Overview */}
+        <Card className="p-6">
+          <ComingSoon 
+            title="Balance Overview"
+            description="Track your account balances and spending trends."
+          />
+        </Card>
+
+        {/* Transaction Summary */}
+        <Card className="p-6">
+          <ComingSoon 
+            title="Transaction Summary"
+            description="Overview of your recent financial activity."
+          />
+        </Card>
+      </div>
+
+      {/* Additional Dashboard Sections */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="p-6">
+          <ComingSoon 
+            title="Recent Transactions"
+            description="View your latest financial activity."
+          />
+        </Card>
+        
+        <Card className="p-6">
+          <ComingSoon 
+            title="Monthly Forecast"
+            description="Intelligent predictions for your spending patterns."
+          />
+        </Card>
+        
+        <Card className="p-6">
+          <ComingSoon 
+            title="Goals & Targets"
+            description="Track your financial goals and savings targets."
+          />
+        </Card>
+      </div>
 
       {/* Floating Add Button for quick transaction entry */}
       <FloatingAddButton 

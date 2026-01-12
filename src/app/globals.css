@@ -273,7 +273,7 @@
       inset 0 1px 0 rgba(255, 255, 255, 0.9);
   }
 
-  /* Primary button styles with theme-aware gradients and accessibility */
+  /* Primary button styles with theme-aware gradients and anti-flicker enhancements */
   .btn-primary {
     background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary) 100%);
     border-radius: 999px;
@@ -283,24 +283,43 @@
     color: var(--text-inverse);
     font-family: 'Inter', sans-serif;
     font-weight: 500;
-    /* Smooth transitions - Requirements 9.1, 9.2 */
+    /* Enhanced anti-flicker transitions */
     transition: 
-      all var(--theme-transition-duration) var(--theme-transition-easing),
-      transform 150ms ease-out;
+      background-color var(--theme-transition-duration) var(--theme-transition-easing),
+      box-shadow var(--theme-transition-duration) var(--theme-transition-easing),
+      transform 150ms cubic-bezier(0.4, 0, 0.2, 1),
+      opacity 200ms ease-out;
     /* Accessibility: Ensure minimum touch target size */
     min-height: 44px;
     padding: 12px 24px;
-    /* Prevent layout shifts - Requirement 9.3 */
+    /* Hardware acceleration for smooth rendering */
     transform: translateZ(0);
     backface-visibility: hidden;
+    perspective: 1000px;
+    /* Prevent sub-pixel rendering issues */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Stable positioning */
+    position: relative;
+    overflow: hidden;
+    /* Prevent button content from shifting */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
   }
 
   .btn-primary:hover {
     transform: translateY(-1px) translateZ(0);
     box-shadow: 0 6px 25px -5px var(--shadow-primary);
-    /* Enhanced glow on hover */
+    /* Enhanced glow on hover with stable background */
     background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-primary) 100%);
-    filter: brightness(1.1);
+    filter: brightness(1.05); /* Reduced brightness change for stability */
+  }
+
+  .btn-primary:active {
+    transform: translateY(0) translateZ(0);
+    transition: transform 50ms ease-out;
   }
 
   .btn-primary:focus {
@@ -309,7 +328,14 @@
     box-shadow: 0 0 0 3px var(--ambient-glow-strong);
   }
 
-  /* Secondary button styles with enhanced accessibility */
+  .btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: translateZ(0);
+    filter: none;
+  }
+
+  /* Secondary button styles with enhanced stability */
   .btn-secondary {
     background: transparent;
     border: 1px solid var(--border-primary);
@@ -317,15 +343,31 @@
     color: var(--text-primary);
     font-family: 'Inter', sans-serif;
     font-weight: 500;
-    /* Smooth transitions - Requirements 9.1, 9.2 */
+    /* Enhanced anti-flicker transitions */
     transition: 
-      all var(--theme-transition-duration) var(--theme-transition-easing),
-      transform 150ms ease-out;
+      background-color var(--theme-transition-duration) var(--theme-transition-easing),
+      border-color var(--theme-transition-duration) var(--theme-transition-easing),
+      color var(--theme-transition-duration) var(--theme-transition-easing),
+      box-shadow var(--theme-transition-duration) var(--theme-transition-easing),
+      transform 150ms cubic-bezier(0.4, 0, 0.2, 1),
+      opacity 200ms ease-out;
     min-height: 44px;
     padding: 12px 24px;
-    /* Prevent layout shifts - Requirement 9.3 */
+    /* Hardware acceleration for smooth rendering */
     transform: translateZ(0);
     backface-visibility: hidden;
+    perspective: 1000px;
+    /* Prevent sub-pixel rendering issues */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Stable positioning */
+    position: relative;
+    overflow: hidden;
+    /* Prevent button content from shifting */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
   }
 
   .btn-secondary:hover {
@@ -335,10 +377,21 @@
     transform: translateZ(0);
   }
 
+  .btn-secondary:active {
+    transform: translateZ(0);
+    transition: transform 50ms ease-out;
+  }
+
   .btn-secondary:focus {
     outline: 2px solid var(--accent-primary);
     outline-offset: 2px;
     background: var(--bg-glass);
+  }
+
+  .btn-secondary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: translateZ(0);
   }
 
   /* Form input styles with enhanced accessibility and contrast */
@@ -588,11 +641,70 @@
       box-shadow var(--theme-transition-duration) var(--theme-transition-easing);
   }
 
-  /* Performance optimizations for smooth transitions */
+  /* Performance optimizations for smooth transitions and anti-flicker */
   .gpu-accelerated {
     transform: translateZ(0);
     backface-visibility: hidden;
     perspective: 1000px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Anti-flicker utilities for buttons and interactive elements */
+  .stable-button {
+    position: relative;
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Loading state overlay for buttons */
+  .loading-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: inherit;
+    border-radius: inherit;
+    transition: opacity 200ms ease-out;
+  }
+
+  /* Prevent content shift during loading */
+  .loading-content {
+    transition: opacity 200ms ease-out;
+  }
+
+  .loading-content.hidden {
+    opacity: 0;
+  }
+
+  /* Enhanced spinner animations */
+  .spinner-smooth {
+    animation: spin 1s linear infinite;
+    transform-origin: center;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  /* Desktop sidebar responsive behavior */
+  [data-desktop-sidebar="true"] {
+    display: none;
+  }
+
+  @media (min-width: 1024px) {
+    [data-desktop-sidebar="true"] {
+      display: flex !important;
+    }
   }
 
   /* Reduced motion safe animations */

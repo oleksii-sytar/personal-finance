@@ -22,132 +22,152 @@ import type { ActionResult, Transaction } from '@/types'
 export async function createTransaction(
   formData: FormData
 ): Promise<ActionResult<Transaction>> {
-  try {
-    const supabase = await createClient()
-    
-    // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return { error: 'Authentication required' }
-    }
-
-    // Validate input data
-    const rawData = Object.fromEntries(formData)
-    const validated = createTransactionSchema.safeParse({
-      ...rawData,
-      amount: Number(rawData.amount),
-      transaction_date: new Date(rawData.transaction_date as string),
-    })
-
-    if (!validated.success) {
-      return { error: validated.error.flatten() }
-    }
-
-    // Get workspace ID from form data or user context
-    let workspaceId = rawData.workspace_id as string
-    
-    if (!workspaceId) {
-      // If no workspace ID provided, get user's current workspace context
-      const contextResult = await getUserWorkspaceContext()
-      if (!contextResult.authorized || !contextResult.workspaceId) {
-        return { error: contextResult.error || 'No workspace found' }
-      }
-      workspaceId = contextResult.workspaceId
-    }
-
-    // Authorize workspace access for transaction creation
-    const authResult = await authorizeTransactionCreate(workspaceId)
-    if (!authResult.authorized) {
-      return { error: authResult.error || 'Access denied to workspace' }
-    }
-
-    // Handle default category assignment (Requirement 1.5)
-    let categoryId = validated.data.category_id
-    if (!categoryId) {
-      // Get or create default category for the transaction type
-      const { getDefaultCategory } = await import('@/actions/categories')
-      const defaultCategoryResult = await getDefaultCategory(workspaceId, validated.data.type)
-      
-      if (defaultCategoryResult.error || !defaultCategoryResult.data) {
-        return { error: 'Failed to assign default category' }
-      }
-      
-      categoryId = defaultCategoryResult.data.id
-    }
-
-    // Handle default transaction type assignment (Requirements 8.1, 8.3)
-    let transactionTypeId = validated.data.transaction_type_id
-    if (!transactionTypeId) {
-      // Get default transaction type for the family
-      const { getDefaultTransactionType } = await import('@/actions/transaction-types')
-      const defaultTypeResult = await getDefaultTransactionType(workspaceId, validated.data.type)
-      
-      if (defaultTypeResult.error || !defaultTypeResult.data) {
-        return { error: 'Failed to assign default transaction type' }
-      }
-      
-      transactionTypeId = defaultTypeResult.data.id
-    }
-
-    // Handle currency conversion if needed
-    let finalAmount = validated.data.amount
-    let originalAmount: number | undefined
-    let originalCurrency: string | undefined
-    
-    // If currency is not UAH, convert to UAH and store original values
-    if (validated.data.currency && validated.data.currency !== 'UAH') {
-      try {
-        const { convertCurrency } = await import('@/lib/utils/currency-server')
-        const conversionResult = await convertCurrency(
-          validated.data.amount,
-          validated.data.currency,
-          'UAH',
-          validated.data.transaction_date
-        )
-        
-        finalAmount = conversionResult.amount
-        originalAmount = validated.data.amount
-        originalCurrency = validated.data.currency
-        
-        // Log conversion for debugging
-        console.log(`Converted ${originalAmount} ${originalCurrency} to ${finalAmount} UAH using ${conversionResult.source} rate`)
-      } catch (conversionError) {
-        console.error('Currency conversion failed:', conversionError)
-        return { error: 'Failed to convert currency. Please try again or use UAH.' }
-      }
-    }
-
-    // Create transaction with proper user tracking and default category
-    const { data: transaction, error } = await supabase
-      .from('transactions')
-      .insert({
-        ...validated.data,
-        amount: finalAmount, // Always store in UAH
-        currency: 'UAH', // Always UAH in database
-        original_amount: originalAmount,
-        original_currency: originalCurrency,
-        category_id: categoryId,
-        transaction_type_id: transactionTypeId,
-        workspace_id: workspaceId,
-        user_id: user.id,
-        created_by: user.id,
-      })
-      .select()
-      .single()
-
-    if (error) {
-      console.error('Transaction creation error:', error)
-      return { error: 'Failed to create transaction' }
-    }
-
-    revalidatePath('/transactions')
-    revalidatePath('/dashboard')
-    
-    return { data: transaction }
-  } catch (error) {
-    console.error('Error in createTransaction:', error)
-    return { error: 'An unexpected error occurred' }
+  const supabase = await createClient()
+  
+  // Check authentication
+  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  if (authError || !user) {
+    return { error: 'Authentication required' }
   }
+
+  // Validate input data
+  const rawData = Object.fromEntries(formData)
+  const validated = createTransactionSchema.safeParse({
+    ...rawData,
+    amount: Number(rawData.amount),
+    transaction_date: new Date(rawData.transaction_date as string),
+  })
+
+  if (!validated.success) {
+    return { error: validated.error.flatten() }
+  }
+
+  // Get workspace ID from form data or user context
+  let workspaceId = rawData.workspace_id as string
+  
+  if (!workspaceId) {
+    // If no workspace ID provided, get user's current workspace context
+    const contextResult = await getUserWorkspaceContext()
+    if (!contextResult.authorized || !contextResult.workspaceId) {
+      return { error: contextResult.error || 'No workspace found' }
+    }
+    workspaceId = contextResult.workspaceId
+  }
+
+  // Authorize workspace access for transaction creation
+  const authResult = await authorizeTransactionCreate(workspaceId)
+  if (!authResult.authorized) {
+    return { error: authResult.error || 'Access denied to workspace' }
+  }
+
+  // Handle default account assignment
+  let accountId = validated.data.account_id
+  if (!accountId) {
+    // Get or create default account for the workspace
+    const { getOrCreateDefaultAccount } = await import('@/actions/accounts')
+    const defaultAccountResult = await getOrCreateDefaultAccount()
+    
+    if (defaultAccountResult.error || !defaultAccountResult.data) {
+      return { error: 'Failed to assign default account' }
+    }
+    
+    accountId = defaultAccountResult.data.id
+  }
+
+  // Handle default category assignment (Requirement 1.5)
+  let categoryId = validated.data.category_id
+  if (!categoryId) {
+    // Get or create default category for the transaction type
+    const { getDefaultCategory } = await import('@/actions/categories')
+    const defaultCategoryResult = await getDefaultCategory(workspaceId, validated.data.type)
+    
+    if (defaultCategoryResult.error || !defaultCategoryResult.data) {
+      return { error: 'Failed to assign default category' }
+    }
+    
+    categoryId = defaultCategoryResult.data.id
+  }
+
+  // Handle default transaction type assignment (Requirements 8.1, 8.3)
+  let transactionTypeId = validated.data.transaction_type_id
+  if (!transactionTypeId) {
+    // Get default transaction type for the family
+    const { getDefaultTransactionType } = await import('@/actions/transaction-types')
+    const defaultTypeResult = await getDefaultTransactionType(workspaceId, validated.data.type)
+    
+    if (defaultTypeResult.error || !defaultTypeResult.data) {
+      return { error: 'Failed to assign default transaction type' }
+    }
+    
+    transactionTypeId = defaultTypeResult.data.id
+  }
+
+  // Handle currency conversion if needed
+  let finalAmount = validated.data.amount
+  let originalAmount: number | undefined
+  let originalCurrency: string | undefined
+  
+  // If currency is not UAH, convert to UAH and store original values
+  if (validated.data.currency && validated.data.currency !== 'UAH') {
+    try {
+      const { convertCurrency } = await import('@/lib/utils/currency-server')
+      const conversionResult = await convertCurrency(
+        validated.data.amount,
+        validated.data.currency,
+        'UAH',
+        validated.data.transaction_date
+      )
+      
+      finalAmount = conversionResult.amount
+      originalAmount = validated.data.amount
+      originalCurrency = validated.data.currency
+    } catch (conversionError) {
+      return { error: 'Failed to convert currency. Please try again or use UAH.' }
+    }
+  }
+
+  // Create transaction with proper user tracking and default category
+  const { data: transaction, error } = await supabase
+    .from('transactions')
+    .insert({
+      ...validated.data,
+      account_id: accountId, // Use the resolved account ID
+      amount: finalAmount, // Always store in UAH
+      currency: 'UAH', // Always UAH in database
+      original_amount: originalAmount,
+      original_currency: originalCurrency,
+      category_id: categoryId,
+      transaction_type_id: transactionTypeId,
+      workspace_id: workspaceId,
+      user_id: user.id,
+      created_by: user.id,
+    })
+    .select()
+    .single()
+
+  if (error) {
+    return { error: 'Failed to create transaction' }
+  }
+
+  // Trigger automatic gap recalculation for affected checkpoints
+  // Requirements: 5.1, 5.2, 5.3
+  try {
+    const { recalculateAffectedCheckpoints } = await import('@/actions/checkpoints')
+    await recalculateAffectedCheckpoints(
+      validated.data.transaction_date,
+      accountId, // Use the resolved account ID
+      workspaceId,
+      supabase
+    )
+  } catch (recalcError) {
+    // Log error but don't fail transaction creation
+    console.warn('Failed to recalculate checkpoint gaps after transaction creation:', recalcError)
+  }
+
+  revalidatePath('/transactions')
+  revalidatePath('/dashboard')
+  
+  return { data: transaction }
 }
 
 /**
@@ -210,9 +230,6 @@ export async function updateTransaction(
           original_amount: validated.data.amount,
           original_currency: validated.data.currency,
         }
-        
-        // Log conversion for debugging
-        console.log(`Converted ${validated.data.amount} ${validated.data.currency} to ${conversionResult.amount} UAH using ${conversionResult.source} rate`)
       } catch (conversionError) {
         console.error('Currency conversion failed:', conversionError)
         return { error: 'Failed to convert currency. Please try again or use UAH.' }
@@ -234,6 +251,25 @@ export async function updateTransaction(
     if (error) {
       console.error('Transaction update error:', error)
       return { error: 'Failed to update transaction' }
+    }
+
+    // Trigger automatic gap recalculation for affected checkpoints
+    // Requirements: 5.1, 5.2, 5.3
+    try {
+      const { recalculateAffectedCheckpoints } = await import('@/actions/checkpoints')
+      
+      // Use the updated transaction date if provided, otherwise use current date
+      const recalcDate = validated.data.transaction_date || new Date(transaction.transaction_date)
+      
+      await recalculateAffectedCheckpoints(
+        recalcDate,
+        transaction.account_id,
+        transaction.workspace_id,
+        supabase
+      )
+    } catch (recalcError) {
+      // Log error but don't fail transaction update
+      console.warn('Failed to recalculate checkpoint gaps after transaction update:', recalcError)
     }
 
     revalidatePath('/transactions')
@@ -271,6 +307,18 @@ export async function deleteTransaction(
       return { error: authResult.error || 'Access denied to transaction' }
     }
 
+    // Get transaction details before deletion for gap recalculation
+    const { data: transactionToDelete, error: fetchError } = await supabase
+      .from('transactions')
+      .select('transaction_date, account_id, workspace_id')
+      .eq('id', id)
+      .single()
+
+    if (fetchError || !transactionToDelete) {
+      console.error('Error fetching transaction for deletion:', fetchError)
+      return { error: 'Transaction not found' }
+    }
+
     // Soft delete transaction by setting deleted_at timestamp
     // This implements Requirement 6.4: soft delete for admin recovery
     const { error } = await supabase
@@ -285,6 +333,21 @@ export async function deleteTransaction(
     if (error) {
       console.error('Transaction soft deletion error:', error)
       return { error: 'Failed to delete transaction' }
+    }
+
+    // Trigger automatic gap recalculation for affected checkpoints
+    // Requirements: 5.1, 5.2, 5.3
+    try {
+      const { recalculateAffectedCheckpoints } = await import('@/actions/checkpoints')
+      await recalculateAffectedCheckpoints(
+        new Date(transactionToDelete.transaction_date),
+        transactionToDelete.account_id,
+        transactionToDelete.workspace_id,
+        supabase
+      )
+    } catch (recalcError) {
+      // Log error but don't fail transaction deletion
+      console.warn('Failed to recalculate checkpoint gaps after transaction deletion:', recalcError)
     }
 
     revalidatePath('/transactions')
@@ -338,6 +401,7 @@ export async function getTransactions(
         id,
         workspace_id,
         user_id,
+        account_id,
         amount,
         original_amount,
         original_currency,
@@ -351,6 +415,7 @@ export async function getTransactions(
         is_expected,
         expected_transaction_id,
         recurring_transaction_id,
+        locked,
         created_at,
         updated_at,
         created_by,
@@ -429,6 +494,21 @@ export async function restoreTransaction(
     if (error) {
       console.error('Transaction restore error:', error)
       return { error: 'Failed to restore transaction' }
+    }
+
+    // Trigger automatic gap recalculation for affected checkpoints
+    // Requirements: 5.1, 5.2, 5.3
+    try {
+      const { recalculateAffectedCheckpoints } = await import('@/actions/checkpoints')
+      await recalculateAffectedCheckpoints(
+        new Date(transaction.transaction_date),
+        transaction.account_id,
+        transaction.workspace_id,
+        supabase
+      )
+    } catch (recalcError) {
+      // Log error but don't fail transaction restoration
+      console.warn('Failed to recalculate checkpoint gaps after transaction restoration:', recalcError)
     }
 
     revalidatePath('/transactions')

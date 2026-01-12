@@ -84,6 +84,29 @@ export const createTestCategory = async (workspaceId: string, name: string, type
 }
 
 /**
+ * Create a test account for a workspace
+ */
+export const createTestAccount = async (workspaceId: string, name: string = 'Test Account', type: 'checking' | 'savings' | 'credit' = 'checking') => {
+  const { data: account, error } = await supabaseAdmin
+    .from('accounts')
+    .insert({
+      workspace_id: workspaceId,
+      name,
+      type,
+      balance: 0,
+      currency: 'UAH'
+    })
+    .select()
+    .single()
+
+  if (error) {
+    throw new Error(`Failed to create test account: ${error.message}`)
+  }
+
+  return account
+}
+
+/**
  * Clean up test data for a user
  */
 export const cleanupTestData = async (userId: string) => {
@@ -96,9 +119,21 @@ export const cleanupTestData = async (userId: string) => {
 
     if (workspaces) {
       for (const workspace of workspaces) {
-        // Delete transactions first (they reference categories)
+        // Delete checkpoints first (they reference workspace)
+        await supabaseAdmin
+          .from('checkpoints')
+          .delete()
+          .eq('workspace_id', workspace.id)
+
+        // Delete transactions (they reference categories and accounts)
         await supabaseAdmin
           .from('transactions')
+          .delete()
+          .eq('workspace_id', workspace.id)
+
+        // Delete accounts
+        await supabaseAdmin
+          .from('accounts')
           .delete()
           .eq('workspace_id', workspace.id)
 
