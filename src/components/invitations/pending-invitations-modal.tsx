@@ -102,7 +102,10 @@ export function PendingInvitationsModal({
   }
 
   return createPortal(
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center px-4 z-50">
+    <div 
+      className="fixed top-0 left-0 right-0 bottom-0 bg-black/50 backdrop-blur-sm flex items-center justify-center px-4 z-50"
+      style={{ minHeight: '100dvh' }}
+    >
       <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <Card>
           <CardHeader>

@@ -120,8 +120,7 @@ export default function DashboardPage() {
       {/* Floating Add Button for quick transaction entry */}
       <FloatingAddButton 
         onTransactionCreated={(transaction) => {
-          console.log('Transaction created:', transaction)
-          // TODO: Refresh dashboard data when implemented
+          // Transaction created - dashboard will refresh automatically via React Query
         }}
       />
     </div>

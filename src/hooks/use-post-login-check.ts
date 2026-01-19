@@ -54,7 +54,6 @@ export function usePostLoginCheck(): PostLoginCheckResult {
     // Prevent calls within 2 seconds of the last check
     const now = Date.now()
     if (now - lastCheckTimeRef.current < 2000) {
-      console.log('usePostLoginCheck: Skipping check - too soon after last check')
       return
     }
 
@@ -65,7 +64,6 @@ export function usePostLoginCheck(): PostLoginCheckResult {
 
     // Debounce the check to prevent rapid calls
     debounceTimeoutRef.current = setTimeout(() => {
-      console.log('usePostLoginCheck: Checking for pending invitations for user:', user.email)
       lastCheckTimeRef.current = Date.now()
 
       const checkForInvitations = async () => {
@@ -78,7 +76,6 @@ export function usePostLoginCheck(): PostLoginCheckResult {
           const now = Date.now()
           
           if (cached && (now - cached.timestamp) < CACHE_DURATION) {
-            console.log('usePostLoginCheck: Using cached invitations for:', user.email)
             setPendingInvitations(cached.data)
             setIsLoading(false)
             setCheckComplete(true)
@@ -88,7 +85,6 @@ export function usePostLoginCheck(): PostLoginCheckResult {
 
           // If there's already a pending request for this email, wait for it
           if (cached?.promise) {
-            console.log('usePostLoginCheck: Waiting for existing request for:', user.email)
             await cached.promise
             const updatedCache = invitationCache.get(user.email!)
             if (updatedCache) {
@@ -119,7 +115,6 @@ export function usePostLoginCheck(): PostLoginCheckResult {
             // Remove failed request from cache
             invitationCache.delete(user.email!)
           } else {
-            console.log('Found pending invitations:', result.data)
             const invitations = result.data || []
             setPendingInvitations(invitations)
             

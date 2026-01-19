@@ -52,7 +52,6 @@ function LoginFormImplementation() {
   // Handle post-login invitation modal display
   useEffect(() => {
     if (user && checkComplete && !checkingInvitations && hasPendingInvitations && pendingInvitations.length > 0) {
-      console.log('User has pending invitations, showing modal')
       setShowInvitationsModal(true)
     }
   }, [user, checkComplete, checkingInvitations, hasPendingInvitations, pendingInvitations])
@@ -253,7 +252,6 @@ function LoginFormContent() {
         }
       } else {
         // Success - AuthNavigationHandler will handle the navigation
-        console.log('Login successful, AuthNavigationHandler will handle navigation')
       }
     } catch (error) {
       setErrors({ email: 'An unexpected error occurred. Please try again.' })

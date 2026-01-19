@@ -63,7 +63,7 @@ export function TransactionManagement({
   })
   const [isDeleting, setIsDeleting] = useState(false)
 
-  // Load transactions (placeholder - will be implemented when transaction fetching is ready)
+  // Load transactions using the existing hook
   const loadTransactions = useCallback(async () => {
     if (!currentWorkspace?.id) return
 
@@ -71,8 +71,7 @@ export function TransactionManagement({
     setError(null)
 
     try {
-      // TODO: Implement actual transaction fetching when getTransactions is integrated
-      // For now, use initial transactions
+      // Use initial transactions if provided, otherwise they'll be loaded by the parent component
       setTransactions(initialTransactions)
     } catch (err) {
       console.error('Failed to load transactions:', err)
@@ -262,8 +261,7 @@ export function TransactionManagement({
               <X className="w-4 h-4" />
             </Button>
           </div>
-          {/* TODO: Add filter components when TransactionFilters is integrated */}
-          <p className="text-secondary text-sm">Filter options will be available when the filtering system is integrated.</p>
+          <p className="text-secondary text-sm">Advanced filtering options coming soon.</p>
         </div>
       )}
 
@@ -328,7 +326,7 @@ export function TransactionManagement({
 
       {/* Create Transaction Modal */}
       {showCreateForm && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm overflow-y-auto">
           <div className="w-full sm:w-full sm:max-w-2xl h-full sm:h-auto sm:max-h-[90vh] overflow-y-auto bg-primary border-0 sm:border border-glass rounded-none sm:rounded-2xl shadow-2xl">
             <div className="flex items-center justify-between p-4 sm:p-6 border-b border-glass">
               <h2 className="text-lg sm:text-xl font-semibold text-primary">

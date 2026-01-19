@@ -47,8 +47,6 @@ export async function getUserPendingInvitations(userEmail: string): Promise<{
   data?: PendingInvitation[]
   error?: string
 }> {
-  console.log('getUserPendingInvitations called for email:', userEmail)
-  
   try {
     // Use admin client to bypass RLS for invitation lookup
     const adminSupabase = createAdminClient()
@@ -69,15 +67,12 @@ export async function getUserPendingInvitations(userEmail: string): Promise<{
       .is('accepted_at', null)
       .gt('expires_at', new Date().toISOString()) // Only non-expired invitations
 
-    console.log('Invitations query result:', { invitations, invitationsError })
-
     if (invitationsError) {
       console.error('Error fetching invitations:', invitationsError)
       return { error: 'Failed to fetch invitations' }
     }
 
     if (!invitations || invitations.length === 0) {
-      console.log('No pending invitations found for email:', userEmail)
       return { data: [] }
     }
 
@@ -124,7 +119,6 @@ export async function getUserPendingInvitations(userEmail: string): Promise<{
       }
     })
 
-    console.log('Returning pending invitations:', pendingInvitations)
     return { data: pendingInvitations }
   } catch (error) {
     console.error('Error in getUserPendingInvitations:', error)
@@ -140,8 +134,6 @@ export async function acceptMultipleInvitations(invitationIds: string[]): Promis
   acceptedCount?: number
   error?: string
 }> {
-  console.log('acceptMultipleInvitations called with IDs:', invitationIds)
-
   try {
     // Use regular client for user operations
     const supabase = await createClient()
@@ -258,8 +250,6 @@ export async function declineMultipleInvitations(invitationIds: string[]): Promi
   declinedCount?: number
   error?: string
 }> {
-  console.log('declineMultipleInvitations called with IDs:', invitationIds)
-
   try {
     // Use regular client for authentication
     const supabase = await createClient()

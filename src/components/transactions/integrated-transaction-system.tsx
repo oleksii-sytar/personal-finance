@@ -14,7 +14,6 @@ import { Input } from '@/components/ui/Input'
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
 import { useUndoToast } from '@/components/ui/undo-toast'
 import { TransactionList } from './transaction-list'
-import { VirtualizedTransactionList } from './virtualized-transaction-list'
 import { TransactionEditModal } from './transaction-edit-modal'
 import { DetailedEntryForm } from './detailed-entry-form'
 import { TransactionFilters } from './transaction-filters'
@@ -224,8 +223,7 @@ export function IntegratedTransactionSystem({
     setTimelineKey(prev => prev + 1)
   }
 
-  // Determine which list component to use
-  const ListComponent = shouldUseVirtualization ? VirtualizedTransactionList : TransactionList
+  // Use regular TransactionList - virtualization can be added later if needed
   const listTransactions = shouldUseVirtualization ? filteredTransactions : paginatedTransactions
 
   return (
@@ -392,7 +390,7 @@ export function IntegratedTransactionSystem({
         )}
 
         {/* Transaction List */}
-        <ListComponent
+        <TransactionList
           transactions={listTransactions}
           onEdit={handleEditTransaction}
           onDelete={handleDeleteTransaction}
@@ -406,7 +404,6 @@ export function IntegratedTransactionSystem({
             ? "Try adjusting your search terms or clear the search to see all transactions"
             : "Start by adding your first transaction to track your finances"
           }
-          height={shouldUseVirtualization ? 600 : undefined}
         />
 
         {/* Floating Add Button for Mobile */}

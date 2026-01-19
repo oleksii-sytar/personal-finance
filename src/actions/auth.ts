@@ -5,7 +5,6 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { signUpSchema, signInSchema, resetPasswordSchema } from '@/lib/validations/auth'
 import { logAuthFailure, logError } from '@/lib/utils/error-logging'
-import { handleNetworkError, retryWithBackoff } from '@/lib/utils/network-fallbacks'
 import type { ActionResult } from '@/types/actions'
 
 /**
@@ -90,20 +89,17 @@ export async function signUpAction(formData: FormData): Promise<ActionResult<{ m
       additionalContext: { action: 'signup' }
     })
     
-    // Handle network errors with graceful degradation (Requirements: 14.3, 14.4, 14.5)
-    const networkError = handleNetworkError(error, 'user registration')
-    
-    // Provide specific guidance based on error type
+    // Handle errors with simple, clear messaging
     if (error instanceof Error) {
       if (error.message.includes('fetch') || error.message.includes('network')) {
         return { 
-          error: `${networkError.message} Please check your internet connection and try again.`
+          error: 'Network error. Please check your internet connection and try again.'
         }
       }
       
       if (error.message.includes('timeout')) {
         return { 
-          error: 'Registration request timed out. Please try again with a stable connection.'
+          error: 'Request timed out. Please try again.'
         }
       }
       
@@ -136,14 +132,11 @@ export async function signInAction(formData: FormData): Promise<ActionResult<{ m
       return { error: validated.error.flatten() }
     }
     
-    // Use retry with backoff for sign in to handle temporary network issues
-    const { data, error } = await retryWithBackoff(
-      () => supabase.auth.signInWithPassword({
-        email: validated.data.email,
-        password: validated.data.password,
-      }),
-      { maxRetries: 2, initialDelay: 1000 }
-    )
+    // Sign in with password
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: validated.data.email,
+      password: validated.data.password,
+    })
     
     if (error) {
       // Log authentication failure (Requirement 9.4, 9.5)
@@ -169,19 +162,17 @@ export async function signInAction(formData: FormData): Promise<ActionResult<{ m
     revalidatePath('/', 'layout')
     redirect('/dashboard')
   } catch (error) {
-    // Handle network errors with graceful degradation (Requirements: 14.3, 14.4, 14.5)
-    const networkError = handleNetworkError(error, 'sign in')
-    
+    // Handle errors with simple, clear messaging
     if (error instanceof Error) {
       if (error.message.includes('fetch') || error.message.includes('network')) {
         return { 
-          error: `${networkError.message} Your credentials will be remembered when connection is restored.`
+          error: 'Network error. Please check your internet connection and try again.'
         }
       }
       
       if (error.message.includes('timeout')) {
         return { 
-          error: 'Sign in request timed out. Please try again with a stable connection.'
+          error: 'Request timed out. Please try again.'
         }
       }
     }
@@ -206,13 +197,10 @@ export async function resetPasswordAction(formData: FormData): Promise<ActionRes
       return { error: validated.error.flatten() }
     }
     
-    // Use retry with backoff for password reset to handle temporary network issues
-    const { error } = await retryWithBackoff(
-      () => supabase.auth.resetPasswordForEmail(validated.data.email, {
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/reset-password/confirm`
-      }),
-      { maxRetries: 2, initialDelay: 1000 }
-    )
+    // Send password reset email
+    const { error } = await supabase.auth.resetPasswordForEmail(validated.data.email, {
+      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/reset-password/confirm`
+    })
     
     if (error) {
       // Password reset errors are handled silently for security
@@ -226,11 +214,8 @@ export async function resetPasswordAction(formData: FormData): Promise<ActionRes
       } 
     }
   } catch (error) {
-    // Handle network errors gracefully (Requirements: 14.3, 14.4, 14.5)
-    const networkError = handleNetworkError(error, 'password reset')
-    
-    // Still return success message for security, but log the network issue
-    console.warn('Network error during password reset:', networkError.message)
+    // Handle errors gracefully - still return success message for security
+    console.warn('Error during password reset:', error)
     
     return { 
       data: { 
@@ -276,7 +261,6 @@ export async function verifyEmailAction(token: string): Promise<ActionResult<{ m
         const inviteResult = await acceptInvitation(inviteToken)
         
         if (inviteResult.success) {
-          console.log('Invitation accepted successfully')
           revalidatePath('/', 'layout')
           return { 
             data: { 

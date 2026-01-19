@@ -50,7 +50,6 @@ class MobileFeaturesService {
    */
   private async handleOnline() {
     this.isOnline = true
-    console.log('📶 Connection restored - syncing offline data...')
     
     if (this.offlineQueue.length > 0) {
       await this.syncOfflineData()
@@ -63,7 +62,6 @@ class MobileFeaturesService {
    */
   private handleOffline() {
     this.isOnline = false
-    console.log('📵 Connection lost - enabling offline mode')
     this.triggerHapticFeedback({ type: 'warning' })
   }
 
@@ -129,7 +127,6 @@ class MobileFeaturesService {
     this.offlineQueue.push(offlineItem)
     this.saveOfflineQueue()
     
-    console.log(`📱 Stored offline: ${type}`, offlineItem.id)
     return offlineItem.id
   }
 
@@ -138,8 +135,6 @@ class MobileFeaturesService {
    */
   private async syncOfflineData(): Promise<void> {
     if (this.offlineQueue.length === 0) return
-
-    console.log(`🔄 Syncing ${this.offlineQueue.length} offline items...`)
 
     const syncPromises = this.offlineQueue.map(async (item) => {
       try {
@@ -162,8 +157,6 @@ class MobileFeaturesService {
 
     this.offlineQueue = this.offlineQueue.filter(item => !successfulIds.includes(item.id))
     this.saveOfflineQueue()
-
-    console.log(`✅ Synced ${successfulIds.length} items, ${this.offlineQueue.length} remaining`)
   }
 
   /**
@@ -190,13 +183,8 @@ class MobileFeaturesService {
    */
   private async syncCheckpoint(data: any): Promise<void> {
     // In a real implementation, this would call the checkpoint creation API
-    console.log('Syncing checkpoint:', data)
-    
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000))
-    
-    // For demo purposes, we'll just log success
-    console.log('✅ Checkpoint synced successfully')
   }
 
   /**
@@ -204,12 +192,8 @@ class MobileFeaturesService {
    */
   private async syncTransaction(data: any): Promise<void> {
     // In a real implementation, this would call the transaction creation API
-    console.log('Syncing transaction:', data)
-    
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 500))
-    
-    console.log('✅ Transaction synced successfully')
   }
 
   /**
@@ -217,12 +201,8 @@ class MobileFeaturesService {
    */
   private async syncGapResolution(data: any): Promise<void> {
     // In a real implementation, this would call the gap resolution API
-    console.log('Syncing gap resolution:', data)
-    
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 750))
-    
-    console.log('✅ Gap resolution synced successfully')
   }
 
   /**
@@ -233,7 +213,6 @@ class MobileFeaturesService {
       const stored = localStorage.getItem(this.OFFLINE_STORAGE_KEY)
       if (stored) {
         this.offlineQueue = JSON.parse(stored)
-        console.log(`📱 Loaded ${this.offlineQueue.length} offline items from storage`)
       }
     } catch (error) {
       console.error('Failed to load offline queue:', error)
