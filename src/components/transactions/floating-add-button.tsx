@@ -60,7 +60,7 @@ export function FloatingAddButton({
 
       {/* Modal Overlay and Form */}
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center overflow-y-auto">
           {/* Backdrop */}
           <div 
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"

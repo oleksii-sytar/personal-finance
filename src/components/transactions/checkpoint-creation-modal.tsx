@@ -199,11 +199,14 @@ export function CheckpointCreationModal({
   return (
     <div 
       className={cn(
-        'fixed inset-0 z-50 flex items-center justify-center p-4',
+        'fixed top-0 left-0 right-0 bottom-0 z-50',
+        'flex items-center justify-center',
+        'p-4',
         'bg-black/50 backdrop-blur-sm',
         'transition-opacity duration-200',
         isClosing ? 'opacity-0' : 'opacity-100'
       )}
+      style={{ minHeight: '100dvh' }}
       onClick={handleBackdropClick}
     >
       <div 

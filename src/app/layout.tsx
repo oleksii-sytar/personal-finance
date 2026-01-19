@@ -18,7 +18,6 @@ import { SessionExpiryHandler } from '@/components/shared/session-expiry-handler
 import { HistoryProvider } from '@/components/shared/history-provider'
 import { BookmarkHandler } from '@/components/shared/bookmark-handler'
 import { PerformanceMonitorProvider } from '@/components/shared/performance-monitor-provider'
-import { PerformanceDashboardWrapper } from '@/components/shared/performance-dashboard-wrapper'
 import './globals.css'
 
 const spaceGrotesk = Space_Grotesk({ 
@@ -76,9 +75,6 @@ export default function RootLayout({
                                   {children}
                                 </BookmarkHandler>
                               </Suspense>
-                              
-                              {/* Development Performance Dashboard */}
-                              <PerformanceDashboardWrapper />
                             </PerformanceMonitorProvider>
                           </HistoryProvider>
                         </TransactionFilterProvider>

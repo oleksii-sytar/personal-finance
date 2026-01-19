@@ -38,7 +38,6 @@ export function WorkspaceCreationForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('Workspace creation form submitted')
     setErrors({})
     setIsLoading(true)
 

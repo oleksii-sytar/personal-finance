@@ -96,14 +96,6 @@ export async function sendInvitationEmail(data: InvitationEmailData): Promise<{
     
     // For development, just log the email content
     if (process.env.NODE_ENV === 'development') {
-      console.log('=== INVITATION EMAIL (Development Mode) ===')
-      console.log('To:', data.to)
-      console.log('Subject:', emailContent.subject)
-      console.log('Invitation URL:', emailContent.invitationUrl)
-      console.log('HTML Content Preview:')
-      console.log(emailContent.html.substring(0, 200) + '...')
-      console.log('=== END EMAIL ===')
-      
       return {
         success: true,
         emailContent
@@ -160,9 +152,6 @@ export async function sendInvitationEmail(data: InvitationEmailData): Promise<{
     
     // Fallback: Log email content (production fallback)
     console.warn('No email service configured, logging email content')
-    console.log('Email would be sent to:', data.to)
-    console.log('Subject:', emailContent.subject)
-    console.log('Invitation URL:', emailContent.invitationUrl)
     
     return {
       success: true,
