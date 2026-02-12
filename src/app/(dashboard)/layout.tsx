@@ -33,9 +33,7 @@ interface DashboardLayoutProps {
 function DesktopSidebar({ pathname }: { pathname: string }) {
   return (
     <div 
-      className="fixed inset-y-0 left-0 z-50 w-72 bg-secondary border-r border-primary flex flex-col"
-      style={{ display: 'none' }}
-      data-desktop-sidebar="true"
+      className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-50 lg:w-72 lg:flex lg:flex-col bg-secondary border-r border-primary"
     >
       {/* Logo */}
       <div className="flex h-20 items-center px-8 border-b border-primary">

@@ -58,14 +58,22 @@ export function MobileNavigation() {
         <div 
           className="lg:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
           onClick={closeMenu}
+          aria-hidden="true"
         />
       )}
 
       {/* Mobile menu sidebar */}
-      <div className={cn(
-        'lg:hidden fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] bg-secondary border-r border-primary transform transition-transform duration-300 ease-in-out flex flex-col',
-        isOpen ? 'translate-x-0' : '-translate-x-full'
-      )}>
+      <div 
+        className={cn(
+          'lg:hidden fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] bg-secondary border-r border-primary flex flex-col',
+          'transform transition-transform duration-300 ease-in-out',
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        )}
+        style={{ 
+          // Ensure it's hidden when closed
+          visibility: isOpen ? 'visible' : 'hidden'
+        }}
+      >
         {/* Logo */}
         <div className="flex h-16 items-center px-6 border-b border-primary flex-shrink-0">
           <div className="flex items-center gap-3">
