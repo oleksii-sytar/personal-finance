@@ -101,7 +101,7 @@ function MemberItem({
   const initials = member.user_profiles?.full_name
     ? member.user_profiles.full_name
         .split(' ')
-        .map(name => name.charAt(0))
+        .map((name: string) => name.charAt(0))
         .join('')
         .toUpperCase()
         .slice(0, 2)

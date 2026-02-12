@@ -32,7 +32,7 @@ export function useTransactions(filters?: {
           category:categories(*)
         `)
         .eq('workspace_id', currentWorkspace.id) // CRITICAL: Filter by workspace
-        .order('transaction_date', { ascending: false })
+        .order('transaction_date', { ascending: false }) // Most recent transaction date first
 
       // Apply additional filters
       if (filters?.categories?.length) {
@@ -94,7 +94,7 @@ export function useInfiniteTransactions(
           category:categories(*)
         `)
         .eq('workspace_id', currentWorkspace.id) // CRITICAL: Filter by workspace
-        .order('transaction_date', { ascending: false })
+        .order('transaction_date', { ascending: false }) // Most recent transaction date first
         .range(pageParam, pageParam + pageSize - 1)
 
       // Apply additional filters

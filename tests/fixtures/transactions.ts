@@ -27,7 +27,6 @@ export const mockAccount: Account = {
   current_balance: 5000,
   current_balance_updated_at: faker.date.recent().toISOString(),
   currency: 'UAH',
-  opening_balance: 5000,
   is_default: true,
   created_at: faker.date.recent().toISOString(),
   updated_at: faker.date.recent().toISOString(),

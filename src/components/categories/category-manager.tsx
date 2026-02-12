@@ -52,6 +52,19 @@ export function CategoryManager({
   const [mergeTargetId, setMergeTargetId] = useState('')
   const [error, setError] = useState('')
 
+  // Show workspace required message if no workspace
+  if (!currentWorkspace) {
+    return (
+      <div className={`bg-glass-elevated backdrop-blur-[16px] border border-glass rounded-xl p-6 ${className}`}>
+        <div className="text-center py-8">
+          <div className="text-secondary mb-4">
+            Please create or select a workspace to manage categories.
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   // Filter categories by type if specified
   const filteredCategories = filterType === 'all' 
     ? categories
@@ -257,7 +270,7 @@ export function CategoryManager({
                   <div className="flex-1 flex items-center gap-2">
                     <Input
                       type="text"
-                      value={editingCategory.name}
+                      value={editingCategory?.name || ''}
                       onChange={(e) => setEditingCategory(prev => prev ? { ...prev, name: e.target.value } : null)}
                       className="flex-1 h-8 text-sm"
                       maxLength={100}
@@ -265,7 +278,7 @@ export function CategoryManager({
                     />
                     <input
                       type="text"
-                      value={editingCategory.icon}
+                      value={editingCategory?.icon || ''}
                       onChange={(e) => setEditingCategory(prev => prev ? { ...prev, icon: e.target.value } : null)}
                       className="w-12 h-8 text-center bg-glass-interactive border border-glass rounded text-sm"
                       placeholder="🏷️"
@@ -273,7 +286,7 @@ export function CategoryManager({
                     />
                     <input
                       type="color"
-                      value={editingCategory.color}
+                      value={editingCategory?.color || '#E6A65D'}
                       onChange={(e) => setEditingCategory(prev => prev ? { ...prev, color: e.target.value } : null)}
                       className="w-8 h-8 rounded border border-glass"
                     />

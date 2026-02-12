@@ -1,7 +1,6 @@
 import { Suspense } from 'react'
 import { AuthComponentErrorBoundary } from '@/components/shared/auth-component-error-boundary'
-// import { InviteAcceptanceForm } from '@/components/forms/invite-acceptance-form'
-// import { Card } from '@/components/ui/Card'
+import { InviteAcceptanceForm } from '@/components/forms/invite-acceptance-form'
 
 export const metadata = {
   title: 'Accept Invitation | Forma',
@@ -20,14 +19,14 @@ export default function InvitePage() {
       
       <div className="w-full max-w-md">
         <AuthComponentErrorBoundary>
-          <div className="glass-card p-8 text-center">
-            <h1 className="text-2xl font-semibold text-[var(--text-primary)] mb-4">
-              Accept Invitation
-            </h1>
-            <p className="text-[var(--text-secondary)]">
-              This page is under construction. Please check back later.
-            </p>
-          </div>
+          <Suspense fallback={
+            <div className="glass-card p-8 text-center">
+              <div className="animate-spin w-8 h-8 border-2 border-[var(--accent-primary)] border-t-transparent rounded-full mx-auto mb-4" />
+              <p className="text-[var(--text-secondary)]">Loading invitation...</p>
+            </div>
+          }>
+            <InviteAcceptanceForm />
+          </Suspense>
         </AuthComponentErrorBoundary>
       </div>
     </div>

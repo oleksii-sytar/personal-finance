@@ -36,8 +36,10 @@ export async function createAccount(
 
   // Get workspace context
   const contextResult = await getUserWorkspaceContext()
+  console.log('Account creation - workspace context:', contextResult)
   if (!contextResult.authorized || !contextResult.workspaceId) {
-    return { error: contextResult.error || 'No workspace found' }
+    console.error('Account creation failed - no workspace context:', contextResult)
+    return { error: contextResult.error || 'No workspace found. Please refresh the page and try again.' }
   }
 
   // Validate input data

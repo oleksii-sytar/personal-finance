@@ -111,8 +111,9 @@ export function InviteAcceptanceForm() {
       // Refresh workspaces to include the newly joined workspace
       await refreshWorkspaces()
 
-      // Redirect to dashboard (workspace context will refresh there)
-      router.push('/dashboard')
+      // Force a full page reload to ensure workspace context is properly updated
+      // This ensures the user's session includes the new workspace membership
+      window.location.href = '/dashboard'
     } catch (error) {
       console.error('Error accepting invitation:', error)
       setError('An unexpected error occurred')

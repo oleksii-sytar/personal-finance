@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.3] - 2026-02-12
+
+### Fixed
+- **Critical RLS Policy Fix**: Fixed workspace member access to all workspace resources
+  - Members can now access accounts, categories, transaction types, and all workspace data
+  - Implemented SECURITY DEFINER function `user_has_workspace_access()` to eliminate ambiguous column references
+  - Fixed PostgreSQL error 42P17 (ambiguous column reference) in RLS policies
+  - All workspace-related tables now properly check workspace membership via `workspace_members` table
+- **Invitation System**: Fixed invitation acceptance page that was showing "under construction"
+  - Restored `InviteAcceptanceForm` component
+  - Changed redirect to force full page reload for proper workspace context update
+- **Transaction Sorting**: Fixed transaction list to sort by `transaction_date` (when transaction happened) instead of `created_at`
+  - Most recent transactions now appear at the top based on actual transaction date
+- **Category Management**: Added workspace existence check to prevent showing category manager without workspace
+
+### Security
+- Enhanced RLS policies across all workspace-related tables
+- Implemented secure workspace membership validation
+- Enabled RLS on all tables to prevent unauthorized access
+
+### Technical Details
+- Created `user_has_workspace_access(workspace_uuid UUID)` SECURITY DEFINER function
+- Updated RLS policies for: accounts, categories, transaction_types, workspaces, balance_update_history, reconciliation_sessions, exchange_rates
+- Fixed ambiguous column references in Supabase queries
+- Improved error handling in account creation with helpful messages
+
 ## [1.1.2] - 2026-02-12
 
 ### Fixed
