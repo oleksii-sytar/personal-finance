@@ -4,6 +4,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
+import { registerTestUser } from '../setup'
 
 // Create admin client for test operations
 const supabaseAdmin = createClient(
@@ -19,6 +20,7 @@ const supabaseAdmin = createClient(
 
 /**
  * Create a test user with unique email
+ * Automatically registers user for cleanup after tests
  */
 export const createTestUser = async () => {
   const email = `test-${Date.now()}-${Math.random()}@example.com`
@@ -31,6 +33,9 @@ export const createTestUser = async () => {
   if (error) {
     throw new Error(`Failed to create test user: ${error.message}`)
   }
+
+  // Register user for automatic cleanup
+  registerTestUser(data.user.id)
 
   return data.user
 }

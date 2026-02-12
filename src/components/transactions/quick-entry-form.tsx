@@ -8,6 +8,7 @@ import { useCreateTransaction } from '@/hooks/use-transactions'
 import { useWorkspace } from '@/contexts/workspace-context'
 import { useFilterContext } from '@/contexts/transaction-filter-context'
 import { CategorySelectorWithInlineCreate } from '@/components/categories'
+import { AccountSelector } from '@/components/accounts'
 import type { Category, TransactionType } from '@/types/transactions'
 import type { ActionResult } from '@/types'
 
@@ -18,11 +19,15 @@ interface QuickEntryFormProps {
     type?: TransactionType
     categoryId?: string
   }
+  // Reconciliation integration (Requirement 11.2, 11.3)
+  accountId?: string // Pre-select account when opened from reconciliation
+  suggestedType?: TransactionType // Suggest type based on difference direction
 }
 
 interface QuickEntryState {
   amount: string
   type: TransactionType
+  accountId?: string
   categoryId?: string
   description: string
   isSubmitting: boolean
@@ -40,7 +45,9 @@ interface QuickEntryState {
 export function QuickEntryForm({ 
   onSuccess, 
   onCancel, 
-  defaultFilters 
+  defaultFilters,
+  accountId, // Reconciliation: pre-selected account
+  suggestedType // Reconciliation: suggested transaction type
 }: QuickEntryFormProps) {
   const { currentWorkspace } = useWorkspace()
   const filterContext = useFilterContext()
@@ -50,8 +57,10 @@ export function QuickEntryForm({
   const createTransactionMutation = useCreateTransaction()
   
   // Apply filter context for pre-population (Requirement 4.8)
+  // Priority: suggestedType > defaultFilters > filterContext > default
   const getDefaultType = () => {
-    return defaultFilters?.type || 
+    return suggestedType || // Reconciliation suggestion (Requirement 11.3)
+           defaultFilters?.type || 
            filterContext.defaultType || 
            'expense' // Requirement 1.6: Default to "Expense"
   }
@@ -61,9 +70,15 @@ export function QuickEntryForm({
            filterContext.defaultCategoryId
   }
   
+  // Get default account - prioritize reconciliation accountId (Requirement 11.2)
+  const getDefaultAccountId = () => {
+    return accountId || undefined
+  }
+  
   const [state, setState] = useState<QuickEntryState>({
     amount: '',
     type: getDefaultType(),
+    accountId: getDefaultAccountId(),
     categoryId: getDefaultCategoryId(),
     description: '',
     isSubmitting: false,
@@ -140,6 +155,11 @@ export function QuickEntryForm({
       formData.set('currency', 'UAH')
       formData.set('workspace_id', currentWorkspace.id)
       
+      // Account will be handled by server action (default assignment if not provided)
+      if (state.accountId) {
+        formData.set('account_id', state.accountId)
+      }
+      
       // Category will be handled by server action (default assignment if not provided)
       if (state.categoryId) {
         formData.set('category_id', state.categoryId)
@@ -148,8 +168,17 @@ export function QuickEntryForm({
       // Use React Query mutation for proper cache invalidation
       const result = await createTransactionMutation.mutateAsync(formData)
 
+      console.log('Transaction creation result:', result)
+
       if (result.error) {
+        console.error('Transaction creation error:', result.error)
         setError(typeof result.error === 'string' ? result.error : 'Failed to create transaction')
+        return
+      }
+
+      if (!result.data) {
+        console.error('Transaction created but no data returned')
+        setError('Transaction created but no data returned')
         return
       }
 
@@ -165,6 +194,7 @@ export function QuickEntryForm({
       setState({
         amount: '',
         type: 'expense',
+        accountId: undefined,
         categoryId: undefined,
         description: '',
         isSubmitting: false,
@@ -244,6 +274,18 @@ export function QuickEntryForm({
           </button>
         </div>
 
+        {/* Account Selection */}
+        <div>
+          <label className="block text-sm font-medium text-secondary mb-2">
+            Account (optional)
+          </label>
+          <AccountSelector
+            value={state.accountId}
+            onChange={(accountId) => setState(prev => ({ ...prev, accountId }))}
+            placeholder="Select account (default if empty)..."
+          />
+        </div>
+
         {/* Category Selection with Inline Creation */}
         <div>
           <label className="block text-sm font-medium text-secondary mb-2">
@@ -287,7 +329,7 @@ export function QuickEntryForm({
 
       {/* Quick tip */}
       <div className="text-xs text-secondary text-center">
-        Tip: Leave category empty to use default category
+        Tip: Leave account and category empty to use defaults
       </div>
     </div>
   )

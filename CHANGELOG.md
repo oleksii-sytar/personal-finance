@@ -2,6 +2,42 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0] - 2026-02-12
+
+### Added
+- **Real-Time Balance Reconciliation System**: Complete replacement of checkpoint-based reconciliation
+  - Dual balance fields (opening_balance, current_balance) for continuous reconciliation
+  - Real-time difference calculation and display
+  - Balance update history with full audit trail
+  - Account Reconciliation Panel on transactions page
+  - Multi-currency support with automatic conversion
+  - Immutable opening balance constraint via database trigger
+- React Query hooks for real-time updates (useReconciliationStatus, useAccountDifference)
+- Comprehensive reconciliation UI components (ReconciliationBadge, ReconciliationStatus, UpdateBalanceDialog, BalanceUpdateHistory)
+- Integration tests for real-time balance updates
+
+### Changed
+- Migrated from checkpoint-based to real-time reconciliation workflow
+- Updated account schema with opening_balance and current_balance fields
+- Enhanced transaction page with reconciliation panel showing all accounts
+- Improved balance calculation utilities with comprehensive test coverage
+
+### Removed
+- Checkpoint system (tables, components, routes, and related code)
+- Reconciliation periods and sessions
+- Outdated documentation files (10 historical fix/update documents)
+- Example files from hooks directory
+
+### Fixed
+- Account balance tracking now uses dual-field approach for better accuracy
+- Real-time UI updates without page refresh
+- Currency conversion for multi-account reconciliation
+
+### Infrastructure
+- Added balance_update_history table for audit trail
+- Database indexes for performance optimization
+- Comprehensive test coverage (75%+ overall, 90%+ for utilities)
+
 ## [1.0.1] - 2026-02-04
 
 ### Security

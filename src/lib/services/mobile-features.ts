@@ -15,14 +15,14 @@ interface HapticFeedbackOptions {
 }
 
 interface OfflineData {
-  type: 'checkpoint' | 'transaction' | 'gap_resolution'
+  type: 'transaction' | 'gap_resolution'
   data: any
   timestamp: number
   id: string
 }
 
 interface CelebrationOptions {
-  type: 'checkpoint_created' | 'gap_resolved'
+  type: 'gap_resolved' | 'transaction_created'
   message?: string
   duration?: number
 }
@@ -164,9 +164,6 @@ class MobileFeaturesService {
    */
   private async syncSingleItem(item: OfflineData): Promise<void> {
     switch (item.type) {
-      case 'checkpoint':
-        await this.syncCheckpoint(item.data)
-        break
       case 'transaction':
         await this.syncTransaction(item.data)
         break
@@ -176,15 +173,6 @@ class MobileFeaturesService {
       default:
         throw new Error(`Unknown offline data type: ${item.type}`)
     }
-  }
-
-  /**
-   * Sync checkpoint data
-   */
-  private async syncCheckpoint(data: any): Promise<void> {
-    // In a real implementation, this would call the checkpoint creation API
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
   }
 
   /**
@@ -309,8 +297,8 @@ class MobileFeaturesService {
    */
   private getCelebrationTitle(type: CelebrationOptions['type']): string {
     switch (type) {
-      case 'checkpoint_created':
-        return '🎯 Checkpoint Created!'
+      case 'transaction_created':
+        return '✅ Transaction Created!'
       case 'gap_resolved':
         return '✨ Gap Resolved!'
       default:
@@ -323,8 +311,8 @@ class MobileFeaturesService {
    */
   private getCelebrationMessage(type: CelebrationOptions['type']): string {
     switch (type) {
-      case 'checkpoint_created':
-        return 'Your financial checkpoint has been successfully created.'
+      case 'transaction_created':
+        return 'Your transaction has been successfully recorded.'
       case 'gap_resolved':
         return 'Account balance discrepancy has been resolved.'
       default:

@@ -64,13 +64,24 @@ supabase/
 
 ## Features
 
-- Multi-workspace support
-- Transaction management
-- Category organization
-- Recurring transactions
-- Financial checkpoints
-- Multi-currency support
-- Workspace member management
+### Core Functionality
+- **Multi-workspace support**: Manage finances for multiple households or projects
+- **Transaction management**: Quick entry forms with hotkey support
+- **Category organization**: Flexible categorization with inline creation
+- **Recurring transactions**: Automated tracking of regular income/expenses
+- **Multi-currency support**: Handle transactions in multiple currencies with automatic conversion
+
+### Real-Time Balance Reconciliation
+- **Continuous reconciliation**: Track differences between bank balances and calculated balances in real-time
+- **Dual balance tracking**: Opening balance (immutable) and current balance (updated from bank statements)
+- **Account reconciliation panel**: View all accounts with reconciliation status on transactions page
+- **Balance update history**: Full audit trail of all balance updates
+- **Multi-currency aggregation**: Total difference across all accounts in workspace currency
+
+### Collaboration
+- **Workspace member management**: Invite team members to collaborate
+- **Role-based access**: Owner and member roles with appropriate permissions
+- **Invitation system**: Secure workspace invitations via email
 
 ## Environment Variables
 

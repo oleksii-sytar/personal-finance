@@ -1,6 +1,6 @@
 {
   "name": "personal-finance",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -21,7 +21,9 @@
     "test:autonomous": "vitest run --reporter=verbose --no-watch",
     "test:e2e:autonomous": "AUTONOMOUS_MODE=true playwright test --project=chromium",
     "db:types": "supabase gen types typescript --linked --output src/types/database.ts 2>/dev/null || echo 'Type generation failed, using existing types'",
-    "db:push": "printf 'y\\n' | perl -e 'alarm(60); exec @ARGV' supabase db push || echo 'Migration timed out or no changes'",
+    "db:push": "node scripts/apply-migration-direct.mjs",
+    "db:migrate": "./scripts/open-sql-editor.sh",
+    "db:cleanup": "node scripts/force-cleanup-test-users.mjs",
     "deploy": "./scripts/deploy-autonomous.sh",
     "deploy:check": "npm run type-check && npm run lint && npm run build",
     "format": "prettier --write ."
@@ -68,6 +70,7 @@
     "fast-check": "^4.5.2",
     "jsdom": "^27.4.0",
     "msw": "^2.0.0",
+    "pg": "^8.18.0",
     "postcss": "^8",
     "prettier": "^3.0.0",
     "prettier-plugin-tailwindcss": "^0.5.0",

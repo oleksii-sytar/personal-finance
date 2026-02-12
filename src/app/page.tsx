@@ -70,10 +70,10 @@ export default function HomePage() {
                 <div className="w-6 h-6 bg-[var(--accent-primary)] rounded-lg" />
               </div>
               <h3 className="font-space-grotesk text-xl font-semibold text-[var(--text-primary)] mb-4">
-                Checkpoint-Based Tracking
+                Real-Time Balance Tracking
               </h3>
               <p className="text-[var(--text-secondary)] leading-relaxed">
-                Define financial snapshots and measure progress to your next milestone with precision.
+                Track your account balances in real-time and reconcile with actual bank statements instantly.
               </p>
             </div>
 

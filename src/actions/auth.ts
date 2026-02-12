@@ -10,6 +10,7 @@ import type { ActionResult } from '@/types/actions'
 /**
  * Server action for user registration
  * Requirements: 1.2, 1.3, 1.4, 1.5, 1.7
+ * Now automatically logs in user after successful signup (email verification disabled)
  */
 export async function signUpAction(formData: FormData): Promise<ActionResult<{ message: string }>> {
   try {
@@ -28,61 +29,62 @@ export async function signUpAction(formData: FormData): Promise<ActionResult<{ m
 
     // Get invitation token if provided
     const inviteToken = formData.get('inviteToken') as string | null
-    
-    // Build redirect URL with invitation token if present
-    let redirectUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/verify-email`
-    if (inviteToken) {
-      redirectUrl += `?token=${inviteToken}`
-    }
   
-  const { data, error } = await supabase.auth.signUp({
-    email: validated.data.email,
-    password: validated.data.password,
-    options: {
-      data: {
-        full_name: validated.data.fullName,
-        // Store invitation token in user metadata for later retrieval
-        invite_token: inviteToken || null
-      },
-      emailRedirectTo: redirectUrl
-    }
-  })
-  
-  if (error) {
-    // Log authentication failure (Requirement 9.4, 9.5)
-    logAuthFailure('signup', {
+    const { data, error } = await supabase.auth.signUp({
       email: validated.data.email,
-      reason: error.message
-    })
-    
-    // Handle specific error cases (Requirement 1.7)
-    if (error.message.includes('already registered')) {
-      return { error: 'An account with this email already exists' }
-    }
-    
-    return { error: error.message }
-  }
-
-  // Workaround: Manually create user profile if trigger failed
-  if (data.user) {
-    try {
-      const { error: profileError } = await supabase
-        .from('user_profiles')
-        .insert({
-          id: data.user.id,
-          full_name: validated.data.fullName
-        })
-      
-      if (profileError && !profileError.message.includes('duplicate key')) {
-        // Don't fail the signup for this, as the trigger might have worked
+      password: validated.data.password,
+      options: {
+        data: {
+          full_name: validated.data.fullName,
+          // Store invitation token in user metadata for later retrieval
+          invite_token: inviteToken || null
+        }
       }
-    } catch (profileError) {
-      // Don't fail the signup for this
-    }
-  }
+    })
   
-  return { data: { message: 'Check your email for verification link' } }
+    if (error) {
+      // Log authentication failure (Requirement 9.4, 9.5)
+      logAuthFailure('signup', {
+        email: validated.data.email,
+        reason: error.message
+      })
+      
+      // Handle specific error cases (Requirement 1.7)
+      if (error.message.includes('already registered')) {
+        return { error: 'An account with this email already exists' }
+      }
+      
+      return { error: error.message }
+    }
+
+    // Workaround: Manually create user profile if trigger failed
+    if (data.user) {
+      try {
+        const { error: profileError } = await supabase
+          .from('user_profiles')
+          .insert({
+            id: data.user.id,
+            full_name: validated.data.fullName
+          })
+        
+        if (profileError && !profileError.message.includes('duplicate key')) {
+          // Don't fail the signup for this, as the trigger might have worked
+        }
+      } catch (profileError) {
+        // Don't fail the signup for this
+      }
+    }
+    
+    // User is now automatically logged in (email verification disabled)
+    // Redirect to dashboard
+    revalidatePath('/', 'layout')
+    redirect('/dashboard')
   } catch (error) {
+    // Check if this is a redirect (which is expected)
+    if (error instanceof Error && error.message === 'NEXT_REDIRECT') {
+      throw error // Re-throw redirect
+    }
+    
     // Log system error (Requirement 9.4, 9.5)
     logError(error instanceof Error ? error : new Error(String(error)), {
       category: 'auth',

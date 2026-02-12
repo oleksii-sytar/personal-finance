@@ -54,15 +54,61 @@ export interface Workspace {
   updated_at: string
 }
 
+/**
+ * Account type enum for financial accounts
+ */
+export type AccountType = 'checking' | 'savings' | 'credit' | 'investment'
+
+/**
+ * Account interface representing a financial account in the system
+ */
 export interface Account {
-  id: string
-  workspace_id: string
+  id: string                    // UUID primary key
+  workspace_id: string          // FK to workspaces table
+  name: string                  // Account name (max 100 chars)
+  type: AccountType             // Account type enum
+  opening_balance: number       // Opening balance (immutable after creation)
+  current_balance: number       // Current balance (manually updated during reconciliation)
+  current_balance_updated_at: string | null  // Timestamp of last balance update
+  currency: string              // ISO 4217 currency code (inherited from workspace)
+  initial_balance: number       // Starting balance at account creation (legacy, same as opening_balance)
+  is_default: boolean           // Whether this is the default account
+  created_at: string            // ISO timestamp
+  updated_at: string            // ISO timestamp
+}
+
+/**
+ * Form data for creating a new account
+ */
+export interface CreateAccountFormData {
   name: string
-  type: 'checking' | 'savings' | 'credit' | 'investment'
-  balance: number
-  currency: string
-  created_at: string
-  updated_at: string
+  type: AccountType
+  initial_balance?: number
+}
+
+/**
+ * Form data for updating an existing account
+ */
+export interface UpdateAccountFormData {
+  name: string
+  type: AccountType
+}
+
+/**
+ * Account with transaction count (used for deletion validation)
+ */
+export interface AccountWithTransactionCount extends Account {
+  transaction_count: number
+}
+
+/**
+ * Account summary statistics for dashboard display
+ */
+export interface AccountSummary {
+  total_balance: number
+  account_counts: Record<AccountType, number>
+  debt_accounts: Account[]
+  total_accounts: number
 }
 
 export interface Budget {
@@ -81,5 +127,4 @@ export interface Budget {
 /**
  * Derived types for better type safety
  */
-export type AccountType = Account['type']
 export type BudgetPeriod = Budget['period']

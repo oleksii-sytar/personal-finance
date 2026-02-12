@@ -108,7 +108,6 @@ function RegisterFormContent() {
   
   const [errors, setErrors] = useState<Partial<Record<keyof SignUpInput, string>>>({})
   const [isLoading, setIsLoading] = useState(false)
-  const [successMessage, setSuccessMessage] = useState('')
 
   /**
    * Handle form field changes
@@ -155,6 +154,7 @@ function RegisterFormContent() {
   /**
    * Handle form submission
    * Requirements: 1.2, 1.3, 1.4, 1.5, 1.7
+   * Now automatically redirects to dashboard after successful signup
    */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -164,7 +164,6 @@ function RegisterFormContent() {
     }
     
     setIsLoading(true)
-    setSuccessMessage('')
     
     try {
       // Create FormData and include invitation token if present
@@ -200,21 +199,9 @@ function RegisterFormContent() {
           })
           setErrors(fieldErrors)
         }
-      } else {
-        // Success - show verification message (Requirement 1.5)
-        setSuccessMessage(result.data?.message || 'Registration successful! Check your email for verification.')
-        
-        // Clear form
-        setFormData({
-          email: '',
-          password: '',
-          confirmPassword: '',
-          fullName: '',
-        })
-        
-        // For signup, AuthNavigationHandler will handle the navigation
-        console.log('Registration successful, AuthNavigationHandler will handle navigation')
       }
+      // If successful, the server action will redirect to dashboard
+      // No need to handle success case here
     } catch (error) {
       console.error('Registration error:', error)
       setErrors({ email: 'An unexpected error occurred. Please try again.' })
@@ -235,14 +222,6 @@ function RegisterFormContent() {
       </CardHeader>
       
       <CardContent>
-        {successMessage && (
-          <div className="mb-6 p-4 bg-[#4E7A58]/20 border border-[#4E7A58]/30 rounded-xl">
-            <p className="text-[#4E7A58] text-sm text-center">
-              {successMessage}
-            </p>
-          </div>
-        )}
-        
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Full Name Field - Requirement 1.2 */}
           <Input

@@ -10,6 +10,7 @@ import { useWorkspace } from '@/contexts/workspace-context'
 import { useFilterContext } from '@/contexts/transaction-filter-context'
 import { DEFAULT_CURRENCY } from '@/lib/constants/currencies'
 import { CategorySelectorWithInlineCreate } from '@/components/categories'
+import { AccountSelector } from '@/components/accounts'
 import type { TransactionType, Transaction } from '@/types/transactions'
 import { CurrencySelector } from '@/components/shared/currency-selector'
 import type { ActionResult } from '@/types'
@@ -23,11 +24,15 @@ interface DetailedEntryFormProps {
     categoryId?: string
   }
   showHeader?: boolean // Control whether to show the form header
+  // Reconciliation integration (Requirement 11.2, 11.3)
+  accountId?: string // Pre-select account when opened from reconciliation
+  suggestedType?: TransactionType // Suggest type based on difference direction
 }
 
 interface DetailedEntryState {
   amount: string
   type: TransactionType
+  accountId?: string
   categoryId?: string
   description: string
   notes: string
@@ -55,7 +60,9 @@ export function DetailedEntryForm({
   onSuccess, 
   onCancel, 
   defaultFilters,
-  showHeader = true
+  showHeader = true,
+  accountId, // Reconciliation: pre-selected account
+  suggestedType // Reconciliation: suggested transaction type
 }: DetailedEntryFormProps) {
   const { currentWorkspace } = useWorkspace()
   const filterContext = useFilterContext()
@@ -67,8 +74,10 @@ export function DetailedEntryForm({
   const updateTransactionMutation = useUpdateTransaction()
   
   // Apply filter context for pre-population (Requirement 4.8)
+  // Priority: transaction > suggestedType > defaultFilters > filterContext > default
   const getDefaultType = () => {
     return (transaction?.type as TransactionType) || 
+           suggestedType || // Reconciliation suggestion (Requirement 11.3)
            defaultFilters?.type || 
            filterContext.defaultType || 
            'expense'
@@ -78,6 +87,13 @@ export function DetailedEntryForm({
     return transaction?.category_id || 
            defaultFilters?.categoryId || 
            filterContext.defaultCategoryId
+  }
+  
+  // Get default account - prioritize reconciliation accountId (Requirement 11.2)
+  const getDefaultAccountId = () => {
+    return transaction?.account_id || 
+           accountId || 
+           undefined
   }
   
   const getDefaultDate = () => {
@@ -93,6 +109,7 @@ export function DetailedEntryForm({
   const [state, setState] = useState<DetailedEntryState>({
     amount: transaction?.amount?.toString() || '',
     type: getDefaultType(),
+    accountId: getDefaultAccountId(),
     categoryId: getDefaultCategoryId(),
     description: transaction?.description || '',
     notes: transaction?.notes || '',
@@ -126,11 +143,13 @@ export function DetailedEntryForm({
       state.amount.trim() || 
       state.description.trim() || 
       state.notes.trim() || 
+      state.accountId ||
       state.categoryId ||
       state.isRecurring ||
       (transaction && (
         state.amount !== transaction.amount?.toString() ||
         state.type !== transaction.type ||
+        state.accountId !== transaction.account_id ||
         state.categoryId !== transaction.category_id ||
         state.description !== transaction.description ||
         state.notes !== transaction.notes ||
@@ -200,11 +219,6 @@ export function DetailedEntryForm({
       return
     }
 
-    if (!state.description.trim()) {
-      setError('Please enter a description')
-      return
-    }
-
     setState(prev => ({ ...prev, isSubmitting: true }))
     setError('')
 
@@ -212,11 +226,16 @@ export function DetailedEntryForm({
       const formData = new FormData()
       formData.set('amount', amount.toString())
       formData.set('type', state.type)
-      formData.set('description', state.description.trim())
+      formData.set('description', state.description.trim() || `${state.type === 'income' ? 'Income' : 'Expense'} - ${new Date(state.date).toLocaleDateString()}`)
       formData.set('notes', state.notes.trim())
       formData.set('transaction_date', new Date(state.date).toISOString())
       formData.set('currency', state.currency)
       formData.set('workspace_id', currentWorkspace.id)
+      
+      // Account will be handled by server action (default assignment if not provided)
+      if (state.accountId) {
+        formData.set('account_id', state.accountId)
+      }
       
       if (state.categoryId) {
         formData.set('category_id', state.categoryId)
@@ -290,8 +309,17 @@ export function DetailedEntryForm({
         result = await createTransactionMutation.mutateAsync(formData)
       }
 
+      console.log('Transaction save result:', result)
+
       if (result.error) {
+        console.error('Transaction save error:', result.error)
         setError(typeof result.error === 'string' ? result.error : 'Failed to save transaction')
+        return
+      }
+
+      if (!result.data) {
+        console.error('Transaction saved but no data returned')
+        setError('Transaction saved but no data returned')
         return
       }
 
@@ -305,6 +333,7 @@ export function DetailedEntryForm({
         setState({
           amount: '',
           type: 'expense',
+          accountId: undefined,
           categoryId: undefined,
           description: '',
           notes: '',
@@ -414,6 +443,18 @@ export function DetailedEntryForm({
           </div>
         </fieldset>
 
+        {/* Account Selection */}
+        <div>
+          <label className="block text-sm font-medium text-primary mb-2">
+            Account
+          </label>
+          <AccountSelector
+            value={state.accountId}
+            onChange={(accountId) => setState(prev => ({ ...prev, accountId }))}
+            placeholder="Select account (default if empty)..."
+          />
+        </div>
+
         {/* Category with Inline Creation */}
         <div>
           <label className="block text-sm font-medium text-primary mb-2">
@@ -429,14 +470,13 @@ export function DetailedEntryForm({
 
         {/* Description */}
         <Input
-          label="Description"
+          label="Description (optional)"
           type="text"
           placeholder="Enter transaction description"
           value={state.description}
           onChange={(e) => setState(prev => ({ ...prev, description: e.target.value }))}
           className="w-full"
           maxLength={255}
-          required
           tabIndex={6}
         />
 
@@ -563,7 +603,7 @@ export function DetailedEntryForm({
         <div className="flex gap-3 pt-2">
           <Button
             type="submit"
-            disabled={state.isSubmitting || !state.amount || !state.description.trim()}
+            disabled={state.isSubmitting || !state.amount}
             className="flex-1"
             size="lg"
             tabIndex={9}

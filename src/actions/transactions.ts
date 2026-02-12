@@ -63,43 +63,60 @@ export async function createTransaction(
   // Handle default account assignment
   let accountId = validated.data.account_id
   if (!accountId) {
+    console.log('[createTransaction] No account provided, getting default account')
     // Get or create default account for the workspace
     const { getOrCreateDefaultAccount } = await import('@/actions/accounts')
     const defaultAccountResult = await getOrCreateDefaultAccount()
     
+    console.log('[createTransaction] Default account result:', defaultAccountResult)
+    
     if (defaultAccountResult.error || !defaultAccountResult.data) {
+      console.error('[createTransaction] Failed to get default account:', defaultAccountResult.error)
       return { error: 'Failed to assign default account' }
     }
     
     accountId = defaultAccountResult.data.id
+    console.log('[createTransaction] Using default account:', accountId)
   }
 
   // Handle default category assignment (Requirement 1.5)
   let categoryId = validated.data.category_id
   if (!categoryId) {
+    console.log('[createTransaction] No category provided, getting default category for type:', validated.data.type)
     // Get or create default category for the transaction type
     const { getDefaultCategory } = await import('@/actions/categories')
     const defaultCategoryResult = await getDefaultCategory(workspaceId, validated.data.type)
     
+    console.log('[createTransaction] Default category result:', defaultCategoryResult)
+    
     if (defaultCategoryResult.error || !defaultCategoryResult.data) {
+      console.error('[createTransaction] Failed to get default category:', defaultCategoryResult.error)
       return { error: 'Failed to assign default category' }
     }
     
     categoryId = defaultCategoryResult.data.id
+    console.log('[createTransaction] Using default category:', categoryId)
   }
 
   // Handle default transaction type assignment (Requirements 8.1, 8.3)
+  // Transaction types are optional - if none exists, we'll set it to null
   let transactionTypeId = validated.data.transaction_type_id
   if (!transactionTypeId) {
-    // Get default transaction type for the family
+    console.log('[createTransaction] No transaction type provided, attempting to get default type')
+    // Try to get default transaction type for the family
     const { getDefaultTransactionType } = await import('@/actions/transaction-types')
     const defaultTypeResult = await getDefaultTransactionType(workspaceId, validated.data.type)
     
-    if (defaultTypeResult.error || !defaultTypeResult.data) {
-      return { error: 'Failed to assign default transaction type' }
-    }
+    console.log('[createTransaction] Default transaction type result:', defaultTypeResult)
     
-    transactionTypeId = defaultTypeResult.data.id
+    if (defaultTypeResult.data) {
+      transactionTypeId = defaultTypeResult.data.id
+      console.log('[createTransaction] Using default transaction type:', transactionTypeId)
+    } else {
+      // Transaction types are optional - if no default exists, continue without one
+      console.log('[createTransaction] No default transaction type found, continuing without one')
+      transactionTypeId = undefined
+    }
   }
 
   // Handle currency conversion if needed
@@ -137,7 +154,7 @@ export async function createTransaction(
       original_amount: originalAmount,
       original_currency: originalCurrency,
       category_id: categoryId,
-      transaction_type_id: transactionTypeId,
+      transaction_type_id: transactionTypeId || null, // Allow null if no type
       workspace_id: workspaceId,
       user_id: user.id,
       created_by: user.id,
@@ -145,27 +162,28 @@ export async function createTransaction(
     .select()
     .single()
 
+  console.log('[createTransaction] Insert result:', { transaction, error })
+
   if (error) {
+    console.error('[createTransaction] Database insert error:', error)
     return { error: 'Failed to create transaction' }
   }
 
-  // Trigger automatic gap recalculation for affected checkpoints
-  // Requirements: 5.1, 5.2, 5.3
+  console.log('[createTransaction] Transaction created successfully:', transaction.id)
+
+  // Recalculate account balance after transaction creation
+  // Requirements: 6.2 - Balance updates after transaction creation
   try {
-    const { recalculateAffectedCheckpoints } = await import('@/actions/checkpoints')
-    await recalculateAffectedCheckpoints(
-      validated.data.transaction_date,
-      accountId, // Use the resolved account ID
-      workspaceId,
-      supabase
-    )
-  } catch (recalcError) {
+    const { recalculateAccountBalance } = await import('@/lib/utils/balance')
+    await recalculateAccountBalance(accountId, supabase)
+  } catch (balanceError) {
     // Log error but don't fail transaction creation
-    console.warn('Failed to recalculate checkpoint gaps after transaction creation:', recalcError)
+    console.warn('Failed to recalculate account balance after transaction creation:', balanceError)
   }
 
   revalidatePath('/transactions')
   revalidatePath('/dashboard')
+  revalidatePath('/accounts')
   
   return { data: transaction }
 }
@@ -253,27 +271,19 @@ export async function updateTransaction(
       return { error: 'Failed to update transaction' }
     }
 
-    // Trigger automatic gap recalculation for affected checkpoints
-    // Requirements: 5.1, 5.2, 5.3
+    // Recalculate account balance after transaction update
+    // Requirements: 6.3 - Balance updates after transaction editing
     try {
-      const { recalculateAffectedCheckpoints } = await import('@/actions/checkpoints')
-      
-      // Use the updated transaction date if provided, otherwise use current date
-      const recalcDate = validated.data.transaction_date || new Date(transaction.transaction_date)
-      
-      await recalculateAffectedCheckpoints(
-        recalcDate,
-        transaction.account_id,
-        transaction.workspace_id,
-        supabase
-      )
-    } catch (recalcError) {
+      const { recalculateAccountBalance } = await import('@/lib/utils/balance')
+      await recalculateAccountBalance(transaction.account_id, supabase)
+    } catch (balanceError) {
       // Log error but don't fail transaction update
-      console.warn('Failed to recalculate checkpoint gaps after transaction update:', recalcError)
+      console.warn('Failed to recalculate account balance after transaction update:', balanceError)
     }
 
     revalidatePath('/transactions')
     revalidatePath('/dashboard')
+    revalidatePath('/accounts')
     
     return { data: transaction }
   } catch (error) {
@@ -335,23 +345,19 @@ export async function deleteTransaction(
       return { error: 'Failed to delete transaction' }
     }
 
-    // Trigger automatic gap recalculation for affected checkpoints
-    // Requirements: 5.1, 5.2, 5.3
+    // Recalculate account balance after transaction deletion
+    // Requirements: 6.4 - Balance updates after transaction deletion
     try {
-      const { recalculateAffectedCheckpoints } = await import('@/actions/checkpoints')
-      await recalculateAffectedCheckpoints(
-        new Date(transactionToDelete.transaction_date),
-        transactionToDelete.account_id,
-        transactionToDelete.workspace_id,
-        supabase
-      )
-    } catch (recalcError) {
+      const { recalculateAccountBalance } = await import('@/lib/utils/balance')
+      await recalculateAccountBalance(transactionToDelete.account_id, supabase)
+    } catch (balanceError) {
       // Log error but don't fail transaction deletion
-      console.warn('Failed to recalculate checkpoint gaps after transaction deletion:', recalcError)
+      console.warn('Failed to recalculate account balance after transaction deletion:', balanceError)
     }
 
     revalidatePath('/transactions')
     revalidatePath('/dashboard')
+    revalidatePath('/accounts')
     
     return { data: { id } }
   } catch (error) {
@@ -496,23 +502,19 @@ export async function restoreTransaction(
       return { error: 'Failed to restore transaction' }
     }
 
-    // Trigger automatic gap recalculation for affected checkpoints
-    // Requirements: 5.1, 5.2, 5.3
+    // Recalculate account balance after transaction restoration
+    // Requirements: 6.2 - Balance updates after transaction changes
     try {
-      const { recalculateAffectedCheckpoints } = await import('@/actions/checkpoints')
-      await recalculateAffectedCheckpoints(
-        new Date(transaction.transaction_date),
-        transaction.account_id,
-        transaction.workspace_id,
-        supabase
-      )
-    } catch (recalcError) {
+      const { recalculateAccountBalance } = await import('@/lib/utils/balance')
+      await recalculateAccountBalance(transaction.account_id, supabase)
+    } catch (balanceError) {
       // Log error but don't fail transaction restoration
-      console.warn('Failed to recalculate checkpoint gaps after transaction restoration:', recalcError)
+      console.warn('Failed to recalculate account balance after transaction restoration:', balanceError)
     }
 
     revalidatePath('/transactions')
     revalidatePath('/dashboard')
+    revalidatePath('/accounts')
     
     return { data: transaction }
   } catch (error) {

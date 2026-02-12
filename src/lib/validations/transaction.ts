@@ -38,6 +38,7 @@ export const createTransactionSchema = transactionSchema.omit({
   updated_by: true,
 }).extend({
   account_id: z.string().uuid('Invalid account ID').optional(), // Make optional - will use default account if not provided
+  description: z.string().max(255).optional(), // Make description optional
 })
 
 // Schema for updating transactions

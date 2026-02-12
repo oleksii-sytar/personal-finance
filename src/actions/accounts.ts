@@ -11,8 +11,12 @@ export interface Account {
   workspace_id: string
   name: string
   type: 'checking' | 'savings' | 'credit' | 'investment'
-  balance: number
+  opening_balance: number
+  current_balance: number
+  current_balance_updated_at: string | null
   currency: string
+  initial_balance: number
+  is_default: boolean
   created_at: string
   updated_at: string
 }
@@ -39,20 +43,38 @@ export async function createAccount(
 
   // Validate input data
   const rawData = Object.fromEntries(formData)
+  
+  // Parse opening_balance, defaulting to 0 if empty or invalid
+  const openingBalance = rawData.opening_balance ? Number(rawData.opening_balance) : 0
+  const currentBalance = rawData.current_balance ? Number(rawData.current_balance) : openingBalance
+  
   const validated = createAccountSchema.safeParse({
-    ...rawData,
-    balance: Number(rawData.balance) || 0,
+    name: rawData.name,
+    type: rawData.type,
+    opening_balance: openingBalance,
+    workspace_id: contextResult.workspaceId,
   })
 
   if (!validated.success) {
     return { error: validated.error.flatten() }
   }
 
-  // Create account
+  // Get workspace to retrieve currency
+  const { data: workspace } = await supabase
+    .from('workspaces')
+    .select('currency')
+    .eq('id', contextResult.workspaceId)
+    .single()
+
+  // Create account with opening_balance and current_balance set to the same value
   const { data: account, error } = await supabase
     .from('accounts')
     .insert({
-      ...validated.data,
+      name: validated.data.name,
+      type: validated.data.type,
+      opening_balance: validated.data.opening_balance,
+      current_balance: currentBalance,
+      currency: workspace?.currency || 'UAH',
       workspace_id: contextResult.workspaceId,
     })
     .select()

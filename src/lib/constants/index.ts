@@ -5,4 +5,5 @@
 
 export * from './currencies'
 export * from './categories'
+export * from './accounts'
 export * from './app'

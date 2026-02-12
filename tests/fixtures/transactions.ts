@@ -23,8 +23,12 @@ export const mockAccount: Account = {
   workspace_id: faker.string.uuid(),
   name: 'Main Checking',
   type: 'checking',
-  balance: 5000,
+  opening_balance: 5000,
+  current_balance: 5000,
+  current_balance_updated_at: faker.date.recent().toISOString(),
   currency: 'UAH',
+  initial_balance: 5000,
+  is_default: true,
   created_at: faker.date.recent().toISOString(),
   updated_at: faker.date.recent().toISOString(),
 }

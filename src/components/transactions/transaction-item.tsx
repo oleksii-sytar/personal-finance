@@ -154,9 +154,17 @@ export function TransactionItem({
       )}>
         <div className="flex-1 min-w-0">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0 mb-2 sm:mb-1">
-            <h3 className="font-medium text-primary truncate text-sm sm:text-base leading-tight">
-              {transaction.description}
-            </h3>
+            <div className="flex items-center gap-2">
+              {transaction.category ? (
+                <h3 className="font-medium text-primary text-sm sm:text-base leading-tight">
+                  {transaction.category.icon} {transaction.category.name}
+                </h3>
+              ) : (
+                <h3 className="font-medium text-muted text-sm sm:text-base leading-tight">
+                  Uncategorized
+                </h3>
+              )}
+            </div>
             <CurrencyDisplay
               amount={transaction.original_amount || transaction.amount}
               currency={transaction.original_currency || transaction.currency}
@@ -174,6 +182,11 @@ export function TransactionItem({
           
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 text-xs sm:text-sm text-secondary">
             <div className="flex items-center flex-wrap gap-2">
+              {transaction.description && (
+                <span className="font-medium text-primary text-sm truncate">
+                  {transaction.description}
+                </span>
+              )}
               <span className={cn(
                 'px-3 py-1.5 rounded-full text-xs font-medium',
                 isIncome 
@@ -203,11 +216,6 @@ export function TransactionItem({
                 <span className="flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 border border-blue-200">
                   <AlertTriangle className="w-3 h-3" />
                   Adjustment
-                </span>
-              )}
-              {transaction.category && (
-                <span className="text-muted text-xs sm:text-sm">
-                  {transaction.category.icon} {transaction.category.name}
                 </span>
               )}
             </div>

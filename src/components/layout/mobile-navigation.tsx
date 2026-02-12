@@ -10,7 +10,8 @@ import {
   ArrowUpDown, 
   FolderOpen, 
   BarChart3, 
-  Settings 
+  Settings,
+  Wallet
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { WorkspaceSelector } from '@/components/shared/workspace-selector'
@@ -20,6 +21,7 @@ import { cn } from '@/lib/utils'
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Transactions', href: '/transactions', icon: ArrowUpDown },
+  { name: 'Accounts', href: '/accounts', icon: Wallet },
   { name: 'Categories', href: '/categories', icon: FolderOpen },
   { name: 'Reports', href: '/reports', icon: BarChart3 },
   { name: 'Settings', href: '/settings', icon: Settings },
