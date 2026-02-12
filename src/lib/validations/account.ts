@@ -18,10 +18,10 @@ export const accountSchema = z.object({
     .max(100, 'Account name must be 100 characters or less')
     .trim(),
   type: accountTypeEnum,
-  balance: z.number().default(0),
+  opening_balance: z.number().default(0),
+  current_balance: z.number().default(0),
   currency: z.string().length(3, 'Invalid currency code').default('UAH'),
   workspace_id: z.string().uuid('Invalid workspace ID'),
-  initial_balance: z.number().default(0),
   is_default: z.boolean().default(false),
 })
 

@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.2] - 2026-02-12
+
+### Fixed
+- **Balance calculation errors**: Fixed "Could not find the 'balance' column" error when creating transactions
+- **Database schema alignment**: Updated balance calculation utility to use correct column names (`opening_balance` and `current_balance`)
+- **Type definitions**: Removed legacy `initial_balance` field from Account interface
+- **Test compatibility**: Updated all test files and fixtures to match current database schema
+
+### Technical Details
+- Updated `src/lib/utils/balance.ts` to use `opening_balance` and `current_balance` columns
+- Removed `initial_balance` from Account type definitions
+- Updated account validation schemas to use `opening_balance`
+- Fixed all demo components and test fixtures to match new schema
+- Simplified `recalculateAccountBalance` to only calculate without updating (calculated balance is computed on-the-fly)
+
 ## [1.1.1] - 2026-02-12
 
 ### Fixed

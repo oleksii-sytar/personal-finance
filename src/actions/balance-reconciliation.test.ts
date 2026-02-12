@@ -40,7 +40,7 @@ function createMockAccount(overrides: Partial<Account> = {}): Account {
     current_balance: 1200,
     current_balance_updated_at: new Date().toISOString(),
     currency: 'UAH',
-    initial_balance: 1000,
+    opening_balance: 1000,
     is_default: false,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),

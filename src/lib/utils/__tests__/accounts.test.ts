@@ -24,9 +24,10 @@ function createMockAccount(overrides: Partial<Account> = {}): Account {
     workspace_id: 'workspace-id',
     name: 'Test Account',
     type: 'checking',
-    balance: 1000,
+    opening_balance: 1000,
+    current_balance: 1000,
+    current_balance_updated_at: null,
     currency: 'UAH',
-    initial_balance: 1000,
     is_default: false,
     created_at: '2024-01-01T00:00:00Z',
     updated_at: '2024-01-01T00:00:00Z',
@@ -37,9 +38,9 @@ function createMockAccount(overrides: Partial<Account> = {}): Account {
 describe('calculateTotalBalance', () => {
   it('calculates total balance across multiple accounts', () => {
     const accounts = [
-      createMockAccount({ balance: 1000 }),
-      createMockAccount({ balance: 500 }),
-      createMockAccount({ balance: 250 }),
+      createMockAccount({ current_balance: 1000 }),
+      createMockAccount({ current_balance: 500 }),
+      createMockAccount({ current_balance: 250 }),
     ]
 
     expect(calculateTotalBalance(accounts)).toBe(1750)
@@ -47,8 +48,8 @@ describe('calculateTotalBalance', () => {
 
   it('handles negative balances correctly', () => {
     const accounts = [
-      createMockAccount({ balance: 1000 }),
-      createMockAccount({ balance: -500 }),
+      createMockAccount({ current_balance: 1000 }),
+      createMockAccount({ current_balance: -500 }),
     ]
 
     expect(calculateTotalBalance(accounts)).toBe(500)
@@ -93,9 +94,9 @@ describe('countAccountsByType', () => {
 describe('getDebtAccounts', () => {
   it('identifies accounts with negative balances', () => {
     const accounts = [
-      createMockAccount({ id: '1', balance: 1000 }),
-      createMockAccount({ id: '2', balance: -500 }),
-      createMockAccount({ id: '3', balance: -100 }),
+      createMockAccount({ id: '1', current_balance: 1000 }),
+      createMockAccount({ id: '2', current_balance: -500 }),
+      createMockAccount({ id: '3', current_balance: -100 }),
     ]
 
     const debtAccounts = getDebtAccounts(accounts)
@@ -107,8 +108,8 @@ describe('getDebtAccounts', () => {
 
   it('returns empty array when no debt accounts', () => {
     const accounts = [
-      createMockAccount({ balance: 1000 }),
-      createMockAccount({ balance: 500 }),
+      createMockAccount({ current_balance: 1000 }),
+      createMockAccount({ current_balance: 500 }),
     ]
 
     expect(getDebtAccounts(accounts)).toEqual([])
@@ -118,9 +119,9 @@ describe('getDebtAccounts', () => {
 describe('generateAccountSummary', () => {
   it('generates complete account summary', () => {
     const accounts = [
-      createMockAccount({ type: 'checking', balance: 1000 }),
-      createMockAccount({ type: 'savings', balance: 500 }),
-      createMockAccount({ type: 'credit', balance: -200 }),
+      createMockAccount({ type: 'checking', current_balance: 1000 }),
+      createMockAccount({ type: 'savings', current_balance: 500 }),
+      createMockAccount({ type: 'credit', current_balance: -200 }),
     ]
 
     const summary = generateAccountSummary(accounts)
@@ -183,24 +184,24 @@ describe('findDefaultAccount', () => {
 
 describe('isDebtAccount', () => {
   it('returns true for negative balance', () => {
-    const account = createMockAccount({ balance: -500 })
+    const account = createMockAccount({ current_balance: -500 })
     expect(isDebtAccount(account)).toBe(true)
   })
 
   it('returns false for positive balance', () => {
-    const account = createMockAccount({ balance: 1000 })
+    const account = createMockAccount({ current_balance: 1000 })
     expect(isDebtAccount(account)).toBe(false)
   })
 
   it('returns false for zero balance', () => {
-    const account = createMockAccount({ balance: 0 })
+    const account = createMockAccount({ current_balance: 0 })
     expect(isDebtAccount(account)).toBe(false)
   })
 })
 
 describe('formatAccountBalance', () => {
   it('formats UAH currency correctly', () => {
-    const account = createMockAccount({ balance: 1000, currency: 'UAH' })
+    const account = createMockAccount({ current_balance: 1000, currency: 'UAH' })
     const formatted = formatAccountBalance(account)
     
     // Should contain the amount and currency symbol
@@ -209,7 +210,7 @@ describe('formatAccountBalance', () => {
   })
 
   it('handles negative balances', () => {
-    const account = createMockAccount({ balance: -500, currency: 'UAH' })
+    const account = createMockAccount({ current_balance: -500, currency: 'UAH' })
     const formatted = formatAccountBalance(account)
     
     // Should contain negative indicator

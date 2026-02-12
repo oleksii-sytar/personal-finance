@@ -71,7 +71,6 @@ export interface Account {
   current_balance: number       // Current balance (manually updated during reconciliation)
   current_balance_updated_at: string | null  // Timestamp of last balance update
   currency: string              // ISO 4217 currency code (inherited from workspace)
-  initial_balance: number       // Starting balance at account creation (legacy, same as opening_balance)
   is_default: boolean           // Whether this is the default account
   created_at: string            // ISO timestamp
   updated_at: string            // ISO timestamp
@@ -83,7 +82,7 @@ export interface Account {
 export interface CreateAccountFormData {
   name: string
   type: AccountType
-  initial_balance?: number
+  opening_balance?: number
 }
 
 /**

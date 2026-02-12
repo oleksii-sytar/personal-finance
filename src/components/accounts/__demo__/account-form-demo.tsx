@@ -24,7 +24,6 @@ export function AccountFormDemo() {
     current_balance: 5000,
     current_balance_updated_at: new Date().toISOString(),
     currency: 'UAH',
-    initial_balance: 5000,
     is_default: true,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),

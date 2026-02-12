@@ -7,7 +7,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 
 /**
  * Calculates the current balance for an account based on transactions
- * Formula: initial_balance + sum(income) - sum(expense)
+ * Formula: opening_balance + sum(income) - sum(expense)
  * 
  * @param accountId - The account ID to calculate balance for
  * @param supabase - Supabase client instance
@@ -17,10 +17,10 @@ export async function calculateAccountBalance(
   accountId: string,
   supabase: SupabaseClient
 ): Promise<number> {
-  // Get account initial balance
+  // Get account opening balance
   const { data: account, error: accountError } = await supabase
     .from('accounts')
-    .select('initial_balance')
+    .select('opening_balance')
     .eq('id', accountId)
     .single()
 
@@ -45,35 +45,25 @@ export async function calculateAccountBalance(
     return tx.type === 'income' ? sum + tx.amount : sum - tx.amount
   }, 0)
 
-  return account.initial_balance + transactionSum
+  return account.opening_balance + transactionSum
 }
 
 /**
  * Recalculates and updates the balance for an account
+ * Note: This updates the calculated_balance, not current_balance
+ * current_balance should only be updated manually by the user
  * 
  * @param accountId - The account ID to recalculate
  * @param supabase - Supabase client instance
- * @returns The updated balance
+ * @returns The updated calculated balance
  */
 export async function recalculateAccountBalance(
   accountId: string,
   supabase: SupabaseClient
 ): Promise<number> {
+  // Just calculate the balance, don't update anything
+  // The calculated balance is computed on-the-fly in queries
   const balance = await calculateAccountBalance(accountId, supabase)
-
-  // Update the account balance
-  const { error } = await supabase
-    .from('accounts')
-    .update({ 
-      balance,
-      updated_at: new Date().toISOString()
-    })
-    .eq('id', accountId)
-
-  if (error) {
-    throw new Error(`Failed to update account balance: ${error.message}`)
-  }
-
   return balance
 }
 
@@ -119,7 +109,7 @@ export async function getAccountBalance(
 ): Promise<number> {
   const { data: account, error } = await supabase
     .from('accounts')
-    .select('balance')
+    .select('current_balance')
     .eq('id', accountId)
     .single()
 
@@ -127,7 +117,7 @@ export async function getAccountBalance(
     throw new Error(`Failed to fetch account balance: ${error?.message}`)
   }
 
-  return account.balance
+  return account.current_balance
 }
 
 /**

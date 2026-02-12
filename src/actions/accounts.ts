@@ -15,7 +15,6 @@ export interface Account {
   current_balance: number
   current_balance_updated_at: string | null
   currency: string
-  initial_balance: number
   is_default: boolean
   created_at: string
   updated_at: string

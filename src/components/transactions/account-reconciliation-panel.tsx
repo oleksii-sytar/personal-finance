@@ -182,7 +182,6 @@ function AccountReconciliationItem({
     opening_balance: accountBalance.opening_balance,
     current_balance: accountBalance.current_balance,
     current_balance_updated_at: null,
-    initial_balance: accountBalance.opening_balance,
     is_default: false,
     created_at: '',
     updated_at: ''

@@ -121,9 +121,9 @@ describe('Account Deletion Flow Integration', () => {
           workspace_id: testWorkspaceId,
           name: 'Test Account with Transactions',
           type: 'checking',
-          balance: 1000,
+          current_balance: 1000,
           currency: 'UAH',
-          initial_balance: 1000,
+          initial_current_balance: 1000,
           is_default: false,
         })
         .select()
@@ -205,9 +205,9 @@ describe('Account Deletion Flow Integration', () => {
           workspace_id: testWorkspaceId,
           name: 'Test Account for Error Message',
           type: 'savings',
-          balance: 500,
+          current_balance: 500,
           currency: 'UAH',
-          initial_balance: 500,
+          initial_current_balance: 500,
           is_default: false,
         })
         .select()
@@ -270,9 +270,9 @@ describe('Account Deletion Flow Integration', () => {
           workspace_id: testWorkspaceId,
           name: 'Test Account No Transactions',
           type: 'credit',
-          balance: 0,
+          current_balance: 0,
           currency: 'UAH',
-          initial_balance: 0,
+          initial_current_balance: 0,
           is_default: false,
         })
         .select()
@@ -319,9 +319,9 @@ describe('Account Deletion Flow Integration', () => {
           workspace_id: testWorkspaceId,
           name: 'Test Account for Query Check',
           type: 'investment',
-          balance: 2000,
+          current_balance: 2000,
           currency: 'UAH',
-          initial_balance: 2000,
+          initial_current_balance: 2000,
           is_default: false,
         })
         .select()
@@ -368,9 +368,9 @@ describe('Account Deletion Flow Integration', () => {
           workspace_id: testWorkspaceId,
           name: 'Test Account Transaction Check',
           type: 'checking',
-          balance: 100,
+          current_balance: 100,
           currency: 'UAH',
-          initial_balance: 100,
+          initial_current_balance: 100,
           is_default: false,
         })
         .select()
@@ -437,9 +437,9 @@ describe('Account Deletion Flow Integration', () => {
           workspace_id: testWorkspaceId,
           name: 'Test Concurrent Deletion',
           type: 'checking',
-          balance: 0,
+          current_balance: 0,
           currency: 'UAH',
-          initial_balance: 0,
+          initial_current_balance: 0,
           is_default: false,
         })
         .select()
