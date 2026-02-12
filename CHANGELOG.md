@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.1] - 2026-02-12
+
+### Fixed
+- **Real-time reconciliation updates**: Transaction additions/updates/deletions now properly invalidate reconciliation cache and update balances immediately
+- **Balance update accessibility**: Users can now update current balance even when account is reconciled (Update button always visible)
+
+### Changed
+- Transaction mutation hooks now invalidate reconciliation status queries for real-time UI updates
+- Account reconciliation panel always shows Update button for better UX
+
 ## [1.1.0] - 2026-02-12
 
 ### Added

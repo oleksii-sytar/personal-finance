@@ -186,6 +186,9 @@ export function useCreateTransaction() {
       queryClient.invalidateQueries({ queryKey: ['transactions', currentWorkspace?.id] })
       queryClient.invalidateQueries({ queryKey: ['transactions-infinite', currentWorkspace?.id] })
       queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+      // Invalidate reconciliation status to update balances
+      queryClient.invalidateQueries({ queryKey: ['reconciliation', 'status', currentWorkspace?.id] })
+      queryClient.invalidateQueries({ queryKey: ['account-difference'] })
     },
   })
 }
@@ -206,6 +209,9 @@ export function useUpdateTransaction() {
       queryClient.invalidateQueries({ queryKey: ['transactions', currentWorkspace?.id] })
       queryClient.invalidateQueries({ queryKey: ['transactions-infinite', currentWorkspace?.id] })
       queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+      // Invalidate reconciliation status to update balances
+      queryClient.invalidateQueries({ queryKey: ['reconciliation', 'status', currentWorkspace?.id] })
+      queryClient.invalidateQueries({ queryKey: ['account-difference'] })
     },
   })
 }
@@ -225,6 +231,9 @@ export function useDeleteTransaction() {
       queryClient.invalidateQueries({ queryKey: ['transactions', currentWorkspace?.id] })
       queryClient.invalidateQueries({ queryKey: ['transactions-infinite', currentWorkspace?.id] })
       queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+      // Invalidate reconciliation status to update balances
+      queryClient.invalidateQueries({ queryKey: ['reconciliation', 'status', currentWorkspace?.id] })
+      queryClient.invalidateQueries({ queryKey: ['account-difference'] })
     },
   })
 }

@@ -221,9 +221,19 @@ function AccountReconciliationItem({
         {/* Difference Display */}
         <div className="flex items-center gap-2">
           {isReconciled ? (
-            <div className="px-2 py-1 bg-accent-success/10 text-accent-success rounded-md text-xs font-medium">
-              Reconciled
-            </div>
+            <>
+              <div className="px-2 py-1 bg-accent-success/10 text-accent-success rounded-md text-xs font-medium">
+                Reconciled
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onUpdateBalance(account)}
+                className="text-xs px-2 py-1 h-auto"
+              >
+                Update
+              </Button>
+            </>
           ) : (
             <>
               <div className={cn(
