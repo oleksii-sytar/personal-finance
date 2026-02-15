@@ -44,6 +44,8 @@ interface DetailedEntryState {
   frequency: 'daily' | 'weekly' | 'monthly' | 'yearly'
   intervalCount: string
   endDate: string
+  // Transaction status (auto-detected from date)
+  status: 'completed' | 'planned'
 }
 
 /**
@@ -106,6 +108,23 @@ export function DetailedEntryForm({
     return new Date().toISOString().split('T')[0]
   }
   
+  // Helper to determine status based on date
+  const getStatusFromDate = (dateString: string): 'completed' | 'planned' => {
+    const selectedDate = new Date(dateString)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    selectedDate.setHours(0, 0, 0, 0)
+    
+    return selectedDate > today ? 'planned' : 'completed'
+  }
+  
+  // Helper to get max date (6 months from today)
+  const getMaxDate = () => {
+    const maxDate = new Date()
+    maxDate.setMonth(maxDate.getMonth() + 6)
+    return maxDate.toISOString().split('T')[0]
+  }
+  
   const [state, setState] = useState<DetailedEntryState>({
     amount: transaction?.amount?.toString() || '',
     type: getDefaultType(),
@@ -121,6 +140,8 @@ export function DetailedEntryForm({
     frequency: 'monthly',
     intervalCount: '1',
     endDate: '',
+    // Auto-detect status from date
+    status: transaction ? (transaction.status as 'completed' | 'planned') : getStatusFromDate(getDefaultDate()),
   })
   
   const [error, setError] = useState<string>('')
@@ -205,6 +226,16 @@ export function DetailedEntryForm({
     }
   }
 
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newDate = e.target.value
+    const newStatus = getStatusFromDate(newDate)
+    setState(prev => ({ 
+      ...prev, 
+      date: newDate,
+      status: newStatus
+    }))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -231,6 +262,12 @@ export function DetailedEntryForm({
       formData.set('transaction_date', new Date(state.date).toISOString())
       formData.set('currency', state.currency)
       formData.set('workspace_id', currentWorkspace.id)
+      
+      // Add status and planned_date for future transactions
+      formData.set('status', state.status)
+      if (state.status === 'planned') {
+        formData.set('planned_date', state.date)
+      }
       
       // Account will be handled by server action (default assignment if not provided)
       if (state.accountId) {
@@ -291,6 +328,9 @@ export function DetailedEntryForm({
           transaction_date: state.date,
           transaction_type_id: null,
           is_expected: false,
+          status: 'completed',
+          planned_date: null,
+          completed_at: null,
           expected_transaction_id: null,
           recurring_transaction_id: recurringResult.data!.id,
           locked: false,
@@ -330,6 +370,7 @@ export function DetailedEntryForm({
 
       // Reset form if creating new transaction
       if (!transaction) {
+        const defaultDate = new Date().toISOString().split('T')[0]
         setState({
           amount: '',
           type: 'expense',
@@ -337,13 +378,14 @@ export function DetailedEntryForm({
           categoryId: undefined,
           description: '',
           notes: '',
-          date: new Date().toISOString().split('T')[0],
+          date: defaultDate,
           currency: DEFAULT_CURRENCY,
           isSubmitting: false,
           isRecurring: false,
           frequency: 'monthly',
           intervalCount: '1',
           endDate: '',
+          status: getStatusFromDate(defaultDate),
         })
         
         // Refocus amount field for next entry
@@ -481,15 +523,48 @@ export function DetailedEntryForm({
         />
 
         {/* Date */}
-        <Input
-          label="Date"
-          type="date"
-          value={state.date}
-          onChange={(e) => setState(prev => ({ ...prev, date: e.target.value }))}
-          className="w-full"
-          required
-          tabIndex={7}
-        />
+        <div>
+          <Input
+            label="Date"
+            type="date"
+            value={state.date}
+            onChange={handleDateChange}
+            max={getMaxDate()}
+            className="w-full"
+            required
+            tabIndex={7}
+          />
+          
+          {/* Status Indicator */}
+          <div className="mt-2 flex items-center gap-2">
+            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium ${
+              state.status === 'planned' 
+                ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' 
+                : 'bg-accent-success/10 text-accent-success border border-accent-success/20'
+            }`}>
+              <span className={`w-2 h-2 rounded-full ${
+                state.status === 'planned' ? 'bg-amber-500' : 'bg-accent-success'
+              }`} />
+              <span>
+                {state.status === 'planned' ? 'Planned Transaction' : 'Completed Transaction'}
+              </span>
+            </div>
+          </div>
+          
+          {/* Explanatory Text */}
+          <p className="text-xs text-secondary mt-2">
+            {state.status === 'planned' ? (
+              <>
+                <strong>Planned transactions</strong> are scheduled for the future and won't affect your current balance. 
+                You can plan up to 6 months ahead.
+              </>
+            ) : (
+              <>
+                <strong>Completed transactions</strong> affect your current balance immediately.
+              </>
+            )}
+          </p>
+        </div>
 
         {/* Notes */}
         <div>

@@ -98,7 +98,8 @@ export const createTestAccount = async (workspaceId: string, name: string = 'Tes
       workspace_id: workspaceId,
       name,
       type,
-      balance: 0,
+      opening_balance: 1000,
+      current_balance: 1000,
       currency: 'UAH'
     })
     .select()

@@ -422,6 +422,9 @@ export async function getTransactions(
         expected_transaction_id,
         recurring_transaction_id,
         locked,
+        status,
+        planned_date,
+        completed_at,
         created_at,
         updated_at,
         created_by,
@@ -562,6 +565,93 @@ export async function permanentlyDeleteTransaction(
     return { data: { id } }
   } catch (error) {
     console.error('Error in permanentlyDeleteTransaction:', error)
+    return { error: 'An unexpected error occurred' }
+  }
+}
+
+/**
+ * Marks a planned transaction as completed
+ * Implements Requirements 3.4: Mark planned transactions as completed
+ * 
+ * @param id - Transaction ID to mark as completed
+ * @returns ActionResult with updated transaction or error
+ */
+export async function markPlannedAsCompleted(
+  id: string
+): Promise<ActionResult<Transaction>> {
+  try {
+    const supabase = await createClient()
+    
+    // Check authentication
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return { error: 'Authentication required' }
+    }
+
+    // Get transaction to verify it exists and is planned
+    const { data: transaction, error: fetchError } = await supabase
+      .from('transactions')
+      .select('id, status, workspace_id, account_id')
+      .eq('id', id)
+      .single()
+
+    if (fetchError || !transaction) {
+      console.error('Error fetching transaction:', fetchError)
+      return { error: 'Transaction not found' }
+    }
+
+    // Verify transaction is in planned status
+    if (transaction.status !== 'planned') {
+      return { error: 'Transaction is not in planned status' }
+    }
+
+    // Authorize transaction access
+    const authResult = await authorizeTransactionUpdate(id)
+    if (!authResult.authorized) {
+      return { error: authResult.error || 'Access denied to transaction' }
+    }
+
+    // Mark transaction as completed
+    const today = new Date()
+    const { data: updatedTransaction, error: updateError } = await supabase
+      .from('transactions')
+      .update({
+        status: 'completed',
+        transaction_date: today.toISOString().split('T')[0], // Set transaction date to today
+        completed_at: today.toISOString(),
+        planned_date: null, // Clear planned_date when marking as completed
+        updated_by: user.id,
+        updated_at: today.toISOString(),
+      })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (updateError) {
+      console.error('Error marking transaction as completed:', updateError)
+      return { error: 'Failed to mark transaction as completed' }
+    }
+
+    // Recalculate account balance after marking as completed
+    // This is critical because completed transactions affect actual balance
+    try {
+      const { recalculateAccountBalance } = await import('@/lib/utils/balance')
+      await recalculateAccountBalance(transaction.account_id, supabase)
+    } catch (balanceError) {
+      // Log error but don't fail the operation
+      console.warn('Failed to recalculate account balance after marking as completed:', balanceError)
+    }
+
+    // Revalidate paths to update UI
+    revalidatePath('/transactions')
+    revalidatePath('/dashboard')
+    revalidatePath('/accounts')
+    
+    // TODO: Invalidate forecast cache when forecast feature is implemented
+    
+    return { data: updatedTransaction }
+  } catch (error) {
+    console.error('Error in markPlannedAsCompleted:', error)
     return { error: 'An unexpected error occurred' }
   }
 }

@@ -8,7 +8,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react'
 import { Plus, Filter, Search, X, BarChart3 } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
@@ -17,9 +17,10 @@ import { TransactionList } from './transaction-list'
 import { TransactionEditModal } from './transaction-edit-modal'
 import { DetailedEntryForm } from './detailed-entry-form'
 import { TransactionFilters } from './transaction-filters'
+import { MonthSelector } from '@/components/shared/month-selector'
 import { EnhancedLoadingState, TransactionErrorBoundary } from '@/components/shared'
 import { deleteTransaction, restoreTransaction } from '@/actions/transactions'
-import { useDeleteTransaction } from '@/hooks/use-transactions'
+import { useDeleteTransaction, useMarkPlannedAsCompleted } from '@/hooks/use-transactions'
 import { useWorkspace } from '@/contexts/workspace-context'
 import { useFilterContext } from '@/contexts/transaction-filter-context'
 import { useTransactions } from '@/hooks/use-transactions'
@@ -50,9 +51,30 @@ export function IntegratedTransactionSystem({
   const filterContext = useFilterContext()
   const { showUndoToast } = useUndoToast()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  
+  // Get selected month from URL params (format: YYYY-MM)
+  // If no month parameter, default to current month
+  const selectedMonthString = useMemo(() => {
+    const urlMonth = searchParams?.get('month')
+    if (urlMonth) return urlMonth
+    
+    // Default to current month in YYYY-MM format
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = String(now.getMonth() + 1).padStart(2, '0')
+    return `${year}-${month}`
+  }, [searchParams])
+  
+  // Convert month string to Date for MonthSelector component
+  const selectedMonthDate = useMemo(() => {
+    const [year, month] = selectedMonthString.split('-').map(Number)
+    return new Date(Date.UTC(year, month - 1, 1))
+  }, [selectedMonthString])
   
   // React Query mutations
   const deleteTransactionMutation = useDeleteTransaction()
+  const markPlannedAsCompletedMutation = useMarkPlannedAsCompleted()
   
   // Memoize filters to prevent infinite re-renders
   const memoizedFilters = useMemo(() => {
@@ -60,7 +82,7 @@ export function IntegratedTransactionSystem({
     return filterContext.activeFilters
   }, [filterContext?.activeFilters])
 
-  // Fetch transactions using the hook
+  // Fetch transactions using the hook with month filter
   const { 
     data: fetchedTransactions = [], 
     isLoading: isFetchingTransactions, 
@@ -69,13 +91,28 @@ export function IntegratedTransactionSystem({
     categories: memoizedFilters?.categories,
     type: memoizedFilters?.type === 'all' ? undefined : memoizedFilters?.type,
     startDate: memoizedFilters?.dateRange?.start,
-    endDate: memoizedFilters?.dateRange?.end
+    endDate: memoizedFilters?.dateRange?.end,
+    month: selectedMonthString // Add month filter from URL
   })
 
   // Use fetched transactions directly instead of local state
   const transactions = fetchedTransactions
   const isLoading = isFetchingTransactions
   const error = fetchError?.message || null
+  
+  // Handle month selection change (Requirements 4.2: URL state management)
+  const handleMonthChange = useCallback((month: Date | null) => {
+    const params = new URLSearchParams(searchParams?.toString() || '')
+    if (month) {
+      // Convert Date to YYYY-MM format for URL
+      const year = month.getFullYear()
+      const monthNum = String(month.getMonth() + 1).padStart(2, '0')
+      params.set('month', `${year}-${monthNum}`)
+    } else {
+      params.delete('month')
+    }
+    router.push(`/transactions?${params.toString()}`)
+  }, [router, searchParams])
   
   // Modal states
   const [showCreateForm, setShowCreateForm] = useState(false)
@@ -111,7 +148,8 @@ export function IntegratedTransactionSystem({
     searchQuery,
     filters: memoizedFilters,
     enableVirtualization,
-    virtualizationThreshold: 100
+    virtualizationThreshold: 100,
+    skipDateFiltering: !!selectedMonthString // Skip date filtering when month filter is active
   })
 
   // Handle transaction edit (Requirement 5.1: Allow editing of all transaction fields)
@@ -198,6 +236,22 @@ export function IntegratedTransactionSystem({
     setDeleteConfirmation({ isOpen: false, transactionId: null, transactionDescription: '' })
   }
 
+  // Handle mark as paid (Requirements 3.3, 3.4: Mark planned transactions as completed)
+  const handleMarkAsPaid = useCallback(async (transactionId: string) => {
+    try {
+      const result = await markPlannedAsCompletedMutation.mutateAsync(transactionId)
+      
+      if (result.error) {
+        console.error('Mark as paid error:', result.error)
+        return
+      }
+      
+      // Success - the query will automatically refetch and update the UI
+    } catch (err) {
+      console.error('Mark as paid error:', err)
+    }
+  }, [markPlannedAsCompletedMutation])
+
   // Handle filter changes
   const handleClearSearch = () => {
     setSearchQuery('')
@@ -246,6 +300,12 @@ export function IntegratedTransactionSystem({
             </Button>
           </div>
         </div>
+
+        {/* Month Selector - Requirements 4.2: Month filtering UI */}
+        <MonthSelector
+          selectedMonth={selectedMonthDate}
+          onMonthChange={handleMonthChange}
+        />
 
         {/* Search and Filters */}
         <div className="flex flex-col sm:flex-row gap-3 lg:gap-4">
@@ -355,6 +415,7 @@ export function IntegratedTransactionSystem({
           transactions={listTransactions}
           onEdit={handleEditTransaction}
           onDelete={handleDeleteTransaction}
+          onMarkAsPaid={handleMarkAsPaid}
           onLoadMore={shouldUseVirtualization ? undefined : loadMore}
           hasMore={hasMore}
           isLoading={isLoading}

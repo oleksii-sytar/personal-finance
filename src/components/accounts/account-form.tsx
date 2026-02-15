@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useQueryClient } from '@tanstack/react-query'
 import { Input } from '@/components/ui/Input'
 import { LoadingButton } from '@/components/ui/loading-button'
 import { Button } from '@/components/ui/Button'
@@ -35,6 +36,7 @@ export function AccountForm({ account, onSuccess, onCancel }: AccountFormProps) 
   const isEditMode = !!account
   const { currentWorkspace } = useWorkspace()
   const router = useRouter()
+  const queryClient = useQueryClient()
   const { success, error: showError } = useToast()
   
   const [formData, setFormData] = useState<AccountFormInput>({
@@ -131,6 +133,11 @@ export function AccountForm({ account, onSuccess, onCancel }: AccountFormProps) 
           ? `${result.data?.name} has been updated successfully`
           : `${result.data?.name} has been created successfully`
       )
+
+      // Invalidate React Query caches to trigger refetch
+      await queryClient.invalidateQueries({ queryKey: ['accounts'] })
+      await queryClient.invalidateQueries({ queryKey: ['accountBalances'] })
+      await queryClient.invalidateQueries({ queryKey: ['spendingTrends'] })
 
       // Trigger custom event for other components to refresh
       window.dispatchEvent(new CustomEvent('accountsChanged', { 

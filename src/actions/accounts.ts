@@ -94,6 +94,7 @@ export async function createAccount(
 
 /**
  * Gets all accounts for the current workspace
+ * Balance calculation excludes planned transactions (only completed transactions affect balance)
  */
 export async function getAccounts(): Promise<ActionResult<Account[]>> {
   const supabase = await createClient()
@@ -110,7 +111,30 @@ export async function getAccounts(): Promise<ActionResult<Account[]>> {
     return { error: contextResult.error || 'No workspace found' }
   }
 
-  // Fetch accounts
+  // Fetch accounts with their actual balances (from completed transactions only)
+  // The account_actual_balances view automatically excludes planned transactions
+  const { data: accountBalances, error: balanceError } = await supabase
+    .from('account_actual_balances')
+    .select('*')
+
+  if (balanceError) {
+    console.error('Account balances fetch error:', balanceError)
+    // Fallback to direct account query if view fails
+    const { data: accounts, error } = await supabase
+      .from('accounts')
+      .select('*')
+      .eq('workspace_id', contextResult.workspaceId)
+      .order('created_at', { ascending: true })
+
+    if (error) {
+      console.error('Accounts fetch error:', error)
+      return { error: 'Failed to fetch accounts' }
+    }
+
+    return { data: accounts || [] }
+  }
+
+  // Fetch full account details
   const { data: accounts, error } = await supabase
     .from('accounts')
     .select('*')
@@ -122,7 +146,17 @@ export async function getAccounts(): Promise<ActionResult<Account[]>> {
     return { error: 'Failed to fetch accounts' }
   }
 
-  return { data: accounts || [] }
+  // Merge calculated balances with account data
+  const accountsWithBalances = accounts.map(account => {
+    const balance = accountBalances.find(b => b.account_id === account.id)
+    return {
+      ...account,
+      // Update current_balance with calculated balance from completed transactions only
+      current_balance: balance?.calculated_balance ?? account.current_balance,
+    }
+  })
+
+  return { data: accountsWithBalances || [] }
 }
 
 /**

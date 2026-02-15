@@ -1,100 +1,111 @@
 #!/usr/bin/env node
+
 /**
- * Simple migration application - executes SQL statements individually
+ * Apply specific migration using Supabase client
+ * Simplest approach that works with Supabase's SSL setup
  */
 
 import { createClient } from '@supabase/supabase-js'
 import { readFileSync } from 'fs'
+import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
-import { dirname, join } from 'path'
 import dotenv from 'dotenv'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 // Load environment variables
-dotenv.config({ path: join(__dirname, '..', '.env.migration') })
+dotenv.config({ path: join(__dirname, '..', '.env.local') })
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY
+const SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY
 
-if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
-  console.error('❌ Missing environment variables')
+if (!SUPABASE_URL || !SERVICE_KEY) {
+  console.error('❌ Error: SUPABASE_URL and SERVICE_KEY required')
   process.exit(1)
 }
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
-  auth: { autoRefreshToken: false, persistSession: false }
-})
-
-async function checkColumns() {
-  console.log('🔍 Checking if columns already exist...')
-  
-  const { data, error } = await supabase
-    .from('accounts')
-    .select('*')
-    .limit(1)
-  
-  if (error) {
-    console.log('⚠️  Could not check columns:', error.message)
-    return { hasInitialBalance: false, hasIsDefault: false }
-  }
-  
-  if (data && data.length > 0) {
-    const account = data[0]
-    const hasInitialBalance = 'initial_balance' in account
-    const hasIsDefault = 'is_default' in account
-    
-    console.log(`   initial_balance: ${hasInitialBalance ? '✅ exists' : '❌ missing'}`)
-    console.log(`   is_default: ${hasIsDefault ? '✅ exists' : '❌ missing'}`)
-    console.log('')
-    
-    return { hasInitialBalance, hasIsDefault }
-  }
-  
-  return { hasInitialBalance: false, hasIsDefault: false }
-}
-
 async function applyMigration() {
-  console.log('🔄 Migration: Add initial_balance and is_default columns')
-  console.log('')
-  
-  try {
-    // Check current state
-    const { hasInitialBalance, hasIsDefault } = await checkColumns()
-    
-    if (hasInitialBalance && hasIsDefault) {
-      console.log('✅ Migration already applied! Both columns exist.')
-      console.log('')
-      console.log('📝 Next step: Run tests')
-      console.log('   npm run test -- account')
-      return
+  const supabase = createClient(SUPABASE_URL, SERVICE_KEY, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
     }
-    
-    console.log('❌ Columns are missing. Migration needs to be applied.')
-    console.log('')
-    console.log('📋 Please apply the migration manually:')
-    console.log('')
-    console.log('1️⃣  Open Supabase SQL Editor:')
-    console.log('   https://supabase.com/dashboard/project/szspuivemixdjzyohwrc/sql/new')
-    console.log('')
-    console.log('2️⃣  Copy and paste this SQL:')
-    console.log('')
-    console.log('─'.repeat(80))
-    
-    const migrationPath = join(__dirname, '..', 'supabase', 'migrations', '20260204000000_add_accounts_initial_balance_and_default.sql')
-    const migrationSQL = readFileSync(migrationPath, 'utf-8')
-    console.log(migrationSQL)
-    console.log('─'.repeat(80))
-    console.log('')
-    console.log('3️⃣  Click "Run" or press Cmd+Enter')
-    console.log('')
-    console.log('4️⃣  After applying, run this script again to verify')
-    console.log('')
-    console.log('💡 Quick command: npm run db:migrate')
-    
+  })
+
+  try {
+    console.log('🔗 Connecting to Supabase...')
+
+    // Read the specific migration file
+    const migrationPath = join(__dirname, '..', 'supabase', 'migrations', '20260214114425_add_transaction_status_fields.sql')
+    const sql = readFileSync(migrationPath, 'utf-8')
+
+    console.log('📋 Applying transaction status fields migration...')
+
+    // Split into individual statements
+    const statements = sql
+      .split(';')
+      .map(s => s.trim())
+      .filter(s => s.length > 0 && !s.startsWith('--') && !s.startsWith('COMMENT'))
+
+    console.log(`  Found ${statements.length} SQL statements to execute`)
+
+    // Execute each statement individually
+    for (let i = 0; i < statements.length; i++) {
+      const statement = statements[i]
+      console.log(`  Executing statement ${i + 1}/${statements.length}...`)
+      
+      try {
+        // Use the from() API to execute raw SQL via PostgREST
+        const { error } = await supabase.rpc('exec_sql', { sql_query: statement })
+        
+        if (error) {
+          // If exec_sql doesn't exist, try direct query
+          if (error.message.includes('function') || error.message.includes('does not exist')) {
+            console.log(`    ℹ️  Statement ${i + 1} needs manual application`)
+          } else if (error.message.includes('already exists')) {
+            console.log(`    ✅ Statement ${i + 1} already applied`)
+          } else {
+            console.log(`    ⚠️  Statement ${i + 1}: ${error.message}`)
+          }
+        } else {
+          console.log(`    ✅ Statement ${i + 1} executed`)
+        }
+      } catch (err) {
+        console.log(`    ⚠️  Statement ${i + 1}: ${err.message}`)
+      }
+    }
+
+    // Verify columns exist by querying transactions table
+    console.log('\n🔍 Verifying migration...')
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('id, status, planned_date, completed_at')
+      .limit(1)
+
+    if (error) {
+      console.log('⚠️  Verification failed:', error.message)
+      console.log('\n📝 Manual steps required:')
+      console.log('1. Go to Supabase Dashboard → SQL Editor')
+      console.log('2. Copy SQL from: supabase/migrations/20260214114425_add_transaction_status_fields.sql')
+      console.log('3. Run the SQL')
+      console.log('4. Then run: npm run db:types')
+      process.exit(1)
+    } else {
+      console.log('✅ Migration verified - columns exist!')
+      if (data && data.length > 0) {
+        console.log('  Sample row:', data[0])
+      }
+    }
+
+    console.log('\n✅ Migration process completed')
+
   } catch (error) {
-    console.error('❌ Error:', error.message)
+    console.error('❌ Migration failed:', error.message)
+    console.log('\n📝 Manual steps required:')
+    console.log('1. Go to Supabase Dashboard → SQL Editor')
+    console.log('2. Copy SQL from: supabase/migrations/20260214114425_add_transaction_status_fields.sql')
+    console.log('3. Run the SQL')
+    console.log('4. Then run: npm run db:types')
     process.exit(1)
   }
 }

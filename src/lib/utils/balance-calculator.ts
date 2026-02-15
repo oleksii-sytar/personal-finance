@@ -20,8 +20,11 @@ export function calculateAccountBalance(
   openingBalance: number,
   transactions: Transaction[]
 ): number {
-  // Filter out soft-deleted transactions
-  const activeTransactions = transactions.filter(t => !t.deleted_at)
+  // Filter out soft-deleted transactions and planned transactions
+  // Only completed transactions should affect the balance
+  const activeTransactions = transactions.filter(t => 
+    !t.deleted_at && t.status === 'completed'
+  )
   
   // Calculate sum of income and expenses
   const transactionSum = activeTransactions.reduce((sum, transaction) => {

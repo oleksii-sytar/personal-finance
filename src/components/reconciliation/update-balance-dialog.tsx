@@ -22,6 +22,7 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { XIcon, InfoIcon } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
@@ -54,6 +55,7 @@ export function UpdateBalanceDialog({
   onSuccess,
   className
 }: UpdateBalanceDialogProps) {
+  const queryClient = useQueryClient()
   const [mounted, setMounted] = useState(false)
   const [newBalance, setNewBalance] = useState<string>('')
   const [accountBalance, setAccountBalance] = useState<AccountBalance | null>(null)
@@ -164,6 +166,12 @@ export function UpdateBalanceDialog({
       setIsLoading(false)
       return
     }
+
+    // Invalidate all relevant queries to trigger recalculation
+    await queryClient.invalidateQueries({ queryKey: ['accounts'] })
+    await queryClient.invalidateQueries({ queryKey: ['accountBalances'] })
+    await queryClient.invalidateQueries({ queryKey: ['reconciliationStatus'] })
+    await queryClient.invalidateQueries({ queryKey: ['spendingTrends'] })
 
     // Success
     setIsLoading(false)

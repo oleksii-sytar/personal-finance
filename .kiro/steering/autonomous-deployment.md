@@ -94,6 +94,32 @@ When you run `npm run deploy`, the system automatically:
 supabase db push --yes
 ```
 
+### CRITICAL: Database Operations Must Use npm Scripts
+
+**⚠️ MANDATORY RULE: ALL database operations MUST be executed through npm scripts ONLY**
+
+```bash
+# ✅ CORRECT - Use npm scripts
+npm run db:push          # Apply migrations
+npm run db:types         # Generate TypeScript types
+
+# ❌ WRONG - Never use direct Supabase CLI commands
+supabase db push --yes   # DON'T USE
+supabase gen types       # DON'T USE
+```
+
+**Why this is critical:**
+- npm scripts have proper error handling and fallbacks
+- Direct CLI commands can corrupt files (e.g., database.ts)
+- npm scripts ensure consistent behavior across environments
+- Prevents interactive prompts that block automation
+
+**If you need to debug database operations:**
+1. Check npm script definition in package.json
+2. Run with verbose output: `npm run db:push -- --debug`
+3. Check Supabase Dashboard for migration status
+4. Never bypass npm scripts even for debugging
+
 ### Vitest Autonomous Configuration
 
 ```typescript

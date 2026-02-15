@@ -10,6 +10,11 @@ export const FEATURE_FLAGS = {
   GOAL_SETTING: process.env.NEXT_PUBLIC_FEATURE_GOALS === 'true',
   DEBT_SNOWBALL: process.env.NEXT_PUBLIC_FEATURE_DEBT_SNOWBALL === 'true',
   
+  // User Journey Enhancement features
+  FUTURE_TRANSACTIONS: process.env.NEXT_PUBLIC_FEATURE_FUTURE_TRANSACTIONS === 'true',
+  DAILY_FORECAST: process.env.NEXT_PUBLIC_FEATURE_DAILY_FORECAST === 'true',
+  PAYMENT_RISKS: process.env.NEXT_PUBLIC_FEATURE_PAYMENT_RISKS === 'true',
+  
   // Experimental features
   AI_CATEGORIZATION: process.env.NEXT_PUBLIC_FEATURE_AI_CATEGORIZATION === 'true',
   BANK_IMPORT: process.env.NEXT_PUBLIC_FEATURE_BANK_IMPORT === 'true',
@@ -73,6 +78,18 @@ export const FEATURE_METADATA: Record<FeatureFlag, {
     name: 'Debt Payoff Strategy',
     description: 'Systematic debt elimination using snowball method',
     availableIn: 'v1.4',
+  },
+  FUTURE_TRANSACTIONS: {
+    name: 'Future Transactions',
+    description: 'Plan and schedule future transactions without affecting current balance',
+  },
+  DAILY_FORECAST: {
+    name: 'Daily Cash Flow Forecast',
+    description: 'See projected daily balances to avoid running out of money',
+  },
+  PAYMENT_RISKS: {
+    name: 'Payment Risk Assessment',
+    description: 'Get warnings about upcoming payments that may cause insufficient funds',
   },
   AI_CATEGORIZATION: {
     name: 'AI Transaction Categorization',

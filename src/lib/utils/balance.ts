@@ -28,11 +28,13 @@ export async function calculateAccountBalance(
     throw new Error(`Failed to fetch account: ${accountError?.message}`)
   }
 
-  // Get all non-deleted transactions for this account
+  // Get all completed, non-deleted transactions for this account
+  // CRITICAL: Only include completed transactions, exclude planned transactions
   const { data: transactions, error: transactionsError } = await supabase
     .from('transactions')
     .select('amount, type')
     .eq('account_id', accountId)
+    .eq('status', 'completed') // Only completed transactions affect balance
     .is('deleted_at', null)
 
   if (transactionsError) {

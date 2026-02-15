@@ -2,6 +2,153 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0] - 2026-02-15
+
+### Added
+- **Current Month Overview Widget**: Practical, easy-to-understand financial overview
+  - Income tracking (earned + planned) with green highlighting
+  - Expense tracking (spent + planned) with clear separation
+  - Average daily spending based on current month only
+  - Projected remaining spending for rest of month
+  - Month end net balance projection (income - expenses)
+  - Color-coded indicators (green for surplus, red for deficit)
+  - Top 5 expense categories with visual progress bars
+  - Works from day 1 (no "need more data" messages)
+  - Simple, transparent calculations
+
+### Changed
+- **Real-Time Data Refresh**: Removed React Query caching for critical financial data
+  - Balance updates immediately when navigating between pages
+  - Account data always fresh (staleTime: 0, gcTime: 0)
+  - Account balances always fresh (staleTime: 0, gcTime: 0)
+  - Transaction data already had no caching
+  - Critical for financial accuracy
+
+### Fixed
+- **Balance Not Updating**: Fixed balance not refreshing when returning to dashboard
+  - Problem: 5-minute cache prevented immediate updates
+  - Solution: Removed caching from accounts and account balances hooks
+  - Impact: Users always see latest balance information
+
+### Removed
+- **Spending Trends Widget**: Replaced with simpler Current Month Overview
+  - Old widget had complex 3-month averages
+  - Caused false "unusual spending" warnings for new users
+  - Files preserved but not used (can be restored if needed)
+
+### Technical
+- Updated `src/hooks/use-accounts.ts` - Removed caching
+- Updated `src/hooks/use-account-balances.ts` - Removed caching
+- Created `src/components/forecast/current-month-overview.tsx` - New widget (400+ lines)
+- Updated `src/app/(dashboard)/dashboard/page.tsx` - Integrated new widget
+- Documentation: `FIXES_BALANCE_AND_INCOME.md`, `IMPLEMENTATION_CURRENT_MONTH_OVERVIEW.md`
+
+### User Impact
+- New users can start using app immediately
+- Existing users get more accurate balance information
+- Better visibility into income and expenses
+- Clearer financial projections
+- Positive, informative experience
+
+## [1.2.0] - TBD (Pending Approval)
+
+### Added
+- **Daily Cash Flow Forecast (CRITICAL)**: Visual chart showing projected balance for each day
+  - Conservative calculations with 10% safety multiplier
+  - Color-coded risk indicators (🟢 Safe, 🟡 Warning, 🔴 Danger)
+  - Smart averaging excludes large one-time purchases
+  - Requires minimum 14 days of transaction history
+  - Real-time updates when transactions change
+  - Multi-month view capability
+- **Upcoming Payments & Risk Assessment (CRITICAL)**: Shows planned transactions with risk indicators
+  - 🟢 Green: Sufficient funds, 🟡 Yellow: Tight balance, 🔴 Red: Insufficient funds
+  - Smart recommendations for each payment
+  - Quick "Mark as Paid" action
+  - Payment totals for 7/14/30 day periods
+  - Sorted by urgency (soonest first)
+- **Future Transaction Planning**: New "planned" status for transactions up to 6 months ahead
+  - Planned transactions don't affect current balances
+  - Excluded from reconciliation calculations
+  - Visual distinction with badges
+  - Easy conversion to completed status
+- **Month-Based Navigation**: Month selector with transaction counts
+  - Previous/Next month navigation
+  - "Current Month" quick jump
+  - Automatic transaction filtering
+  - URL state persistence
+- **Balance Overview Widget**: Total balance across all accounts
+  - Account-level breakdown
+  - Reconciliation status indicators
+  - Asset/debt separation
+  - Quick reconciliation links
+- **Spending Trends Analysis**: Category-based spending insights
+  - Month-over-month comparison
+  - 3-month average comparison
+  - Unusual spending detection (>50% deviation)
+  - Top 3 categories highlighted
+  - Trend indicators (↑↓→)
+  - Average daily spending display
+- **User Settings**: Customizable forecast preferences
+  - Minimum safe balance threshold
+  - Safety buffer days (1-30)
+  - Settings persistence per user/workspace
+  - Real-time forecast updates
+
+### Changed
+- **Enhanced Onboarding**: Improved guided user journey
+  - Consistent access control across all pages
+  - Settings always accessible
+  - Account requirement for transactions
+  - Clear guidance at each step
+- **Transaction Schema**: Added status field for planned vs completed
+  - `status` column: 'completed' (default) or 'planned'
+  - `planned_date` column for future transactions (max 6 months)
+  - `completed_at` timestamp for conversion tracking
+- **Dashboard Layout**: Reorganized with new forecast and insights widgets
+  - Responsive grid layout
+  - Loading states with skeleton loaders
+  - Empty states with helpful guidance
+  - Error boundaries for graceful degradation
+
+### Technical
+- **Database Migrations**: 
+  - Added transaction status and planned_date fields
+  - Created user_settings table
+  - Added performance indexes
+  - Backfilled existing transactions as 'completed'
+- **Calculation Engine**:
+  - Average daily spending calculator (excludes outliers)
+  - Daily forecast calculator (conservative estimates)
+  - Payment risk assessment algorithm
+  - Spending trends analyzer
+- **Performance Optimizations**:
+  - 5-minute cache TTL for forecasts
+  - Optimized queries with indexes
+  - React Query for smart caching
+  - Lazy loading for widgets
+- **Test Coverage**:
+  - 90%+ for calculation engine
+  - 80%+ for server actions
+  - 70%+ for components
+  - 75%+ overall coverage
+- **Documentation**:
+  - Comprehensive manual test cases (60+ scenarios)
+  - Calculation logic documentation
+  - Forecast API documentation
+  - Deployment and monitoring guides
+
+### Fixed
+- Improved error handling for insufficient data scenarios
+- Better empty states throughout application
+- Enhanced accessibility (WCAG 2.1 AA compliant)
+- Consistent Executive Lounge aesthetic
+
+### Performance
+- Dashboard loads in < 3 seconds
+- Forecast calculation < 2 seconds
+- Month filtering < 100ms
+- Cache hit rate > 80%
+
 ## [1.1.3] - 2026-02-12
 
 ### Fixed

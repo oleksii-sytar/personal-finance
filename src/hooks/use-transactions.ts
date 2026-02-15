@@ -8,17 +8,21 @@ import type { Transaction, TransactionWithCategory, TransactionFilters, ActionRe
  * Hook for fetching transactions with optional filtering
  * Following code-quality.md naming and structure patterns
  * SECURITY: Always filters by current workspace ID
+ * Implements Requirements 4.2: Month filtering logic
  */
 export function useTransactions(filters?: {
   categories?: string[]
   type?: 'income' | 'expense'
   startDate?: Date
   endDate?: Date
+  month?: string // Format: YYYY-MM
 }) {
   const { currentWorkspace } = useWorkspace()
   
   return useQuery({
     queryKey: ['transactions', currentWorkspace?.id, filters],
+    staleTime: 0, // Always fetch fresh data
+    gcTime: 0, // Don't cache at all
     queryFn: async (): Promise<TransactionWithCategory[]> => {
       // SECURITY: Must have a current workspace
       if (!currentWorkspace?.id) {
@@ -41,20 +45,63 @@ export function useTransactions(filters?: {
       if (filters?.type) {
         query = query.eq('type', filters.type)
       }
-      if (filters?.startDate) {
-        query = query.gte('transaction_date', filters.startDate.toISOString().split('T')[0])
-      }
-      if (filters?.endDate) {
-        query = query.lte('transaction_date', filters.endDate.toISOString().split('T')[0])
-      }
+      
+      // Month filtering takes precedence over startDate/endDate
+      if (filters?.month) {
+        // Parse month string (YYYY-MM) and create date range using UTC to avoid timezone issues
+        const [year, month] = filters.month.split('-').map(Number)
+        const startOfMonth = new Date(Date.UTC(year, month - 1, 1))
+        const endOfMonth = new Date(Date.UTC(year, month, 0)) // Last day of month
+        
+        // For planned transactions, use planned_date; for completed, use transaction_date
+        // We need to fetch all and filter in memory since we can't do OR conditions easily in Supabase
+        const startDateStr = startOfMonth.toISOString().split('T')[0]
+        const endDateStr = endOfMonth.toISOString().split('T')[0]
+        
+        console.log('[useTransactions] Month filter:', filters.month)
+        console.log('[useTransactions] Date range:', startDateStr, 'to', endDateStr)
+        
+        // Fetch all transactions for the workspace and filter in memory
+        const { data: allData, error: allError } = await query
+        
+        if (allError) {
+          throw new Error(`Failed to fetch transactions: ${allError.message}`)
+        }
+        
+        console.log('[useTransactions] Fetched transactions:', allData?.length)
+        
+        // Filter by the appropriate date field based on status
+        const filteredData = (allData || []).filter(t => {
+          const dateToCheck = t.status === 'planned' ? t.planned_date : t.transaction_date
+          const isInRange = dateToCheck >= startDateStr && dateToCheck <= endDateStr
+          
+          if (!isInRange) {
+            console.log('[useTransactions] EXCLUDING:', t.description, 'date:', dateToCheck, 'status:', t.status)
+          }
+          
+          return isInRange
+        })
+        
+        console.log('[useTransactions] Filtered transactions:', filteredData.length)
+        
+        return filteredData
+      } else {
+        // Apply date range filters only if month filter is not present
+        if (filters?.startDate) {
+          query = query.gte('transaction_date', filters.startDate.toISOString().split('T')[0])
+        }
+        if (filters?.endDate) {
+          query = query.lte('transaction_date', filters.endDate.toISOString().split('T')[0])
+        }
+        
+        const { data, error } = await query
 
-      const { data, error } = await query
+        if (error) {
+          throw new Error(`Failed to fetch transactions: ${error.message}`)
+        }
 
-      if (error) {
-        throw new Error(`Failed to fetch transactions: ${error.message}`)
+        return data || []
       }
-
-      return data || []
     },
     enabled: !!currentWorkspace?.id, // Only run query when workspace is available
   })
@@ -189,6 +236,10 @@ export function useCreateTransaction() {
       // Invalidate reconciliation status to update balances
       queryClient.invalidateQueries({ queryKey: ['reconciliation', 'status', currentWorkspace?.id] })
       queryClient.invalidateQueries({ queryKey: ['account-difference'] })
+      // Invalidate dashboard widget queries
+      queryClient.invalidateQueries({ queryKey: ['accounts'] })
+      queryClient.invalidateQueries({ queryKey: ['account-balances'] })
+      queryClient.invalidateQueries({ queryKey: ['spending-trends'] })
     },
   })
 }
@@ -212,6 +263,10 @@ export function useUpdateTransaction() {
       // Invalidate reconciliation status to update balances
       queryClient.invalidateQueries({ queryKey: ['reconciliation', 'status', currentWorkspace?.id] })
       queryClient.invalidateQueries({ queryKey: ['account-difference'] })
+      // Invalidate dashboard widget queries
+      queryClient.invalidateQueries({ queryKey: ['accounts'] })
+      queryClient.invalidateQueries({ queryKey: ['account-balances'] })
+      queryClient.invalidateQueries({ queryKey: ['spending-trends'] })
     },
   })
 }
@@ -234,6 +289,40 @@ export function useDeleteTransaction() {
       // Invalidate reconciliation status to update balances
       queryClient.invalidateQueries({ queryKey: ['reconciliation', 'status', currentWorkspace?.id] })
       queryClient.invalidateQueries({ queryKey: ['account-difference'] })
+      // Invalidate dashboard widget queries
+      queryClient.invalidateQueries({ queryKey: ['accounts'] })
+      queryClient.invalidateQueries({ queryKey: ['account-balances'] })
+      queryClient.invalidateQueries({ queryKey: ['spending-trends'] })
+    },
+  })
+}
+
+/**
+ * Hook for marking planned transactions as completed
+ * Implements Requirements 3.4: Mark planned transactions as completed
+ * SECURITY: Invalidates queries for current workspace only
+ */
+export function useMarkPlannedAsCompleted() {
+  const queryClient = useQueryClient()
+  const { currentWorkspace } = useWorkspace()
+
+  return useMutation<ActionResult<Transaction>, Error, string>({
+    mutationFn: async (transactionId: string) => {
+      const { markPlannedAsCompleted } = await import('@/actions/transactions')
+      return markPlannedAsCompleted(transactionId)
+    },
+    onSuccess: () => {
+      // Invalidate and refetch queries after marking as completed
+      queryClient.invalidateQueries({ queryKey: ['transactions', currentWorkspace?.id] })
+      queryClient.invalidateQueries({ queryKey: ['transactions-infinite', currentWorkspace?.id] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] })
+      // Invalidate reconciliation status to update balances
+      queryClient.invalidateQueries({ queryKey: ['reconciliation', 'status', currentWorkspace?.id] })
+      queryClient.invalidateQueries({ queryKey: ['account-difference'] })
+      // Invalidate dashboard widget queries
+      queryClient.invalidateQueries({ queryKey: ['accounts'] })
+      queryClient.invalidateQueries({ queryKey: ['account-balances'] })
+      queryClient.invalidateQueries({ queryKey: ['spending-trends'] })
     },
   })
 }

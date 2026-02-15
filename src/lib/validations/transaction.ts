@@ -26,6 +26,11 @@ export const transactionSchema = z.object({
   expected_transaction_id: z.string().uuid().optional(),
   recurring_transaction_id: z.string().uuid().optional(),
   
+  // Transaction status support (Requirements 2.3, 3.1)
+  status: z.enum(['completed', 'planned']).default('completed'),
+  planned_date: z.coerce.date().optional().nullable(),
+  completed_at: z.coerce.date().optional().nullable(),
+  
   // Soft delete support
   deleted_at: z.coerce.date().optional().nullable(),
 })
@@ -39,10 +44,47 @@ export const createTransactionSchema = transactionSchema.omit({
 }).extend({
   account_id: z.string().uuid('Invalid account ID').optional(), // Make optional - will use default account if not provided
   description: z.string().max(255).optional(), // Make description optional
-})
+}).refine(
+  (data) => {
+    // If status is 'planned', planned_date must be set and within 6 months
+    if (data.status === 'planned') {
+      if (!data.planned_date) {
+        return false
+      }
+      const sixMonthsFromNow = new Date()
+      sixMonthsFromNow.setMonth(sixMonthsFromNow.getMonth() + 6)
+      const plannedDate = new Date(data.planned_date)
+      return plannedDate <= sixMonthsFromNow && plannedDate >= new Date()
+    }
+    return true
+  },
+  {
+    message: 'Planned transactions must have a planned_date within the next 6 months',
+    path: ['planned_date'],
+  }
+)
 
 // Schema for updating transactions
-export const updateTransactionSchema = createTransactionSchema.partial()
+export const updateTransactionSchema = z.object({
+  account_id: z.string().uuid('Invalid account ID').optional(),
+  amount: z.number().positive('Amount must be positive').optional(),
+  currency: z.string().length(3, 'Invalid currency code').optional(),
+  description: z.string().max(255).optional(),
+  notes: z.string().max(1000).optional(),
+  category_id: z.string().uuid('Invalid category ID').optional(),
+  transaction_date: z.coerce.date().optional(),
+  type: z.enum(['income', 'expense']).optional(),
+  transaction_type_id: z.string().uuid('Invalid transaction type ID').optional(),
+  original_amount: z.number().positive().optional(),
+  original_currency: z.string().length(3).optional(),
+  is_expected: z.boolean().optional(),
+  expected_transaction_id: z.string().uuid().optional(),
+  recurring_transaction_id: z.string().uuid().optional(),
+  status: z.enum(['completed', 'planned']).optional(),
+  planned_date: z.coerce.date().optional().nullable(),
+  completed_at: z.coerce.date().optional().nullable(),
+  deleted_at: z.coerce.date().optional().nullable(),
+})
 
 // Quick entry schema (minimal fields for mobile)
 export const quickEntrySchema = z.object({

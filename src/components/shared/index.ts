@@ -5,6 +5,7 @@
 
 export { FeatureGate } from './feature-gate'
 export { ComingSoon } from './coming-soon'
+export { EmptyStateWithAction } from './empty-state-with-action'
 export { LoadingSpinner } from './loading-spinner'
 export { FullScreenLoading } from './full-screen-loading'
 export { FormaLogoLoader, FullScreenFormaLoader } from './forma-logo-loader'
@@ -29,3 +30,5 @@ export { AuthComponentErrorBoundary } from './auth-component-error-boundary'
 export { AuthSyncManager } from './auth-sync-manager'
 export { OfflineManager, useOfflineManager } from './offline-manager'
 export { TransactionErrorBoundary, useTransactionErrorHandler } from './transaction-error-boundary'
+export { MonthSelector } from './month-selector'
+export { FAQSection } from './faq-section'

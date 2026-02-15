@@ -15,3 +15,8 @@ export { RecurringTransactionForm } from './recurring-transaction-form'
 export { RecurringTransactionList } from './recurring-transaction-list'
 export { ExpectedTransactionList } from './expected-transaction-list'
 export { RecurringTransactionsManager } from './recurring-transactions-manager'
+
+// Planned transaction UI components
+export { TransactionStatusBadge } from './transaction-status-badge'
+export { TransactionStatusFilter } from './transaction-status-filter'
+export { MarkAsPaidButton } from './mark-as-paid-button'

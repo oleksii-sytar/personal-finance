@@ -18,6 +18,7 @@ interface TransactionListProps {
   transactions: TransactionWithCategory[]
   onEdit?: (transaction: TransactionWithCategory) => void
   onDelete?: (transactionId: string) => void
+  onMarkAsPaid?: (transactionId: string) => Promise<void>
   onLoadMore?: () => Promise<void>
   hasMore?: boolean
   isLoading?: boolean
@@ -33,6 +34,7 @@ export function TransactionList({
   transactions,
   onEdit,
   onDelete,
+  onMarkAsPaid,
   onLoadMore,
   hasMore = false,
   isLoading = false,
@@ -168,6 +170,7 @@ export function TransactionList({
           transaction={transaction}
           onEdit={onEdit}
           onDelete={onDelete}
+          onMarkAsPaid={onMarkAsPaid}
         />
       ))}
       

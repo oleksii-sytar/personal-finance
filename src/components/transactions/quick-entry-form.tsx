@@ -31,6 +31,8 @@ interface QuickEntryState {
   categoryId?: string
   description: string
   isSubmitting: boolean
+  date: string
+  status: 'completed' | 'planned'
 }
 
 /**
@@ -75,6 +77,27 @@ export function QuickEntryForm({
     return accountId || undefined
   }
   
+  // Helper to determine status based on date
+  const getStatusFromDate = (dateString: string): 'completed' | 'planned' => {
+    const selectedDate = new Date(dateString)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    selectedDate.setHours(0, 0, 0, 0)
+    
+    return selectedDate > today ? 'planned' : 'completed'
+  }
+  
+  // Helper to get max date (6 months from today)
+  const getMaxDate = () => {
+    const maxDate = new Date()
+    maxDate.setMonth(maxDate.getMonth() + 6)
+    return maxDate.toISOString().split('T')[0]
+  }
+  
+  const getDefaultDate = () => {
+    return new Date().toISOString().split('T')[0]
+  }
+  
   const [state, setState] = useState<QuickEntryState>({
     amount: '',
     type: getDefaultType(),
@@ -82,6 +105,8 @@ export function QuickEntryForm({
     categoryId: getDefaultCategoryId(),
     description: '',
     isSubmitting: false,
+    date: getDefaultDate(),
+    status: 'completed',
   })
   
   const [error, setError] = useState<string>('')
@@ -113,6 +138,16 @@ export function QuickEntryForm({
       ...prev, 
       type: newType,
       categoryId: undefined // Reset category when type changes
+    }))
+  }
+
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newDate = e.target.value
+    const newStatus = getStatusFromDate(newDate)
+    setState(prev => ({ 
+      ...prev, 
+      date: newDate,
+      status: newStatus
     }))
   }
 
@@ -151,9 +186,15 @@ export function QuickEntryForm({
       formData.set('amount', amount.toString())
       formData.set('type', state.type)
       formData.set('description', state.description || `${state.type === 'income' ? 'Income' : 'Expense'} - ${new Date().toLocaleDateString()}`)
-      formData.set('transaction_date', new Date().toISOString())
+      formData.set('transaction_date', new Date(state.date).toISOString())
       formData.set('currency', 'UAH')
       formData.set('workspace_id', currentWorkspace.id)
+      
+      // Add status and planned_date for future transactions
+      formData.set('status', state.status)
+      if (state.status === 'planned') {
+        formData.set('planned_date', state.date)
+      }
       
       // Account will be handled by server action (default assignment if not provided)
       if (state.accountId) {
@@ -198,6 +239,8 @@ export function QuickEntryForm({
         categoryId: undefined,
         description: '',
         isSubmitting: false,
+        date: getDefaultDate(),
+        status: 'completed',
       })
 
       // Refocus amount field for next entry
@@ -297,6 +340,36 @@ export function QuickEntryForm({
             onChange={(categoryId) => setState(prev => ({ ...prev, categoryId }))}
             placeholder="Select or create category..."
           />
+        </div>
+
+        {/* Date Selection */}
+        <div>
+          <label className="block text-sm font-medium text-secondary mb-2">
+            Date
+          </label>
+          <Input
+            type="date"
+            value={state.date}
+            onChange={handleDateChange}
+            max={getMaxDate()}
+            className="text-primary"
+            required
+          />
+          
+          {/* Status Indicator */}
+          {state.status === 'planned' && (
+            <div className="mt-2 flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-amber-500/10 text-amber-500 border border-amber-500/20">
+              <span className="w-2 h-2 rounded-full bg-amber-500" />
+              <span>Planned Transaction</span>
+            </div>
+          )}
+          
+          {/* Explanatory Text */}
+          {state.status === 'planned' && (
+            <p className="text-xs text-secondary mt-2">
+              This transaction is scheduled for the future and won't affect your current balance.
+            </p>
+          )}
         </div>
 
         {/* Optional Description */}

@@ -1,90 +1,96 @@
-'use client'
+/**
+ * Feature Gate Component
+ * 
+ * Conditionally renders children based on feature flag status.
+ * Used for gradual rollout of new features.
+ * 
+ * @example
+ * ```tsx
+ * <FeatureGate feature="FUTURE_TRANSACTIONS" fallback={<ComingSoon />}>
+ *   <FutureTransactionForm />
+ * </FeatureGate>
+ * ```
+ */
 
-import { ReactNode } from 'react'
-import { useRouter } from 'next/navigation'
-import { useWorkspace } from '@/contexts/workspace-context'
-import { useWorkspaceModal } from '@/contexts/workspace-modal-context'
-import { Card } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
-import { Lock, Plus } from 'lucide-react'
+import { type ReactNode } from 'react'
+import { isFeatureEnabled, type FeatureFlag, FEATURE_METADATA } from '@/config/feature-flags'
 
 interface FeatureGateProps {
+  feature: FeatureFlag
   children: ReactNode
-  featureName: string
-  description: string
-  requireWorkspace?: boolean
+  fallback?: ReactNode
+  showComingSoon?: boolean
 }
 
 /**
- * FeatureGate component that restricts access to features based on workspace availability
- * Requirements: 4.5
+ * Renders children only if the feature flag is enabled
  */
 export function FeatureGate({ 
+  feature, 
   children, 
-  featureName, 
-  description,
-  requireWorkspace = true 
+  fallback = null,
+  showComingSoon = false
 }: FeatureGateProps) {
-  const { currentWorkspace, workspaces, loading } = useWorkspace()
-  const { openCreateModal } = useWorkspaceModal()
-  const router = useRouter()
-
-  // Show loading while checking workspace status
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#E6A65D]"></div>
-      </div>
-    )
-  }
-
-  // If workspace is not required or user has a workspace, show the feature
-  if (!requireWorkspace || (workspaces.length > 0 && currentWorkspace)) {
-    return <>{children}</>
-  }
-
-  // Show access restriction notice
-  return (
-    <div className="space-y-8">
-      <Card className="w-full max-w-2xl mx-auto p-8">
-        <div className="text-center space-y-6">
-          <div className="w-16 h-16 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto">
-            <Lock className="w-8 h-8 text-amber-400" />
-          </div>
-          
+  if (!isFeatureEnabled(feature)) {
+    if (showComingSoon) {
+      const metadata = FEATURE_METADATA[feature]
+      return (
+        <div className="p-6 bg-glass rounded-xl border border-primary/10 text-center">
           <div className="space-y-2">
-            <h2 className="text-2xl font-semibold text-primary">
-              {featureName} Requires a Workspace
-            </h2>
-            <p className="text-secondary">
-              {description}
-            </p>
-          </div>
-
-          <div className="space-y-4">
+            <h3 className="text-lg font-semibold text-primary">
+              {metadata.name}
+            </h3>
             <p className="text-sm text-secondary">
-              Create a workspace to unlock this feature and start collaborating with your family.
+              {metadata.description}
             </p>
-            
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button
-                onClick={openCreateModal}
-                className="flex items-center gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                Create Workspace
-              </Button>
-              
-              <Button
-                variant="secondary"
-                onClick={() => router.push('/dashboard')}
-              >
-                Back to Dashboard
-              </Button>
-            </div>
+            {metadata.availableIn && (
+              <span className="inline-block mt-2 px-3 py-1 bg-amber-500/10 text-amber-500 rounded-full text-xs font-medium">
+                Coming in {metadata.availableIn}
+              </span>
+            )}
           </div>
         </div>
-      </Card>
-    </div>
-  )
+      )
+    }
+    return <>{fallback}</>
+  }
+  
+  return <>{children}</>
+}
+
+/**
+ * Hook to check if a feature is enabled
+ * 
+ * @example
+ * ```tsx
+ * const canUseFutureTransactions = useFeatureFlag('FUTURE_TRANSACTIONS')
+ * ```
+ */
+export function useFeatureFlag(feature: FeatureFlag): boolean {
+  return isFeatureEnabled(feature)
+}
+
+/**
+ * Higher-order component to wrap a component with feature gating
+ * 
+ * @example
+ * ```tsx
+ * const FutureTransactionForm = withFeatureGate(
+ *   'FUTURE_TRANSACTIONS',
+ *   FutureTransactionFormComponent
+ * )
+ * ```
+ */
+export function withFeatureGate<P extends object>(
+  feature: FeatureFlag,
+  Component: React.ComponentType<P>,
+  fallback?: ReactNode
+) {
+  return function FeatureGatedComponent(props: P) {
+    return (
+      <FeatureGate feature={feature} fallback={fallback}>
+        <Component {...props} />
+      </FeatureGate>
+    )
+  }
 }

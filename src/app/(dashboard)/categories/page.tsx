@@ -1,5 +1,7 @@
 import { Suspense } from 'react'
 import { CategoryManager } from '@/components/categories'
+import { WorkspaceGate } from '@/components/shared/workspace-gate'
+import { FolderTree, TrendingUp, Tag, Zap } from 'lucide-react'
 
 export const metadata = {
   title: 'Categories | Forma',
@@ -8,24 +10,47 @@ export const metadata = {
 
 /**
  * Categories page for comprehensive category management
- * Implements Requirements 7.1, 7.2, 7.3, 7.4, 7.5: Complete category management interface
+ * Implements Requirements AC 2.1.1, AC 2.2.4: Categories require workspace (auto-created with workspace)
  */
 export default function CategoriesPage() {
   return (
-    <div className="container py-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-primary">Categories</h1>
-          <p className="text-secondary mt-1">
-            Organize your transactions with custom categories
-          </p>
+    <WorkspaceGate
+      featureName="Category Management"
+      description="Organize your transactions with custom categories to track spending patterns and make informed financial decisions."
+      benefits={[
+        {
+          icon: <FolderTree className="w-5 h-5" />,
+          text: 'Organize expenses and income into meaningful groups'
+        },
+        {
+          icon: <TrendingUp className="w-5 h-5" />,
+          text: 'Track spending patterns by category'
+        },
+        {
+          icon: <Tag className="w-5 h-5" />,
+          text: 'Create custom categories for your unique needs'
+        },
+        {
+          icon: <Zap className="w-5 h-5" />,
+          text: 'Auto-categorize transactions for faster entry'
+        }
+      ]}
+    >
+      <div className="container py-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-primary">Categories</h1>
+            <p className="text-secondary mt-1">
+              Organize your transactions with custom categories
+            </p>
+          </div>
         </div>
-      </div>
 
-      <Suspense fallback={<CategoryManagerSkeleton />}>
-        <CategoryManager />
-      </Suspense>
-    </div>
+        <Suspense fallback={<CategoryManagerSkeleton />}>
+          <CategoryManager />
+        </Suspense>
+      </div>
+    </WorkspaceGate>
   )
 }
 

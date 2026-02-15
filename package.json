@@ -1,6 +1,6 @@
 {
   "name": "personal-finance",
-  "version": "1.1.3",
+  "version": "1.3.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -20,8 +20,8 @@
     "test:coverage": "vitest run --coverage",
     "test:autonomous": "vitest run --reporter=verbose --no-watch",
     "test:e2e:autonomous": "AUTONOMOUS_MODE=true playwright test --project=chromium",
-    "db:types": "supabase gen types typescript --linked --output src/types/database.ts 2>/dev/null || echo 'Type generation failed, using existing types'",
-    "db:push": "node scripts/apply-migration-direct.mjs",
+    "db:types": "node scripts/generate-types-from-db.mjs",
+    "db:push": "node scripts/apply-single-migration.mjs",
     "db:migrate": "./scripts/open-sql-editor.sh",
     "db:cleanup": "node scripts/force-cleanup-test-users.mjs",
     "deploy": "./scripts/deploy-autonomous.sh",

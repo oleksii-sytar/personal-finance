@@ -1,45 +1,36 @@
 #!/usr/bin/env node
 
 /**
- * Direct database migration script
- * Applies SQL migrations directly to the database without interactive prompts
+ * Apply migrations directly using Postgres connection
+ * This is the most reliable method for applying migrations
  */
 
+import pg from 'pg'
 import { readFileSync, readdirSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
-import pg from 'pg'
 import dotenv from 'dotenv'
 
 const { Client } = pg
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-// Load environment variables from .env.local
+// Load environment variables
 dotenv.config({ path: join(__dirname, '..', '.env.local') })
 
-// Disable SSL certificate validation for Supabase cloud connections
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+const POSTGRES_URL = process.env.POSTGRES_URL_NON_POOLING
 
-// Get database URL from environment
-const DATABASE_URL = process.env.POSTGRES_URL_NON_POOLING || process.env.DATABASE_URL
-
-if (!DATABASE_URL) {
-  console.error('❌ Error: POSTGRES_URL_NON_POOLING or DATABASE_URL environment variable not set')
+if (!POSTGRES_URL) {
+  console.error('❌ Error: POSTGRES_URL_NON_POOLING required in .env.local')
   process.exit(1)
 }
 
 async function applyMigrations() {
-  // Parse the connection string and modify SSL settings
-  const connectionConfig = {
-    connectionString: DATABASE_URL,
-    ssl: {
-      rejectUnauthorized: false
-    }
-  }
-
-  const client = new Client(connectionConfig)
+  const client = new Client({
+    connectionString: POSTGRES_URL
+  })
 
   try {
+    console.log('🔗 Connecting to Postgres database...')
     await client.connect()
     console.log('✅ Connected to database')
 
@@ -51,87 +42,63 @@ async function applyMigrations() {
 
     if (files.length === 0) {
       console.log('ℹ️  No migration files found')
+      await client.end()
       return
     }
 
     console.log(`📋 Found ${files.length} migration file(s)`)
 
-    // Create migrations tracking table if it doesn't exist
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS _migrations (
-        id SERIAL PRIMARY KEY,
-        name TEXT NOT NULL UNIQUE,
-        applied_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-      )
-    `)
-
-    // Check which migrations have been applied
-    const { rows: appliedMigrations } = await client.query(
-      'SELECT name FROM _migrations'
-    )
-    const appliedSet = new Set(appliedMigrations.map(r => r.name))
-
-    // If no migrations recorded but tables exist, mark all as applied
-    if (appliedSet.size === 0) {
-      const { rows: tables } = await client.query(`
-        SELECT tablename FROM pg_tables 
-        WHERE schemaname = 'public' 
-        AND tablename IN ('workspaces', 'accounts', 'transactions')
-      `)
-      
-      if (tables.length > 0) {
-        console.log('ℹ️  Database already has tables, marking existing migrations as applied...')
-        for (const file of files) {
-          await client.query(
-            'INSERT INTO _migrations (name) VALUES ($1) ON CONFLICT (name) DO NOTHING',
-            [file]
-          )
-          appliedSet.add(file)
-        }
-        console.log('✅ All existing migrations marked as applied')
-        return
-      }
+    // Apply only the specific migration we need
+    const targetFile = '20260214114425_add_transaction_status_fields.sql'
+    
+    if (!files.includes(targetFile)) {
+      console.error(`❌ Migration file not found: ${targetFile}`)
+      await client.end()
+      process.exit(1)
     }
 
-    // Apply pending migrations
-    let appliedCount = 0
-    for (const file of files) {
-      if (appliedSet.has(file)) {
-        console.log(`⏭️  Skipping ${file} (already applied)`)
-        continue
-      }
-
-      console.log(`🔄 Applying ${file}...`)
-      const sql = readFileSync(join(migrationsDir, file), 'utf-8')
-      
-      try {
-        await client.query('BEGIN')
-        await client.query(sql)
-        await client.query(
-          'INSERT INTO _migrations (name) VALUES ($1)',
-          [file]
-        )
-        await client.query('COMMIT')
-        console.log(`✅ Applied ${file}`)
-        appliedCount++
-      } catch (error) {
-        await client.query('ROLLBACK')
-        console.error(`❌ Error applying ${file}:`, error.message)
+    console.log(`🔄 Applying ${targetFile}...`)
+    const sql = readFileSync(join(migrationsDir, targetFile), 'utf-8')
+    
+    try {
+      await client.query(sql)
+      console.log(`✅ Applied ${targetFile}`)
+    } catch (error) {
+      // Check if columns already exist
+      if (error.message.includes('already exists')) {
+        console.log(`ℹ️  ${targetFile} already applied (columns exist)`)
+      } else {
         throw error
       }
     }
 
-    if (appliedCount === 0) {
-      console.log('✅ All migrations already applied')
+    // Verify the columns exist
+    console.log('🔍 Verifying migration...')
+    const result = await client.query(`
+      SELECT column_name, data_type, is_nullable, column_default
+      FROM information_schema.columns
+      WHERE table_name = 'transactions'
+      AND column_name IN ('status', 'planned_date', 'completed_at')
+      ORDER BY column_name
+    `)
+
+    if (result.rows.length === 3) {
+      console.log('✅ All columns verified:')
+      result.rows.forEach(row => {
+        console.log(`  - ${row.column_name}: ${row.data_type} (nullable: ${row.is_nullable})`)
+      })
     } else {
-      console.log(`✅ Successfully applied ${appliedCount} migration(s)`)
+      console.log('⚠️  Expected 3 columns, found:', result.rows.length)
     }
+
+    await client.end()
+    console.log('✅ Migration process completed')
 
   } catch (error) {
     console.error('❌ Migration failed:', error.message)
+    console.error(error)
+    await client.end().catch(() => {})
     process.exit(1)
-  } finally {
-    await client.end()
   }
 }
 

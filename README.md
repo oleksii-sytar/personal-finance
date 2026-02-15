@@ -71,6 +71,14 @@ supabase/
 - **Recurring transactions**: Automated tracking of regular income/expenses
 - **Multi-currency support**: Handle transactions in multiple currencies with automatic conversion
 
+### Financial Safety & Forecasting
+- **Daily cash flow forecast**: See projected balance for each day of the month
+- **Payment risk assessment**: Identify upcoming payments that may cause insufficient funds
+- **Conservative estimates**: 10% safety margin applied to spending projections
+- **Risk indicators**: Visual warnings for days when balance may be tight
+- **User-defined thresholds**: Set your own minimum safe balance
+- **Planned transactions**: Enter future transactions to see their impact on forecast
+
 ### Real-Time Balance Reconciliation
 - **Continuous reconciliation**: Track differences between bank balances and calculated balances in real-time
 - **Dual balance tracking**: Opening balance (immutable) and current balance (updated from bank statements)
@@ -99,6 +107,27 @@ SUPABASE_SERVICE_KEY=your_supabase_service_key
 - Workspace-based data isolation
 - Secure authentication via Supabase Auth
 - Environment variables for sensitive data
+
+## Documentation
+
+### Developer Documentation
+- **[Developer Quick Start](docs/DEVELOPER_QUICKSTART.md)**: Quick reference for working with the forecast system
+- **[Forecast API Documentation](docs/FORECAST_API.md)**: Complete API reference for the financial forecasting system
+- **[Calculation Logic Guide](docs/CALCULATION_LOGIC.md)**: Mathematical and algorithmic details of forecast calculations
+- **[Steering Files](.kiro/steering/)**: Project guidelines and best practices
+- **[Spec Files](.kiro/specs/)**: Feature specifications and requirements
+
+### Key Concepts
+
+#### Financial Forecasting
+The forecast system projects future account balances using:
+- **Historical Analysis**: Calculates average daily spending from past transactions
+- **Conservative Estimates**: Applies 10% safety margin to spending projections
+- **Outlier Exclusion**: Removes one-time large purchases (>3× median) from calculations
+- **Risk Assessment**: Identifies days when balance may fall below safe thresholds
+- **Payment Planning**: Evaluates upcoming planned transactions for affordability
+
+See [Forecast API Documentation](docs/FORECAST_API.md) for complete details.
 
 ## License
 

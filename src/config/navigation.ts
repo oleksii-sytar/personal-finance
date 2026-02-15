@@ -56,6 +56,12 @@ export const mainNav: NavItem[] = [
     icon: 'settings',
     description: 'Configure your preferences',
   },
+  {
+    title: 'Help',
+    href: '/help',
+    icon: 'help-circle',
+    description: 'Documentation and FAQs',
+  },
 ]
 
 /**
@@ -135,6 +141,11 @@ export const sidebarNav: NavSection[] = [
         title: 'Profile',
         href: '/settings/profile',
         icon: 'user',
+      },
+      {
+        title: 'Help',
+        href: '/help',
+        icon: 'help-circle',
       },
     ],
   },

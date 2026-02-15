@@ -1,4 +1,3 @@
-// Minimal database types for build - will be regenerated from Supabase
 export type Json =
   | string
   | number
@@ -14,112 +13,86 @@ export interface Database {
         Row: {
           id: string
           workspace_id: string
-          user_id: string
           account_id: string
+          user_id: string
           amount: number
           currency: string
+          description: string
+          type: 'income' | 'expense'
           transaction_date: string
-          description: string | null
-          notes: string | null
           category_id: string | null
           transaction_type_id: string | null
-          type: 'income' | 'expense'
+          notes: string | null
+          original_amount: number | null
+          original_currency: string | null
           is_expected: boolean
           expected_transaction_id: string | null
           recurring_transaction_id: string | null
+          status: 'completed' | 'planned'
+          planned_date: string | null
+          completed_at: string | null
           locked: boolean
-          original_amount: number | null
-          original_currency: string | null
           created_at: string
           updated_at: string
-          created_by: string | null
+          created_by: string
           updated_by: string | null
           deleted_at: string | null
         }
         Insert: {
           id?: string
           workspace_id: string
-          user_id?: string
           account_id: string
+          user_id?: string
           amount: number
           currency: string
+          description: string
+          type: 'income' | 'expense'
           transaction_date: string
-          description?: string | null
-          notes?: string | null
           category_id?: string | null
           transaction_type_id?: string | null
-          type: 'income' | 'expense'
+          notes?: string | null
+          original_amount?: number | null
+          original_currency?: string | null
           is_expected?: boolean
           expected_transaction_id?: string | null
           recurring_transaction_id?: string | null
+          status?: 'completed' | 'planned'
+          planned_date?: string | null
+          completed_at?: string | null
           locked?: boolean
-          original_amount?: number | null
-          original_currency?: string | null
           created_at?: string
           updated_at?: string
-          created_by?: string | null
+          created_by?: string
           updated_by?: string | null
           deleted_at?: string | null
         }
         Update: {
           id?: string
           workspace_id?: string
-          user_id?: string
           account_id?: string
+          user_id?: string
           amount?: number
           currency?: string
+          description?: string
+          type?: 'income' | 'expense'
           transaction_date?: string
-          description?: string | null
-          notes?: string | null
           category_id?: string | null
           transaction_type_id?: string | null
-          type?: 'income' | 'expense'
+          notes?: string | null
+          original_amount?: number | null
+          original_currency?: string | null
           is_expected?: boolean
           expected_transaction_id?: string | null
           recurring_transaction_id?: string | null
+          status?: 'completed' | 'planned'
+          planned_date?: string | null
+          completed_at?: string | null
           locked?: boolean
-          original_amount?: number | null
-          original_currency?: string | null
           created_at?: string
           updated_at?: string
-          created_by?: string | null
+          created_by?: string
           updated_by?: string | null
           deleted_at?: string | null
-        }
-      }
-      categories: {
-        Row: {
-          id: string
-          workspace_id: string
-          name: string
-          icon: string | null
-          color: string
-          type: 'income' | 'expense' | null
-          is_default: boolean
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          workspace_id: string
-          name: string
-          icon?: string | null
-          color?: string
-          type?: 'income' | 'expense' | null
-          is_default?: boolean
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          workspace_id?: string
-          name?: string
-          icon?: string | null
-          color?: string
-          type?: 'income' | 'expense' | null
-          is_default?: boolean
-          created_at?: string
-          updated_at?: string
         }
       }
       [key: string]: {
@@ -140,11 +113,7 @@ export interface Database {
   }
 }
 
-export type Tables<T extends keyof Database['public']['Tables']> =
-  Database['public']['Tables'][T]['Row']
-
-export type TablesInsert<T extends keyof Database['public']['Tables']> =
-  Database['public']['Tables'][T]['Insert']
-
-export type TablesUpdate<T extends keyof Database['public']['Tables']> =
-  Database['public']['Tables'][T]['Update']
+// Helper types for easier access
+export type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row']
+export type TablesInsert<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert']
+export type TablesUpdate<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Update']

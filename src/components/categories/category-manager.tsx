@@ -52,19 +52,6 @@ export function CategoryManager({
   const [mergeTargetId, setMergeTargetId] = useState('')
   const [error, setError] = useState('')
 
-  // Show workspace required message if no workspace
-  if (!currentWorkspace) {
-    return (
-      <div className={`bg-glass-elevated backdrop-blur-[16px] border border-glass rounded-xl p-6 ${className}`}>
-        <div className="text-center py-8">
-          <div className="text-secondary mb-4">
-            Please create or select a workspace to manage categories.
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   // Filter categories by type if specified
   const filteredCategories = filterType === 'all' 
     ? categories

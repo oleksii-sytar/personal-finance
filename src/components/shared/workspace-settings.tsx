@@ -77,6 +77,11 @@ function ConfirmationDialog({
 /**
  * WorkspaceSettings component for managing workspace configuration
  * Requirements: 6.1, 6.2, 6.3
+ * 
+ * CRITICAL: Settings page should always be accessible (Requirements 2.2.6)
+ * - Theme settings: Always accessible
+ * - Profile settings: Always accessible
+ * - Workspace settings: Only when workspace exists
  */
 export function WorkspaceSettings() {
   const [formData, setFormData] = useState<WorkspaceUpdateInput>({
@@ -102,13 +107,14 @@ export function WorkspaceSettings() {
     }
   }, [currentWorkspace])
 
-  if (!currentWorkspace || !user) {
+  // User must be authenticated to access settings
+  if (!user) {
     return (
       <div className="space-y-6">
         <Card>
           <CardContent>
             <p className="text-secondary text-center py-8">
-              No workspace selected
+              Please log in to access settings
             </p>
           </CardContent>
         </Card>
@@ -116,7 +122,7 @@ export function WorkspaceSettings() {
     )
   }
 
-  const currentMember = members.find(m => m.user_id === user.id)
+  const currentMember = currentWorkspace ? members.find(m => m.user_id === user.id) : null
   const isOwner = currentMember?.role === 'owner'
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -157,10 +163,12 @@ export function WorkspaceSettings() {
 
   const handleCancelEdit = () => {
     setIsEditing(false)
-    setFormData({
-      name: currentWorkspace.name,
-      currency: currentWorkspace.currency || 'UAH'
-    })
+    if (currentWorkspace) {
+      setFormData({
+        name: currentWorkspace.name,
+        currency: currentWorkspace.currency || 'UAH'
+      })
+    }
     setErrors({})
   }
 
@@ -184,7 +192,7 @@ export function WorkspaceSettings() {
 
   return (
     <div className="space-y-6">
-      {/* Theme Settings */}
+      {/* Theme Settings - Always accessible */}
       <Card>
         <CardHeader>
           <CardTitle>Appearance</CardTitle>
@@ -194,23 +202,52 @@ export function WorkspaceSettings() {
         </CardContent>
       </Card>
 
-      {/* Workspace Information */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
+      {/* Workspace-specific settings - Only when workspace exists */}
+      {!currentWorkspace ? (
+        <Card>
+          <CardHeader>
             <CardTitle>Workspace Settings</CardTitle>
-            {isOwner && !isEditing && (
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-8">
+              <p className="text-secondary mb-4">
+                You need to create a workspace to manage workspace-specific settings.
+              </p>
+              <p className="text-sm text-muted mb-6">
+                A workspace helps you organize your family finances and collaborate with others.
+              </p>
               <Button
-                onClick={() => setIsEditing(true)}
-                size="sm"
-                variant="secondary"
+                onClick={() => {
+                  // Trigger workspace creation modal
+                  const event = new CustomEvent('open-workspace-modal')
+                  window.dispatchEvent(event)
+                }}
+                variant="primary"
               >
-                Edit
+                Create Workspace
               </Button>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          {/* Workspace Information */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Workspace Settings</CardTitle>
+                {isOwner && !isEditing && (
+                  <Button
+                    onClick={() => setIsEditing(true)}
+                    size="sm"
+                    variant="secondary"
+                  >
+                    Edit
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
           {isEditing ? (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
@@ -306,47 +343,49 @@ export function WorkspaceSettings() {
         </CardContent>
       </Card>
 
-      {/* Member Management */}
-      <MemberManagement />
+          {/* Member Management */}
+          <MemberManagement />
 
-      {/* Danger Zone */}
-      {isOwner && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-accent-error">Danger Zone</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <h4 className="font-medium text-primary mb-2">Delete Workspace</h4>
-                <p className="text-sm text-secondary mb-4">
-                  Permanently delete this workspace and all associated data. This action cannot be undone.
-                </p>
-                <Button
-                  onClick={() => setShowDeleteDialog(true)}
-                  variant="outline"
-                  className="border-accent-error text-accent-error hover:bg-accent-error/10"
-                >
-                  Delete Workspace
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          {/* Danger Zone */}
+          {isOwner && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-accent-error">Danger Zone</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-medium text-primary mb-2">Delete Workspace</h4>
+                    <p className="text-sm text-secondary mb-4">
+                      Permanently delete this workspace and all associated data. This action cannot be undone.
+                    </p>
+                    <Button
+                      onClick={() => setShowDeleteDialog(true)}
+                      variant="outline"
+                      className="border-accent-error text-accent-error hover:bg-accent-error/10"
+                    >
+                      Delete Workspace
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Delete Confirmation Dialog */}
+          <ConfirmationDialog
+            isOpen={showDeleteDialog}
+            title="Delete Workspace"
+            message={`Are you sure you want to delete "${currentWorkspace.name}"? This will permanently delete all transactions, categories, and member data. This action cannot be undone.`}
+            confirmText="Delete Workspace"
+            cancelText="Cancel"
+            onConfirm={handleDeleteWorkspace}
+            onCancel={() => setShowDeleteDialog(false)}
+            isLoading={deleteLoading}
+            variant="danger"
+          />
+        </>
       )}
-
-      {/* Delete Confirmation Dialog */}
-      <ConfirmationDialog
-        isOpen={showDeleteDialog}
-        title="Delete Workspace"
-        message={`Are you sure you want to delete "${currentWorkspace.name}"? This will permanently delete all transactions, categories, and member data. This action cannot be undone.`}
-        confirmText="Delete Workspace"
-        cancelText="Cancel"
-        onConfirm={handleDeleteWorkspace}
-        onCancel={() => setShowDeleteDialog(false)}
-        isLoading={deleteLoading}
-        variant="danger"
-      />
     </div>
   )
 }

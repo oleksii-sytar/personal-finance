@@ -27,6 +27,7 @@ export type TransactionType = 'income' | 'expense'
 export type TransactionTypeFamily = 'income' | 'expense'
 export type RecurrenceFrequency = 'daily' | 'weekly' | 'monthly' | 'yearly'
 export type ExpectedTransactionStatus = 'pending' | 'confirmed' | 'skipped'
+export type TransactionStatus = 'completed' | 'planned'
 
 // Extended types for UI components
 export interface TransactionWithCategory extends Transaction {

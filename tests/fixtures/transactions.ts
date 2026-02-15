@@ -45,6 +45,9 @@ export const mockTransaction: Transaction = {
   type: 'expense',
   transaction_type_id: faker.string.uuid(),
   transaction_date: new Date().toISOString().split('T')[0], // Date only
+  status: 'completed',
+  planned_date: null,
+  completed_at: faker.date.recent().toISOString(),
   is_expected: false,
   expected_transaction_id: null,
   recurring_transaction_id: null,
@@ -85,6 +88,9 @@ export function createMockTransaction(
     type: faker.helpers.arrayElement(['income', 'expense'] as const),
     transaction_type_id: faker.string.uuid(),
     transaction_date: faker.date.recent().toISOString().split('T')[0], // Date only
+    status: 'completed',
+    planned_date: null,
+    completed_at: faker.date.recent().toISOString(),
     is_expected: false,
     expected_transaction_id: null,
     recurring_transaction_id: null,

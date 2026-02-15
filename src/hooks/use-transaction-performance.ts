@@ -28,6 +28,7 @@ interface UseTransactionPerformanceOptions {
   pageSize?: number
   enableVirtualization?: boolean
   virtualizationThreshold?: number
+  skipDateFiltering?: boolean // NEW: Skip date filtering if already filtered by month
 }
 
 interface UseTransactionPerformanceReturn {
@@ -52,7 +53,8 @@ export function useTransactionPerformance({
   debounceMs = 300,
   pageSize = 50,
   enableVirtualization = true,
-  virtualizationThreshold = 100
+  virtualizationThreshold = 100,
+  skipDateFiltering = false // NEW: Skip date filtering if already filtered by month
 }: UseTransactionPerformanceOptions): UseTransactionPerformanceReturn {
   const [isFiltering, setIsFiltering] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
@@ -114,8 +116,8 @@ export function useTransactionPerformance({
         )
       }
       
-      // Date range filter
-      if (filters.dateRange) {
+      // Date range filter (skip if already filtered by month)
+      if (filters.dateRange && !skipDateFiltering) {
         const { start, end } = filters.dateRange
         filtered = filtered.filter(t => {
           const transactionDate = new Date(t.transaction_date)

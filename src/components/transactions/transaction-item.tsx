@@ -12,6 +12,8 @@ import { format } from 'date-fns'
 import { EditIcon, TrashIcon, Lock, AlertTriangle } from 'lucide-react'
 import { CurrencyDisplay } from '@/components/shared/currency-display'
 import { Button } from '@/components/ui/Button'
+import { TransactionStatusBadge } from './transaction-status-badge'
+import { MarkAsPaidButton } from './mark-as-paid-button'
 import { cn } from '@/lib/utils'
 import type { TransactionWithCategory } from '@/types/transactions'
 
@@ -27,6 +29,7 @@ interface TransactionItemProps {
   transaction: TransactionWithAdditionalInfo
   onEdit?: (transaction: TransactionWithAdditionalInfo) => void
   onDelete?: (transactionId: string) => void
+  onMarkAsPaid?: (transactionId: string) => Promise<void>
   className?: string
   showActions?: boolean
 }
@@ -35,6 +38,7 @@ export function TransactionItem({
   transaction,
   onEdit,
   onDelete,
+  onMarkAsPaid,
   className,
   showActions = true
 }: TransactionItemProps) {
@@ -120,16 +124,22 @@ export function TransactionItem({
   const isLocked = transaction.isLocked || false
   const isAdjustment = transaction.isAdjustmentTransaction || false
   const isRecentlyAdded = transaction.isRecentlyAdded || false
+  const isPlanned = transaction.status === 'planned'
+  const transactionStatus = transaction.status || 'completed'
   
   return (
     <div 
       ref={itemRef}
       className={cn(
         'relative overflow-hidden bg-glass rounded-xl transition-all duration-200 select-none',
+        // Planned transactions have amber/gold styling
+        isPlanned
+          ? 'border-2 border-[var(--accent-primary)]/40 bg-[var(--accent-primary)]/5 hover:bg-[var(--accent-primary)]/10'
+          : 'border border-glass hover:border-accent/30',
         // Expected transactions have dashed border and different styling
         isExpected 
           ? 'border-2 border-dashed border-amber-300 bg-amber-50/30 hover:bg-amber-50/50' 
-          : 'border border-glass hover:border-accent/30',
+          : '',
         // Locked transactions have different styling
         isLocked
           ? 'opacity-75 cursor-not-allowed border-gray-400'
@@ -195,6 +205,8 @@ export function TransactionItem({
               )}>
                 {isIncome ? 'Income' : 'Expense'}
               </span>
+              {/* Transaction status badge */}
+              <TransactionStatusBadge status={transactionStatus} size="sm" />
               {isExpected && (
                 <span className="px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700 border border-amber-200">
                   Expected
@@ -239,8 +251,15 @@ export function TransactionItem({
           )}
         </div>
         
-        {showActions && (onEdit || onDelete) && !isSwipeRevealed && !isLocked && (
+        {showActions && (onEdit || onDelete || (isPlanned && onMarkAsPaid)) && !isSwipeRevealed && !isLocked && (
           <div className="hidden sm:flex items-center space-x-2 ml-4">
+            {isPlanned && onMarkAsPaid && (
+              <MarkAsPaidButton
+                transactionId={transaction.id}
+                onMarkAsPaid={onMarkAsPaid}
+                variant="compact"
+              />
+            )}
             {onEdit && (
               <Button
                 variant="ghost"
@@ -298,8 +317,16 @@ export function TransactionItem({
       )}
       
       {/* Mobile tap indicator */}
-      <div className="sm:hidden absolute bottom-1 right-2 text-xs text-muted opacity-50">
-        Tap to edit
+      <div className="sm:hidden absolute bottom-1 right-2 flex items-center gap-2">
+        {isPlanned && onMarkAsPaid && (
+          <MarkAsPaidButton
+            transactionId={transaction.id}
+            onMarkAsPaid={onMarkAsPaid}
+            variant="compact"
+            className="text-xs"
+          />
+        )}
+        <span className="text-xs text-muted opacity-50">Tap to edit</span>
       </div>
     </div>
   )
