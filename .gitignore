@@ -43,3 +43,18 @@ next-env.d.ts
 
 # OS
 Thumbs.db
+
+# Obsidian
+.obsidian/
+
+# Temporary documentation
+INVESTIGATION_*.md
+IMPLEMENTATION_*.md
+ISSUE_FIXED_*.md
+TASK_*.md
+DEPLOYMENT_v*.md
+FIXES_*.md
+UX_ANALYSIS_*.md
+*_SUMMARY.md
+!RELEASE_v*.md
+Untitled.md

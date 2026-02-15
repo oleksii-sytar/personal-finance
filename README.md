@@ -1,19 +1,44 @@
 # Forma - Personal Finance Management
 
-A modern, privacy-first personal finance management application built for families.
+A modern, privacy-first personal finance management application built for families with children.
 
-## Tech Stack
+## 🚀 Features
+
+- **Multi-Workspace Support** - Manage multiple family workspaces
+- **Transaction Management** - Track income and expenses with ease
+- **Account Reconciliation** - Real-time balance tracking and reconciliation
+- **Category Organization** - Flexible category system for expenses
+- **Planned Transactions** - Schedule future income and expenses
+- **Current Month Overview** - See your complete financial picture
+- **Multi-Currency Support** - Handle transactions in different currencies
+- **Team Collaboration** - Invite family members to workspaces
+
+## 🛠️ Tech Stack
 
 - **Framework**: Next.js 15 (App Router)
-- **Language**: TypeScript
+- **Language**: TypeScript (Strict Mode)
 - **Database**: Supabase (PostgreSQL)
 - **Styling**: Tailwind CSS
 - **Authentication**: Supabase Auth
+- **State Management**: React Query (TanStack Query)
 - **Deployment**: Vercel
+- **Testing**: Vitest, Playwright, React Testing Library
 
-## Quick Start
+## 📦 Quick Start
+
+### Prerequisites
+
+- Node.js 20+
+- npm or pnpm
+- Supabase account
+
+### Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/your-org/forma.git
+cd forma
+
 # Install dependencies
 npm install
 
@@ -27,108 +52,155 @@ npm run dev
 
 Visit http://localhost:3000
 
-## Available Scripts
+## 🔧 Available Scripts
 
+### Development
 ```bash
 npm run dev          # Start development server
 npm run build        # Build for production
 npm run start        # Start production server
-npm run lint         # Run ESLint
-npm run type-check   # Run TypeScript compiler
-npm run test         # Run tests
-npm run deploy       # Deploy to production
 ```
 
-## Database Management
+### Code Quality
+```bash
+npm run lint         # Run ESLint
+npm run lint:fix     # Fix linting issues
+npm run type-check   # Run TypeScript compiler
+npm run format       # Format code with Prettier
+```
 
+### Testing
+```bash
+npm run test                # Run all tests
+npm run test:unit           # Run unit tests
+npm run test:integration    # Run integration tests
+npm run test:e2e            # Run end-to-end tests
+npm run test:coverage       # Run tests with coverage
+```
+
+### Database
 ```bash
 npm run db:types     # Generate TypeScript types from database
 npm run db:push      # Apply migrations to database
 ```
 
-## Project Structure
-
-```
-src/
-├── app/              # Next.js app router pages
-├── components/       # React components
-├── actions/          # Server actions
-├── lib/              # Utilities and configurations
-├── hooks/            # Custom React hooks
-└── types/            # TypeScript type definitions
-
-supabase/
-├── migrations/       # Database migrations
-└── functions/        # Edge functions
+### Deployment
+```bash
+npm run deploy       # Full autonomous deployment
+npm run deploy:check # Quick deployment check (no tests)
 ```
 
-## Features
+## 📁 Project Structure
 
-### Core Functionality
-- **Multi-workspace support**: Manage finances for multiple households or projects
-- **Transaction management**: Quick entry forms with hotkey support
-- **Category organization**: Flexible categorization with inline creation
-- **Recurring transactions**: Automated tracking of regular income/expenses
-- **Multi-currency support**: Handle transactions in multiple currencies with automatic conversion
-
-### Financial Safety & Forecasting
-- **Daily cash flow forecast**: See projected balance for each day of the month
-- **Payment risk assessment**: Identify upcoming payments that may cause insufficient funds
-- **Conservative estimates**: 10% safety margin applied to spending projections
-- **Risk indicators**: Visual warnings for days when balance may be tight
-- **User-defined thresholds**: Set your own minimum safe balance
-- **Planned transactions**: Enter future transactions to see their impact on forecast
-
-### Real-Time Balance Reconciliation
-- **Continuous reconciliation**: Track differences between bank balances and calculated balances in real-time
-- **Dual balance tracking**: Opening balance (immutable) and current balance (updated from bank statements)
-- **Account reconciliation panel**: View all accounts with reconciliation status on transactions page
-- **Balance update history**: Full audit trail of all balance updates
-- **Multi-currency aggregation**: Total difference across all accounts in workspace currency
-
-### Collaboration
-- **Workspace member management**: Invite team members to collaborate
-- **Role-based access**: Owner and member roles with appropriate permissions
-- **Invitation system**: Secure workspace invitations via email
-
-## Environment Variables
-
-Required environment variables in `.env.local`:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_KEY=your_supabase_service_key
+```
+forma/
+├── .kiro/                  # Kiro AI steering files and specs
+│   ├── steering/           # Development guidelines
+│   └── specs/              # Feature specifications
+├── docs/                   # Technical documentation
+├── scripts/                # Utility scripts
+├── src/
+│   ├── app/                # Next.js App Router pages
+│   ├── components/         # React components
+│   ├── hooks/              # Custom React hooks
+│   ├── actions/            # Server Actions
+│   ├── lib/                # Utility libraries
+│   └── types/              # TypeScript types
+├── supabase/
+│   └── migrations/         # Database migrations
+└── tests/                  # Test files
 ```
 
-## Security
+## 📚 Documentation
 
-- Row Level Security (RLS) enabled on all tables
+- **[Developer Quickstart](./docs/DEVELOPER_QUICKSTART.md)** - Detailed setup guide
+- **[Documentation Index](./docs/README.md)** - Complete documentation index
+- **[CHANGELOG](./CHANGELOG.md)** - Version history and changes
+- **[Latest Release](./RELEASE_v1.3.0_SUMMARY.md)** - Current version details
+
+### Steering Documents
+Located in `.kiro/steering/`:
+- `product.md` - Product vision and requirements
+- `tech.md` - Technology stack details
+- `structure.md` - Project organization
+- `testing.md` - Testing standards
+- `code-quality.md` - Code quality guidelines
+- `autonomous-deployment.md` - Deployment process
+
+## 🎨 Design Philosophy
+
+Forma uses the "Executive Lounge" aesthetic - a premium, sophisticated design with:
+- Dark mode default with warm ambient lighting
+- Glass morphism effects
+- Smooth animations and transitions
+- Generous spacing and typography
+- Color palette: Peat Charcoal, Single Malt Gold, Growth Emerald
+
+## 🔐 Security
+
+- Row Level Security (RLS) on all database tables
 - Workspace-based data isolation
 - Secure authentication via Supabase Auth
-- Environment variables for sensitive data
+- Environment-based configuration
+- No sensitive data in repository
 
-## Documentation
+## 🧪 Testing
 
-### Developer Documentation
-- **[Developer Quick Start](docs/DEVELOPER_QUICKSTART.md)**: Quick reference for working with the forecast system
-- **[Forecast API Documentation](docs/FORECAST_API.md)**: Complete API reference for the financial forecasting system
-- **[Calculation Logic Guide](docs/CALCULATION_LOGIC.md)**: Mathematical and algorithmic details of forecast calculations
-- **[Steering Files](.kiro/steering/)**: Project guidelines and best practices
-- **[Spec Files](.kiro/specs/)**: Feature specifications and requirements
+We maintain high test coverage:
+- **Utilities**: 90%+
+- **Server Actions**: 80%+
+- **Hooks**: 70%+
+- **Components**: 60%+
+- **Overall**: 75%+
 
-### Key Concepts
+Run tests before committing:
+```bash
+npm run test
+```
 
-#### Financial Forecasting
-The forecast system projects future account balances using:
-- **Historical Analysis**: Calculates average daily spending from past transactions
-- **Conservative Estimates**: Applies 10% safety margin to spending projections
-- **Outlier Exclusion**: Removes one-time large purchases (>3× median) from calculations
-- **Risk Assessment**: Identifies days when balance may fall below safe thresholds
-- **Payment Planning**: Evaluates upcoming planned transactions for affordability
+## 🚀 Deployment
 
-See [Forecast API Documentation](docs/FORECAST_API.md) for complete details.
+Forma uses an autonomous deployment system:
 
-## License
+```bash
+# Deploy to production
+npm run deploy
+```
 
-Private project - All rights reserved
+This automatically:
+1. Applies database migrations
+2. Generates TypeScript types
+3. Runs type checking
+4. Runs linting
+5. Builds the application
+6. Runs tests
+7. Deploys to Vercel
+
+See [Autonomous Deployment](./kiro/steering/autonomous-deployment.md) for details.
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+Follow our [Code Quality Guidelines](./.kiro/steering/code-quality.md).
+
+## 📄 License
+
+This project is private and proprietary.
+
+## 🙏 Acknowledgments
+
+- Built with [Next.js](https://nextjs.org/)
+- Database by [Supabase](https://supabase.com/)
+- Deployed on [Vercel](https://vercel.com/)
+- Icons by [Lucide](https://lucide.dev/)
+
+---
+
+**Version**: 1.3.0  
+**Last Updated**: February 15, 2026  
+**Status**: Production Ready ✅
