@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased] - 2026-06-28
+
+### Removed (BREAKING) — reset to authenticated app shell
+- Stripped the application back to a clean authenticated shell as the baseline
+  for a new product direction. All finance/workspace functionality was removed:
+  - Server actions for transactions, accounts, categories, transaction types,
+    recurring transactions, balance reconciliation, forecasting, workspaces,
+    members, invitations, user profiles, and user settings.
+  - All transaction/account/category/forecast/reconciliation/invitation
+    components, workspace-oriented shared components, and their hooks/contexts.
+  - `lib/calculations`, `lib/services`, `lib/nbu-api`, `lib/access-control`,
+    `lib/middleware`, `lib/email`, and `lib/monitoring`.
+  - Dashboard feature routes (now removed) and the monitoring metrics API.
+  - The finance/property/integration/e2e test suites.
+- Added migration `20260616114443_reset_to_auth_only_shell.sql` dropping the
+  finance/workspace schema (apply only to a private Supabase project).
+
+### Kept
+- Authentication (login/signup/reset/verify), route guards, the public landing
+  page, `/status`, the `(dashboard)` shell with a placeholder page, and the
+  "Executive Lounge" theme + UI primitives.
+
 ## [1.3.0] - 2026-02-15
 
 ### Added

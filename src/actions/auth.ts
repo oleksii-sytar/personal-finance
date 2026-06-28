@@ -27,17 +27,12 @@ export async function signUpAction(formData: FormData): Promise<ActionResult<{ m
       return { error: validated.error.flatten() }
     }
 
-    // Get invitation token if provided
-    const inviteToken = formData.get('inviteToken') as string | null
-  
-    const { data, error } = await supabase.auth.signUp({
+    const { error } = await supabase.auth.signUp({
       email: validated.data.email,
       password: validated.data.password,
       options: {
         data: {
-          full_name: validated.data.fullName,
-          // Store invitation token in user metadata for later retrieval
-          invite_token: inviteToken || null
+          full_name: validated.data.fullName
         }
       }
     })
@@ -57,24 +52,6 @@ export async function signUpAction(formData: FormData): Promise<ActionResult<{ m
       return { error: error.message }
     }
 
-    // Workaround: Manually create user profile if trigger failed
-    if (data.user) {
-      try {
-        const { error: profileError } = await supabase
-          .from('user_profiles')
-          .insert({
-            id: data.user.id,
-            full_name: validated.data.fullName
-          })
-        
-        if (profileError && !profileError.message.includes('duplicate key')) {
-          // Don't fail the signup for this, as the trigger might have worked
-        }
-      } catch (profileError) {
-        // Don't fail the signup for this
-      }
-    }
-    
     // User is now automatically logged in (email verification disabled)
     // Redirect to dashboard
     revalidatePath('/', 'layout')
@@ -231,11 +208,11 @@ export async function resetPasswordAction(formData: FormData): Promise<ActionRes
  * Server action for email verification
  * Requirements: 8.1, 8.2, 8.3, 8.4
  */
-export async function verifyEmailAction(token: string): Promise<ActionResult<{ message: string; inviteToken?: string }>> {
+export async function verifyEmailAction(token: string): Promise<ActionResult<{ message: string }>> {
   const supabase = await createClient()
   
   try {
-    const { data, error } = await supabase.auth.verifyOtp({
+    const { error } = await supabase.auth.verifyOtp({
       token_hash: token,
       type: 'email'
     })
@@ -250,50 +227,6 @@ export async function verifyEmailAction(token: string): Promise<ActionResult<{ m
       return { error: 'Invalid or expired verification link.' }
     }
     
-    // Check if user has an invitation token in their metadata
-    const user = data.user
-    const inviteToken = user?.user_metadata?.invite_token
-    
-    if (inviteToken) {
-      console.log('User has invitation token, attempting to accept invitation:', inviteToken)
-      
-      try {
-        // Import and call the invitation acceptance function
-        const { acceptInvitation } = await import('@/actions/invitation')
-        const inviteResult = await acceptInvitation(inviteToken)
-        
-        if (inviteResult.success) {
-          revalidatePath('/', 'layout')
-          return { 
-            data: { 
-              message: 'Your email has been verified and you have been added to the workspace!',
-              inviteToken 
-            } 
-          }
-        } else {
-          console.log('Failed to accept invitation:', inviteResult.error)
-          // Don't fail email verification if invitation acceptance fails
-          revalidatePath('/', 'layout')
-          return { 
-            data: { 
-              message: 'Your email has been verified! Please check your invitation link.',
-              inviteToken 
-            } 
-          }
-        }
-      } catch (inviteError) {
-        console.error('Error accepting invitation:', inviteError)
-        // Don't fail email verification if invitation acceptance fails
-        revalidatePath('/', 'layout')
-        return { 
-          data: { 
-            message: 'Your email has been verified! Please check your invitation link.',
-            inviteToken 
-          } 
-        }
-      }
-    }
-    
     revalidatePath('/', 'layout')
     return { data: { message: 'Your email has been successfully verified!' } }
   } catch (error) {
@@ -305,21 +238,15 @@ export async function verifyEmailAction(token: string): Promise<ActionResult<{ m
  * Server action to resend verification email
  * Requirements: 8.1, 8.2
  */
-export async function resendVerificationAction(email: string, inviteToken?: string): Promise<ActionResult<{ message: string }>> {
+export async function resendVerificationAction(email: string): Promise<ActionResult<{ message: string }>> {
   const supabase = await createClient()
   
   try {
-    // Build redirect URL with invitation token if present
-    let redirectUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/verify-email`
-    if (inviteToken) {
-      redirectUrl += `?token=${inviteToken}`
-    }
-
     const { error } = await supabase.auth.resend({
       type: 'signup',
       email: email,
       options: {
-        emailRedirectTo: redirectUrl
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/verify-email`
       }
     })
     

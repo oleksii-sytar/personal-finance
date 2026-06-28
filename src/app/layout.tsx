@@ -5,17 +5,12 @@ import { SpeedInsights } from '@vercel/speed-insights/next'
 import { Analytics } from '@vercel/analytics/next'
 import { ThemeProvider } from '@/contexts/theme-context'
 import { AuthProvider } from '@/contexts/auth-context'
-import { WorkspaceProvider } from '@/contexts/workspace-context'
-import { WorkspaceModalProvider } from '@/contexts/workspace-modal-context'
 import { QueryProvider } from '@/contexts/query-provider'
-import { TransactionFilterProvider } from '@/contexts/transaction-filter-context'
 import { ErrorBoundary } from '@/components/shared/error-boundary'
 import { ToastProvider } from '@/components/ui/toast'
-import { UndoToastProvider } from '@/components/ui/undo-toast'
 import { OfflineManager } from '@/components/shared/offline-manager'
 import { AuthSyncManager } from '@/components/shared/auth-sync-manager'
 import { SessionExpiryHandler } from '@/components/shared/session-expiry-handler'
-import { HistoryProvider } from '@/components/shared/history-provider'
 import { BookmarkHandler } from '@/components/shared/bookmark-handler'
 import { PerformanceMonitorProvider } from '@/components/shared/performance-monitor-provider'
 import './globals.css'
@@ -50,38 +45,22 @@ export default function RootLayout({
           <ThemeProvider>
             <QueryProvider>
               <ToastProvider>
-                <UndoToastProvider>
-                  <AuthProvider>
-                    <WorkspaceProvider>
-                      <WorkspaceModalProvider>
-                        <TransactionFilterProvider>
-                          <HistoryProvider>
-                            <PerformanceMonitorProvider>
-                              <Suspense fallback={
-                                <div className="min-h-screen flex items-center justify-center">
-                                  <div className="animate-spin rounded-full h-8 w-8 border-2 border-muted/30 border-t-accent drop-shadow-sm" />
-                                </div>
-                              }>
-                                <BookmarkHandler>
-                                  {/* Progressive Enhancement and Offline Support */}
-                                  <OfflineManager />
-                                  
-                                  {/* Cross-Tab Authentication Synchronization */}
-                                  <AuthSyncManager />
-                                  
-                                  {/* Session Expiry Notifications */}
-                                  <SessionExpiryHandler />
-                                  
-                                  {children}
-                                </BookmarkHandler>
-                              </Suspense>
-                            </PerformanceMonitorProvider>
-                          </HistoryProvider>
-                        </TransactionFilterProvider>
-                      </WorkspaceModalProvider>
-                    </WorkspaceProvider>
-                  </AuthProvider>
-                </UndoToastProvider>
+                <AuthProvider>
+                  <PerformanceMonitorProvider>
+                    <Suspense fallback={
+                      <div className="min-h-screen flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-2 border-muted/30 border-t-accent drop-shadow-sm" />
+                      </div>
+                    }>
+                      <BookmarkHandler>
+                        <OfflineManager />
+                        <AuthSyncManager />
+                        <SessionExpiryHandler />
+                        {children}
+                      </BookmarkHandler>
+                    </Suspense>
+                  </PerformanceMonitorProvider>
+                </AuthProvider>
               </ToastProvider>
             </QueryProvider>
           </ThemeProvider>

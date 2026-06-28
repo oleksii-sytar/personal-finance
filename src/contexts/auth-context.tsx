@@ -140,26 +140,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return { error: error.message }
       }
 
-      // Fallback: If user was created but profile creation might have failed,
-      // try to create the profile manually
-      if (data.user && !error) {
-        try {
-          const { error: profileError } = await supabase.rpc('create_user_profile', {
-            user_id: data.user.id,
-            user_email: data.user.email,
-            full_name: credentials.fullName
-          })
-          
-          if (profileError) {
-            console.warn('Profile creation fallback failed:', profileError)
-            // Don't fail the signup for this
-          }
-        } catch (profileError) {
-          console.warn('Profile creation fallback error:', profileError)
-          // Don't fail the signup for this
-        }
-      }
-
       return { 
         data: { 
           message: 'Check your email for verification link',
@@ -202,7 +182,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const resetPassword = async (email: string): Promise<AuthResult> => {
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/reset-password`,
+        redirectTo: `${typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/reset-password/confirm`,
       })
 
       if (error) {

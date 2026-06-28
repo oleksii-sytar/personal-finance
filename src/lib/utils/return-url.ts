@@ -4,15 +4,7 @@
  * Requirements: 7.3, 8.3, 12.1, 12.2
  */
 
-const VALID_RETURN_URL_PATTERNS = [
-  /^\/dashboard/,
-  /^\/transactions/,
-  /^\/categories/,
-  /^\/accounts/,
-  /^\/reports/,
-  /^\/settings/,
-  /^\/onboarding/,
-]
+const VALID_RETURN_URL_PATTERNS = [/^\/dashboard/]
 
 const INVALID_RETURN_URL_PATTERNS = [
   /^\/auth/,
@@ -187,71 +179,4 @@ export function createLoginUrlWithReturn(
   }
   
   return loginUrl.toString()
-}
-
-/**
- * Determines the best destination after successful authentication
- */
-export function determinePostAuthDestination(
-  searchParams: URLSearchParams,
-  userContext?: {
-    hasWorkspace: boolean
-    hasPendingInvitations: boolean
-    isFirstTime: boolean
-  }
-): string {
-  // First priority: valid return URL
-  const returnUrl = extractReturnUrl(searchParams)
-  if (returnUrl) {
-    clearReturnUrl() // Clear after use
-    return returnUrl
-  }
-
-  // Second priority: stored return URL
-  const storedUrl = getStoredReturnUrl()
-  if (storedUrl) {
-    clearReturnUrl() // Clear after use
-    return storedUrl
-  }
-
-  // Third priority: user context-based routing
-  if (userContext) {
-    if (userContext.hasPendingInvitations) {
-      return '/auth/accept-invitations'
-    }
-    
-    if (!userContext.hasWorkspace) {
-      return '/dashboard'
-    }
-    
-    if (userContext.isFirstTime) {
-      return '/onboarding/welcome'
-    }
-  }
-
-  // Default: dashboard
-  return '/dashboard'
-}
-
-/**
- * Handles return URL restoration with fallback logic
- */
-export function handleReturnUrlRestoration(
-  searchParams: URLSearchParams,
-  fallbackUrl: string = '/dashboard'
-): string {
-  const returnUrl = extractReturnUrl(searchParams)
-  
-  if (returnUrl) {
-    clearReturnUrl()
-    return returnUrl
-  }
-
-  const storedUrl = getStoredReturnUrl()
-  if (storedUrl) {
-    clearReturnUrl()
-    return storedUrl
-  }
-
-  return fallbackUrl
 }

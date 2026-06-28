@@ -1,206 +1,107 @@
-# Forma - Personal Finance Management
+# Forma — Authenticated App Shell
 
-A modern, privacy-first personal finance management application built for families with children.
+A clean, authenticated starting point built with Next.js 15 and Supabase. The
+finance/workspace product that previously lived here has been intentionally
+removed; what remains is a reusable shell with authentication, theming, and the
+public landing page in place, ready for the next product direction.
 
-## 🚀 Features
+> **Status:** auth-only shell (baseline for a new build). See the
+> [CHANGELOG](./CHANGELOG.md) for what was removed.
 
-- **Multi-Workspace Support** - Manage multiple family workspaces
-- **Transaction Management** - Track income and expenses with ease
-- **Account Reconciliation** - Real-time balance tracking and reconciliation
-- **Category Organization** - Flexible category system for expenses
-- **Planned Transactions** - Schedule future income and expenses
-- **Current Month Overview** - See your complete financial picture
-- **Multi-Currency Support** - Handle transactions in different currencies
-- **Team Collaboration** - Invite family members to workspaces
+## What's included
 
-## 🛠️ Tech Stack
+- **Authentication** — Supabase Auth: sign up, log in, log out, password reset,
+  and (optional) email verification, wired through a client `AuthProvider`
+  context with server-side session refresh in `middleware.ts`.
+- **Route protection** — server middleware guards `/dashboard`; a client
+  `SmartRouteGuard` re-checks auth in the dashboard layout.
+- **Public landing page** at `/` and a Supabase connectivity page at `/status`.
+- **Authenticated shell** — a `(dashboard)` layout (sidebar + mobile nav +
+  user profile) with a placeholder dashboard page to build on.
+- **Design system** — the "Executive Lounge" Tailwind theme (dark/light) with
+  glass-morphism UI primitives (`Button`, `Card`, `Input`, toast).
 
-- **Framework**: Next.js 15 (App Router)
-- **Language**: TypeScript (Strict Mode)
-- **Database**: Supabase (PostgreSQL)
+## Tech stack
+
+- **Framework**: Next.js 15 (App Router), React 18
+- **Language**: TypeScript (strict)
+- **Auth & DB**: Supabase (`@supabase/ssr`)
 - **Styling**: Tailwind CSS
-- **Authentication**: Supabase Auth
-- **State Management**: React Query (TanStack Query)
-- **Deployment**: Vercel
-- **Testing**: Vitest, Playwright, React Testing Library
+- **State**: React Query (TanStack Query)
+- **Testing**: Vitest + Testing Library
 
-## 📦 Quick Start
-
-### Prerequisites
-
-- Node.js 20+
-- npm or pnpm
-- Supabase account
-
-### Installation
+## Getting started
 
 ```bash
-# Clone the repository
-git clone https://github.com/your-org/forma.git
-cd forma
-
-# Install dependencies
 npm install
 
-# Set up environment variables
-cp .env.example .env.local
-# Edit .env.local with your Supabase credentials
+# Configure environment (see "Environment" below)
+cp .env.example .env.local   # then edit with your own Supabase project
 
-# Run development server
-npm run dev
+npm run dev                  # http://localhost:3000
 ```
 
-Visit http://localhost:3000
+### Environment
 
-## 🔧 Available Scripts
-
-### Development
-```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run start        # Start production server
-```
-
-### Code Quality
-```bash
-npm run lint         # Run ESLint
-npm run lint:fix     # Fix linting issues
-npm run type-check   # Run TypeScript compiler
-npm run format       # Format code with Prettier
-```
-
-### Testing
-```bash
-npm run test                # Run all tests
-npm run test:unit           # Run unit tests
-npm run test:integration    # Run integration tests
-npm run test:e2e            # Run end-to-end tests
-npm run test:coverage       # Run tests with coverage
-```
-
-### Database
-```bash
-npm run db:types     # Generate TypeScript types from database
-npm run db:push      # Apply migrations to database
-```
-
-### Deployment
-```bash
-npm run deploy       # Full autonomous deployment
-npm run deploy:check # Quick deployment check (no tests)
-```
-
-## 📁 Project Structure
+Set these in `.env.local` (use **your own private** Supabase project — this is a
+personal project and must not be pointed at any shared/work infrastructure):
 
 ```
-forma/
-├── .kiro/                  # Kiro AI steering files and specs
-│   ├── steering/           # Development guidelines
-│   └── specs/              # Feature specifications
-├── docs/                   # Technical documentation
-├── scripts/                # Utility scripts
-├── src/
-│   ├── app/                # Next.js App Router pages
-│   ├── components/         # React components
-│   ├── hooks/              # Custom React hooks
-│   ├── actions/            # Server Actions
-│   ├── lib/                # Utility libraries
-│   └── types/              # TypeScript types
-├── supabase/
-│   └── migrations/         # Database migrations
-└── tests/                  # Test files
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_KEY=        # server-only; optional for the shell
+NEXT_PUBLIC_APP_ENV=development
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
-## 📚 Documentation
+Email confirmations are disabled in `supabase/config.toml`
+(`enable_confirmations = false`), so sign-up logs the user in immediately.
 
-- **[Developer Quickstart](./docs/DEVELOPER_QUICKSTART.md)** - Detailed setup guide
-- **[Documentation Index](./docs/README.md)** - Complete documentation index
-- **[CHANGELOG](./CHANGELOG.md)** - Version history and changes
-- **[Latest Release](./RELEASE_v1.3.0_SUMMARY.md)** - Current version details
-
-### Steering Documents
-Located in `.kiro/steering/`:
-- `product.md` - Product vision and requirements
-- `tech.md` - Technology stack details
-- `structure.md` - Project organization
-- `testing.md` - Testing standards
-- `code-quality.md` - Code quality guidelines
-- `autonomous-deployment.md` - Deployment process
-
-## 🎨 Design Philosophy
-
-Forma uses the "Executive Lounge" aesthetic - a premium, sophisticated design with:
-- Dark mode default with warm ambient lighting
-- Glass morphism effects
-- Smooth animations and transitions
-- Generous spacing and typography
-- Color palette: Peat Charcoal, Single Malt Gold, Growth Emerald
-
-## 🔐 Security
-
-- Row Level Security (RLS) on all database tables
-- Workspace-based data isolation
-- Secure authentication via Supabase Auth
-- Environment-based configuration
-- No sensitive data in repository
-
-## 🧪 Testing
-
-We maintain high test coverage:
-- **Utilities**: 90%+
-- **Server Actions**: 80%+
-- **Hooks**: 70%+
-- **Components**: 60%+
-- **Overall**: 75%+
-
-Run tests before committing:
-```bash
-npm run test
-```
-
-## 🚀 Deployment
-
-Forma uses an autonomous deployment system:
+## Scripts
 
 ```bash
-# Deploy to production
-npm run deploy
+npm run dev          # start dev server
+npm run build        # production build
+npm run start        # serve production build
+npm run lint         # ESLint
+npm run type-check   # tsc --noEmit (build config; excludes tests)
+npm run test         # Vitest unit tests
+npm run format       # Prettier
 ```
 
-This automatically:
-1. Applies database migrations
-2. Generates TypeScript types
-3. Runs type checking
-4. Runs linting
-5. Builds the application
-6. Runs tests
-7. Deploys to Vercel
+## Project structure
 
-See [Autonomous Deployment](./kiro/steering/autonomous-deployment.md) for details.
+```
+src/
+├── app/
+│   ├── (dashboard)/      # authenticated shell (layout + placeholder dashboard)
+│   ├── auth/             # login, signup, verify-email, reset-password
+│   ├── status/           # Supabase connectivity check
+│   ├── layout.tsx        # root providers (theme, query, auth, error boundary)
+│   └── page.tsx          # public landing page
+├── components/
+│   ├── forms/            # auth forms (+ lazy wrappers)
+│   ├── layout/           # sidebar / mobile nav / user profile
+│   ├── shared/           # guards, error boundaries, session/offline managers
+│   └── ui/               # Button, Card, Input, toast
+├── contexts/             # auth, theme, react-query providers
+├── lib/
+│   ├── supabase/         # browser + server clients
+│   ├── session/          # session manager
+│   ├── utils/            # currency, format, return-url, error logging
+│   └── validations/      # auth Zod schemas
+└── middleware.ts         # session refresh + /dashboard guard
 
-## 🤝 Contributing
+supabase/
+└── migrations/           # includes the reset-to-auth-only-shell migration
+```
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+## Database
 
-Follow our [Code Quality Guidelines](./.kiro/steering/code-quality.md).
+The latest migration, `supabase/migrations/20260616114443_reset_to_auth_only_shell.sql`,
+drops the former finance/workspace schema and leaves only Supabase Auth. Apply
+migrations only against your own private Supabase project.
 
-## 📄 License
+## License
 
-This project is private and proprietary.
-
-## 🙏 Acknowledgments
-
-- Built with [Next.js](https://nextjs.org/)
-- Database by [Supabase](https://supabase.com/)
-- Deployed on [Vercel](https://vercel.com/)
-- Icons by [Lucide](https://lucide.dev/)
-
----
-
-**Version**: 1.3.0  
-**Last Updated**: February 15, 2026  
-**Status**: Production Ready ✅
+Private and proprietary.

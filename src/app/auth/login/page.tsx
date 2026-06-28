@@ -7,7 +7,7 @@ import Link from 'next/link'
 
 export const metadata = {
   title: 'Sign In | Forma',
-  description: 'Sign in to your Forma account to manage your family finances',
+  description: 'Sign in to your Forma account',
 }
 
 export default function LoginPage() {

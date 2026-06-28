@@ -35,15 +35,47 @@ export function ResetPasswordConfirmForm() {
    * Requirements: 3.5, 3.6
    */
   useEffect(() => {
-    const token = searchParams.get('token')
-    const type = searchParams.get('type')
-    
-    if (type === 'recovery' && token) {
-      setFormData(prev => ({ ...prev, token }))
-    } else {
+    const initializeRecoverySession = async () => {
+      const token = searchParams.get('token')
+      const type = searchParams.get('type')
+
+      if (type === 'recovery' && token) {
+        setFormData(prev => ({ ...prev, token }))
+        return
+      }
+
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''))
+      const accessToken = hashParams.get('access_token')
+      const refreshToken = hashParams.get('refresh_token')
+      const hashType = hashParams.get('type')
+
+      if (hashType === 'recovery' && accessToken && refreshToken) {
+        const { error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        })
+
+        if (error) {
+          setTokenError('This reset link has expired or is invalid. Please request a new password reset.')
+          return
+        }
+
+        window.history.replaceState(null, '', window.location.pathname)
+        setFormData(prev => ({ ...prev, token: 'recovery-session' }))
+        return
+      }
+
+      const { data } = await supabase.auth.getSession()
+      if (data.session) {
+        setFormData(prev => ({ ...prev, token: 'authenticated-session' }))
+        return
+      }
+
       setTokenError('Invalid or missing reset token. Please request a new password reset.')
     }
-  }, [searchParams])
+
+    initializeRecoverySession()
+  }, [searchParams, supabase.auth])
 
   /**
    * Handle form field changes

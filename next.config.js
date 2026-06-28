@@ -30,14 +30,6 @@ const nextConfig = {
             priority: 30,
             reuseExistingChunk: true,
           },
-          // Workspace forms chunk
-          workspaceForms: {
-            name: 'workspace-forms',
-            test: /[\\/]src[\\/]components[\\/]forms[\\/](workspace-creation|invite-member)/,
-            chunks: 'all',
-            priority: 25,
-            reuseExistingChunk: true,
-          },
           // Shared components chunk
           sharedComponents: {
             name: 'shared-components',

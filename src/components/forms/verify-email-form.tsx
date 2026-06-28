@@ -31,9 +31,6 @@ function VerifyEmailFormImplementation() {
   const { user } = useAuth()
   const supabase = createClient()
   
-  // Get invitation token from URL if present
-  const inviteToken = searchParams.get('token')
-  
   const [verificationStatus, setVerificationStatus] = useState<'loading' | 'success' | 'error' | 'expired' | 'pending'>('loading')
   const [message, setMessage] = useState('')
   const [isResending, setIsResending] = useState(false)
@@ -51,7 +48,6 @@ function VerifyEmailFormImplementation() {
         searchParams={searchParams}
         user={user}
         supabase={supabase}
-        inviteToken={inviteToken}
         verificationStatus={verificationStatus}
         setVerificationStatus={setVerificationStatus}
         message={message}
@@ -68,7 +64,6 @@ function VerifyEmailFormContent({
   searchParams,
   user,
   supabase,
-  inviteToken,
   verificationStatus,
   setVerificationStatus,
   message,
@@ -80,7 +75,6 @@ function VerifyEmailFormContent({
   searchParams: any
   user: any
   supabase: any
-  inviteToken: string | null
   verificationStatus: 'loading' | 'success' | 'error' | 'expired' | 'pending'
   setVerificationStatus: (status: 'loading' | 'success' | 'error' | 'expired' | 'pending') => void
   message: string
@@ -113,21 +107,8 @@ function VerifyEmailFormContent({
             setVerificationStatus('success')
             setMessage(result.data?.message || 'Your email has been successfully verified!')
             
-            // Check if invitation was automatically accepted
-            const hasInviteToken = result.data?.inviteToken || inviteToken
-            
-            // Redirect based on invitation status
             setTimeout(() => {
-              if (hasInviteToken && result.data?.message?.includes('added to the workspace')) {
-                // Invitation was automatically accepted, go to dashboard
-                router.push('/dashboard')
-              } else if (hasInviteToken) {
-                // Invitation needs manual acceptance
-                router.push(`/auth/invite?token=${hasInviteToken}`)
-              } else {
-                // No invitation, go to dashboard
-                router.push('/dashboard')
-              }
+              router.push('/dashboard')
             }, 3000)
           }
         } catch (error) {
@@ -140,11 +121,7 @@ function VerifyEmailFormContent({
           setVerificationStatus('success')
           setMessage('Your email is already verified!')
           setTimeout(() => {
-            if (inviteToken) {
-              router.push(`/auth/invite?token=${inviteToken}`)
-            } else {
-              router.push('/dashboard')
-            }
+            router.push('/dashboard')
           }, 2000)
         } else {
           setVerificationStatus('pending')
@@ -157,7 +134,7 @@ function VerifyEmailFormContent({
     }
 
     verifyEmail()
-  }, [searchParams, user, router, inviteToken])
+  }, [searchParams, user, router])
 
   /**
    * Resend verification email
@@ -172,9 +149,8 @@ function VerifyEmailFormContent({
     setIsResending(true)
     
     try {
-      // Use server action for resending with invitation token support
       const { resendVerificationAction } = await import('@/actions/auth')
-      const result = await resendVerificationAction(user.email, inviteToken || undefined)
+      const result = await resendVerificationAction(user.email)
 
       if (result.error) {
         setMessage('Failed to resend verification email. Please try again.')
@@ -263,30 +239,24 @@ function VerifyEmailFormContent({
           <div className="mt-6 space-y-3">
             {verificationStatus === 'success' && (
               <Button
-                onClick={() => {
-                  if (inviteToken) {
-                    router.push(`/auth/invite?token=${inviteToken}`)
-                  } else {
-                    router.push('/dashboard')
-                  }
-                }}
+                onClick={() => router.push('/dashboard')}
                 className="w-full"
               >
-                {inviteToken ? 'Continue to Invitation' : 'Go to Dashboard'}
+                Go to Dashboard
               </Button>
             )}
             
             {(verificationStatus === 'error' || verificationStatus === 'expired') && (
               <div className="space-y-2">
                 <Button
-                  onClick={() => router.push(inviteToken ? `/auth/signup?token=${inviteToken}` : '/auth/signup')}
+                  onClick={() => router.push('/auth/signup')}
                   className="w-full"
                   variant="secondary"
                 >
                   Sign Up Again
                 </Button>
                 <Button
-                  onClick={() => router.push(inviteToken ? `/auth/login?token=${inviteToken}` : '/auth/login')}
+                  onClick={() => router.push('/auth/login')}
                   className="w-full"
                   variant="outline"
                 >
@@ -297,7 +267,7 @@ function VerifyEmailFormContent({
             
             {verificationStatus === 'pending' && (
               <Button
-                onClick={() => router.push(inviteToken ? `/auth/login?token=${inviteToken}` : '/auth/login')}
+                onClick={() => router.push('/auth/login')}
                 className="w-full"
                 variant="outline"
               >

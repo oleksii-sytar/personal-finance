@@ -7,15 +7,12 @@ export default async function StatusPage() {
 
   try {
     const supabase = await createClient()
-    
-    // Test basic connection
-    const { data, error: connectionError } = await supabase
-      .from('user_profiles')
-      .select('count')
-      .limit(1)
-    
+
+    // Test basic connectivity via the auth service (no app tables required)
+    const { error: connectionError } = await supabase.auth.getSession()
+
     if (connectionError) {
-      supabaseStatus = 'Connected but query failed'
+      supabaseStatus = 'Connected but auth check failed'
       databaseStatus = 'Error'
       error = connectionError.message
     } else {

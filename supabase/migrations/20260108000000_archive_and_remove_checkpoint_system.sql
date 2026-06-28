@@ -64,29 +64,46 @@ FROM reconciliation_periods;
 
 -- We'll extract the last checkpoint's actual_balance for each account from the JSONB
 -- The account_balances JSONB structure is: [{"account_id": "...", "actual_balance": ...}, ...]
-WITH latest_checkpoints AS (
-  SELECT DISTINCT ON (workspace_id)
-    workspace_id,
-    account_balances,
-    created_at
-  FROM checkpoints
-  ORDER BY workspace_id, created_at DESC
-),
-account_balances_extracted AS (
-  SELECT 
-    lc.workspace_id,
-    (jsonb_array_elements(lc.account_balances)->>'account_id')::UUID as account_id,
-    (jsonb_array_elements(lc.account_balances)->>'actual_balance')::DECIMAL(15,2) as actual_balance
-  FROM latest_checkpoints lc
-)
-UPDATE accounts a
-SET 
-  current_balance = abe.actual_balance,
-  current_balance_updated_at = NOW()
-FROM account_balances_extracted abe
-WHERE a.id = abe.account_id
-  AND a.workspace_id = abe.workspace_id
-  AND a.current_balance IS NOT NULL; -- Only update if current_balance column exists
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'accounts'
+      AND column_name = 'current_balance'
+  ) AND EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'accounts'
+      AND column_name = 'current_balance_updated_at'
+  ) THEN
+    WITH latest_checkpoints AS (
+      SELECT DISTINCT ON (workspace_id)
+        workspace_id,
+        account_balances,
+        created_at
+      FROM checkpoints
+      ORDER BY workspace_id, created_at DESC
+    ),
+    account_balances_extracted AS (
+      SELECT
+        lc.workspace_id,
+        (jsonb_array_elements(lc.account_balances)->>'account_id')::UUID as account_id,
+        (jsonb_array_elements(lc.account_balances)->>'actual_balance')::DECIMAL(15,2) as actual_balance
+      FROM latest_checkpoints lc
+    )
+    UPDATE accounts a
+    SET
+      current_balance = abe.actual_balance,
+      current_balance_updated_at = NOW()
+    FROM account_balances_extracted abe
+    WHERE a.id = abe.account_id
+      AND a.workspace_id = abe.workspace_id
+      AND a.current_balance IS NOT NULL;
+  END IF;
+END $$;
 
 -- Step 4: Remove locked field from transactions table
 -- This field was only used by the checkpoint system

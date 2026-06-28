@@ -40,7 +40,7 @@ export function UserProfile() {
           <p className="text-sm font-medium text-[var(--text-primary)] truncate" title={user?.user_metadata?.full_name || user?.email || 'User'}>
             {user?.user_metadata?.full_name || user?.email || 'User'}
           </p>
-          <p className="text-xs text-[var(--text-secondary)] truncate">Family Account</p>
+          <p className="text-xs text-[var(--text-secondary)] truncate">Forma Account</p>
         </div>
         <button 
           onClick={handleSignOut}

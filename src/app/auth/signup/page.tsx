@@ -7,7 +7,7 @@ import Link from 'next/link'
 
 export const metadata = {
   title: 'Sign Up | Forma',
-  description: 'Create your Forma account to start managing your family finances',
+  description: 'Create your Forma account',
 }
 
 export default function SignUpPage() {
@@ -32,7 +32,7 @@ export default function SignUpPage() {
             Start Your Journey
           </h1>
           <p className="text-secondary">
-            Create your family finance account
+            Create your Forma account
           </p>
         </div>
 

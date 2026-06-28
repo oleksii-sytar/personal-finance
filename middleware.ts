@@ -36,14 +36,8 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
 
   // Define route categories
-  const isAuthRoute = request.nextUrl.pathname.startsWith('/auth')
   const isProtectedRoute = 
-    request.nextUrl.pathname.startsWith('/dashboard') ||
-    request.nextUrl.pathname.startsWith('/transactions') ||
-    request.nextUrl.pathname.startsWith('/categories') ||
-    request.nextUrl.pathname.startsWith('/accounts') ||
-    request.nextUrl.pathname.startsWith('/reports') ||
-    request.nextUrl.pathname.startsWith('/settings')
+    request.nextUrl.pathname.startsWith('/dashboard')
 
   // Only handle basic authentication for protected routes
   if (!user && isProtectedRoute) {
@@ -52,28 +46,6 @@ export async function middleware(request: NextRequest) {
     const redirectUrl = new URL('/auth/login', request.url)
     redirectUrl.searchParams.set('returnUrl', returnUrl)
     return NextResponse.redirect(redirectUrl)
-  }
-
-  // Handle invitation token preservation (minimal logic)
-  const inviteToken = request.nextUrl.searchParams.get('token') || 
-                     request.nextUrl.searchParams.get('invite_token')
-  
-  if (inviteToken && !request.nextUrl.pathname.includes('/auth/invite')) {
-    response.cookies.set('pending_invitation_token', inviteToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7 // 7 days
-    })
-  }
-
-  // Simple root path handling - let client-side components handle complex logic
-  if (request.nextUrl.pathname === '/') {
-    if (user) {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
-    } else {
-      return NextResponse.redirect(new URL('/auth/login', request.url))
-    }
   }
 
   return response

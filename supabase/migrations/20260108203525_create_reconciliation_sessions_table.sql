@@ -4,7 +4,7 @@
 CREATE TABLE reconciliation_sessions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   workspace_id UUID NOT NULL REFERENCES workspaces(id) ON DELETE CASCADE,
-  checkpoint_id UUID NOT NULL REFERENCES checkpoints(id) ON DELETE CASCADE,
+  checkpoint_id UUID NOT NULL,
   current_step TEXT NOT NULL CHECK (current_step IN (
     'checkpoint_creation',
     'gap_analysis', 
