@@ -106,16 +106,16 @@ describe('reserve and model selection',()=>{
  })
 })
 describe('financial period meaning and FX',()=>{
- it('counts purchases once and excludes principal financing and own transfers',()=>{
+ it('counts full loan expenses and purchases once, excluding borrowed income and own transfers',()=>{
   const rows=[tx({kind:'income',amount:2000}),tx({kind:'income',accountingClass:'principal',amount:100000}),tx({kind:'transfer',amount:30000,counterAccountId:'card'}),tx({accountId:'card',amount:1000}),tx({amount:500,accountingClass:'principal'}),tx({amount:9060,loanAccountId:'loan',loanPrincipal:5277.86,loanBasis:'confirmed'})]
   const totals=monthlyTotals(rows,2026,8,'UAH',{reference:now,rates:[]})
-  expect(totals.income).toBe(2000);expect(totals.expense).toBeCloseTo(4782.14);expect(totals.net).toBeCloseTo(-2782.14)
+  expect(totals.income).toBe(2000);expect(totals.expense).toBeCloseTo(10560);expect(totals.net).toBeCloseTo(-8560)
   expect(spendingByCategory(rows,[],2026,8,'UAH',{reference:now,rates:[]}).reduce((s,c)=>s+c.total,0)).toBeCloseTo(totals.expense)
  })
- it.each(['unknown','obligation'] as const)('flags %s loan allocation as partial instead of inventing cost',loanBasis=>{
+ it.each(['unknown','obligation'] as const)('counts the whole payment regardless of legacy %s allocation',loanBasis=>{
   const rows=[tx({loanAccountId:'loan',loanPrincipal:1000,loanBasis})]
-  expect(monthlyTotals(rows,2026,8,'UAH',{reference:now}).expense).toBe(0)
-  expect(reportQuality(rows,'UAH','2026-09',{reference:now}).unallocated).toEqual([rows[0].id])
+  expect(monthlyTotals(rows,2026,8,'UAH',{reference:now}).expense).toBe(1400)
+  expect(reportQuality(rows,'UAH','2026-09',{reference:now})).toMatchObject({unallocated:[],provisional:false,incomplete:false})
  })
  it('uses date-specific rates and flags missing historical rates',()=>{
   const rates=[{currency:'USD' as const,date:'2026-09-01',rate:40},{currency:'USD' as const,date:'2026-09-02',rate:42}],rows=[tx({currency:'USD',amount:10}),tx({currency:'USD',amount:10,transactionDate:'2026-09-02'})]
@@ -155,12 +155,12 @@ describe('resources and honest historical positions',()=>{
 })
 
 describe('forecast and reporting correction regressions',()=>{
- it('retains estimated loan service and labels it approximate, not missing',()=>{
+ it('does not turn legacy allocation estimates into uncertainty about the paid expense',()=>{
   const rows=[tx({id:'estimated-loan',loanAccountId:'loan',loanPrincipal:1000,loanBasis:'estimated'})]
-  expect(monthlyTotals(rows,2026,8,'UAH',{reference:now}).expense).toBe(400)
+  expect(monthlyTotals(rows,2026,8,'UAH',{reference:now}).expense).toBe(1400)
   expect(reportQuality(rows,'UAH','2026-09',{reference:now})).toMatchObject({
-   recognizedExpense:400,estimatedExpense:400,estimated:['estimated-loan'],
-   provisional:true,incomplete:false,unallocated:[]
+   recognizedExpense:1400,estimatedExpense:0,estimated:[],
+   provisional:false,incomplete:false,unallocated:[]
   })
  })
  it('includes outstanding plans today without another ordinary daily budget',()=>{

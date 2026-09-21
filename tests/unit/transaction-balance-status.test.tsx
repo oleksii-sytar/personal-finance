@@ -15,11 +15,11 @@ describe('Account-specific balance confirmation',()=>{
  it('names the recipient when only outgoing balance is confirmed',()=>{
   expect(transactionBalanceStatus({...transfer(),accountVerifiedAt:stamp},names).label).toBe('Не звірено: Монобанк')
  })
- it('names the loan when the payment account was confirmed',()=>{
-  expect(transactionBalanceStatus(makeTxn({loanAccountId:'loan',accountVerifiedAt:stamp}),names).label).toBe('Не звірено: Іпотека')
+ it('confirms the expense account without requiring a separate loan-balance leg',()=>{
+  expect(transactionBalanceStatus(makeTxn({loanAccountId:'loan',accountVerifiedAt:stamp}),names)).toMatchObject({verified:true,total:1,confirmed:1,label:'Залишок звірено'})
  })
  it('still requires the payment account when only the loan was confirmed',()=>{
-  expect(transactionBalanceStatus(makeTxn({loanAccountId:'loan',loanVerifiedAt:stamp}),names).label).toBe('Не звірено: Готівка')
+  expect(transactionBalanceStatus(makeTxn({loanAccountId:'loan',loanVerifiedAt:stamp}),names)).toMatchObject({verified:false,total:1,confirmed:0,label:'Залишок не звірено'})
  })
  it('uses plural once both transfer balances were confirmed',()=>{
   expect(transactionBalanceStatus({...transfer(),accountVerifiedAt:stamp,counterVerifiedAt:stamp},names)).toMatchObject({verified:true,label:'Залишки звірено'})

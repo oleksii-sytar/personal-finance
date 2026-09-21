@@ -1,5 +1,5 @@
 import {describe,it,expect} from 'vitest'
-import {destinationChanged,destinationError,destinationPatch,emptyDestination,transactionDestination} from '@/lib/loans/destination'
+import {destinationChanged,destinationPatch,emptyDestination,transactionDestination} from '@/lib/loans/destination'
 import {personalSpendingAccounts,spendingPowerSummary} from '@/lib/money/balances'
 import {convert} from '@/lib/money/fx'
 import {tools} from '@/lib/mcp/catalog'
@@ -12,23 +12,28 @@ describe('explicit payment destination',()=>{
   expect(destinationChanged(t,null)).toBe(true)
  })
  it('treats missing and null fee fields alike when checking for changes',()=>expect(destinationChanged(t,transactionDestination(t))).toBe(false))
- it('requires fresh allocation for a new destination',()=>{
+ it('links another loan without requiring amounts or a bank schedule',()=>{
   const d=emptyDestination('other')
-  expect(d.principal).toBeNull();expect(d.components).toEqual({})
-  expect(destinationError(d,10)).not.toBeNull()
+  expect(d).toEqual({accountId:'other',installmentId:null})
+  expect(destinationPatch(d)).toMatchObject({loanAccountId:'other',loanInstallmentId:null,loanPrincipal:0,loanComponents:{},loanBasis:null})
+  expect(destinationPatch(d)).not.toHaveProperty('amount')
+  expect(destinationChanged(t,d)).toBe(true)
  })
- it('validates principal plus fees, but does not double-count a whole obligation',()=>{
-  const d=transactionDestination(t)!
-  expect(destinationError(d,9)).not.toBeNull()
-  expect(destinationError(d,10)).toBeNull()
-  expect(destinationError({...d,principal:10,basis:'obligation'},10)).toBeNull()
+ it('keeps only explicit account and installment links from legacy allocations',()=>{
+  expect(transactionDestination(t)).toEqual({accountId:'loan',installmentId:'row'})
+  expect(transactionDestination({...t,loanAccountId:null})).toBeNull()
  })
  it('keeps detachment and explicit destination fields available to MCP',()=>{
   const update=tools.find(t=>t.name==='update_transaction')!
   const fields=update.inputSchema.properties?.values.properties
   expect(fields?.loan_account_id).toBeDefined()
-  expect(fields?.loan_principal).toBeDefined()
-  expect(update.description).toContain('removes its loan and installment link')
+  expect(fields?.loan_installment_id).toBeDefined()
+  expect(fields?.loan_principal).toBeUndefined()
+  expect(update.description).toContain('null detaches it')
+  expect(update.description).toContain('Category is independent')
+  const payment=tools.find(t=>t.name==='pay_loan')!
+  expect(payment.inputSchema.properties?.values.properties?.transaction_id).toBeDefined()
+  expect(payment.description).toContain('never create a duplicate')
  })
 })
 describe('personal money uses ownership, not creator or family membership',()=>{

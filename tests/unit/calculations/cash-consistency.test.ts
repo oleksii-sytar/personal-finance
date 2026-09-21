@@ -13,7 +13,7 @@ describe('consistent cash, costs and debt',()=>{
  it('keeps full payment and internal servicing details',()=>{
   const tx=t({loanAccountId:'loan',loanPrincipal:5277.86,loanBasis:'confirmed',loanComponents:{interest:.73,fees:3781}})
   expect(cashMovement(accounts,[tx],'UAH','2026-09')).toMatchObject({outgoing:9060,loanPayments:9060,principal:5277.86,unallocated:.41})
-  expect(expenseAmount(tx)).toBeCloseTo(3782.14)
+  expect(expenseAmount(tx)).toBe(9060)
   expect(loanPaymentParts(tx)).toMatchObject({specified:3781.73})
  })
  it('does not call an unknown obligation zero-cost principal',()=>{
