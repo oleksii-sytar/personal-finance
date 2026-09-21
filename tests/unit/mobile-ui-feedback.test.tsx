@@ -10,7 +10,8 @@ import type {LoanInstallment} from '@/lib/loans/model'
 
 const state=vi.hoisted(()=>({params:new URLSearchParams(),replace:vi.fn(),accounts:[] as ReturnType<typeof makeAccount>[],transactions:[] as ReturnType<typeof makeTxn>[]}))
 vi.mock('next/navigation',()=>({useRouter:()=>({replace:state.replace}),useSearchParams:()=>state.params}))
-vi.mock('@/hooks/use-finance',()=>({useAccounts:()=>({data:state.accounts,isLoading:false}),useTransactionPages:(filter:any)=>({data:{pages:[pageTransactions(state.transactions,filter)]},isLoading:false}),useSelectTransactions:()=>({isPending:false,mutateAsync:vi.fn()}),useRecurring:()=>({data:[]}),useCategories:()=>({data:[]}),useMembers:()=>({data:[]})}))
+vi.mock('@/hooks/use-daily-spending',()=>({useDailySpending:()=>({statuses:new Map(),transactions:state.transactions,isLoading:false,isError:false})}))
+vi.mock('@/hooks/use-finance',()=>({useCurrentUser:()=>({data:{id:'owner'}}),useTransactions:()=>({data:state.transactions}),useUpdateTransaction:()=>({isPending:false,mutateAsync:vi.fn()}),useAccounts:()=>({data:state.accounts,isLoading:false}),useTransactionPages:(filter:any)=>({data:{pages:[pageTransactions(state.transactions,filter)]},isLoading:false}),useSelectTransactions:()=>({isPending:false,mutateAsync:vi.fn()}),useRecurring:()=>({data:[]}),useCategories:()=>({data:[]}),useMembers:()=>({data:[]})}))
 vi.mock('@/hooks/use-loans',()=>({useLoanData:()=>({data:{profiles:[],rows:[]},isLoading:false})}))
 vi.mock('@/contexts/workspace-context',()=>({useWorkspaceContext:()=>({role:'owner',displayCurrency:'UAH',can:()=>true})}))
 vi.mock('@/components/ui/toast',()=>({useToast:()=>({success:vi.fn(),error:vi.fn()})}))

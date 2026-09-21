@@ -4,7 +4,8 @@ import {render,screen,fireEvent,waitFor} from '@testing-library/react'
 import {DetailedEntryForm} from '@/components/transactions/detailed-entry-form'
 import {FX_STATUS} from '@/lib/money/fx'
 const state=vi.hoisted(()=>({create:vi.fn(),update:vi.fn(),save:vi.fn(),close:vi.fn(),accounts:[{id:'cash',name:'Гаманець',currency:'UAH',isDefault:true,type:'cash'}]}))
-vi.mock('@/hooks/use-finance',()=>({useAccounts:()=>({data:state.accounts}),useMembers:()=>({data:[]}),useCategories:()=>({data:[]}),useCreateTransaction:()=>({mutateAsync:state.create}),useUpdateTransaction:()=>({mutateAsync:state.update}),useDeleteTransaction:()=>({}),useSaveRecurring:()=>({mutateAsync:state.save})}))
+vi.mock('@/hooks/use-daily-spending',()=>({useDailySpending:()=>({statuses:new Map(),transactions:[],isLoading:false,isError:false})}))
+vi.mock('@/hooks/use-finance',()=>({useCurrentUser:()=>({data:{id:'owner'}}),useAccounts:()=>({data:state.accounts}),useMembers:()=>({data:[]}),useCategories:()=>({data:[]}),useCreateTransaction:()=>({mutateAsync:state.create}),useUpdateTransaction:()=>({mutateAsync:state.update}),useDeleteTransaction:()=>({}),useSaveRecurring:()=>({mutateAsync:state.save})}))
 vi.mock('@/components/ui/toast',()=>({useToast:()=>({success:vi.fn(),error:vi.fn()})}))
 vi.mock('@/components/transactions/transfer-dialog',()=>({TransferDialog:()=>null}))
 beforeEach(()=>{state.create.mockReset().mockResolvedValue({id:'new'});state.save.mockReset().mockResolvedValue({id:'series'});state.update.mockReset().mockResolvedValue({id:'updated'});state.close.mockClear();FX_STATUS.source='nbu';FX_STATUS.date='14.09.2026'})

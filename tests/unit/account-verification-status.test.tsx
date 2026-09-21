@@ -12,6 +12,7 @@ vi.mock('@/hooks/use-finance',()=>({
  useTransactions:()=>({data:state.transactions,isFetching:state.fetching,error:state.error,refetch:state.reload}),
  useCategories:()=>({data:[]}),
 }))
+vi.mock('@/hooks/use-daily-spending',()=>({useDailySpending:()=>({statuses:new Map(),transactions:state.transactions||[],isLoading:false,isError:false})}))
 vi.mock('@/contexts/workspace-context',()=>({useWorkspaceContext:()=>({displayCurrency:'UAH',can:()=>true})}))
 vi.mock('@/contexts/quick-add-context',()=>({useQuickAdd:()=>({openQuickAdd:vi.fn()})}))
 vi.mock('next/navigation',()=>({useParams:()=>({id:'a'}),useRouter:()=>({push:state.navigate})}))
