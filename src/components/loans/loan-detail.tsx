@@ -15,7 +15,7 @@ import {DetailedEntryForm,type EntryDraft} from '@/components/transactions/detai
 import {TransactionList} from '@/components/transactions/transaction-list'
 import {UpdateBalanceDialog} from '@/components/accounts/update-balance-dialog'
 import {accountVerificationStatus} from '@/lib/reconciliation/model'
-import {isLoanDestination} from '@/lib/loans/destination'
+import {isLoanDestination,isPaymentAccount} from '@/lib/loans/destination'
 import {parseLoanSchedule,loanOcrPrompt,type LoanProfile,type LoanInstallment} from '@/lib/loans/model'
 import {accountOwner} from '@/lib/money/entry'
 import {localDay} from '@/lib/calculations/dates'
@@ -36,13 +36,13 @@ export function LoanDetail({accountId}:{accountId:string}){
  </div>
 }
 function LoanPanel({account,accounts,transactions,profile,rows}:{account:Account;accounts:Account[];transactions:Transaction[];profile?:LoanProfile;rows:LoanInstallment[]}){
- const {can}=useWorkspaceContext(),{data:categories=[]}=useCategories()
+ const {can,currentUser}=useWorkspaceContext(),{data:categories=[]}=useCategories()
  const [balance,setBalance]=useState(false),[form,setForm]=useState(false),[editing,setEditing]=useState<Transaction|null>(null),[draft,setDraft]=useState<EntryDraft>({}),[linking,setLinking]=useState(false),[picked,setPicked]=useState(''),[limit,setLimit]=useState(12)
  const card=account.type==='credit_card',source=profile?.payment_account_id||accounts.find(a=>a.isDefault&&!isLoanDestination(a)&&a.id!==account.id)?.id||accounts.find(a=>a.type==='bank_debit'&&a.currency===account.currency)?.id||''
  const linked=transactions.filter(t=>!t.deletedAt&&(t.loanAccountId===account.id||card&&t.kind==='transfer'&&t.counterAccountId===account.id))
  const plans=linked.filter(t=>t.status==='planned'&&!t.recurrenceSuspended).sort((a,b)=>a.transactionDate.localeCompare(b.transactionDate))
  const actual=linked.filter(t=>t.status==='completed'&&t.transactionDate<=localDay()).sort((a,b)=>b.transactionDate.localeCompare(a.transactionDate))
- const candidates=transactions.filter(t=>!t.deletedAt&&!t.loanAccountId&&t.accountId!==account.id&&(t.kind==='expense'||t.kind==='transfer'&&t.counterAccountId===account.id)).sort((a,b)=>b.transactionDate.localeCompare(a.transactionDate))
+ const candidates=transactions.filter(t=>(can('transaction.manageAll')||t.createdBy===currentUser?.id)&&!t.deletedAt&&!t.loanAccountId&&t.accountId!==account.id&&(t.kind==='expense'||t.kind==='transfer'&&t.counterAccountId===account.id)).sort((a,b)=>b.transactionDate.localeCompare(a.transactionDate))
  const verification=accountVerificationStatus(account,transactions)
  function add(planned:boolean){
   setEditing(null);setDraft({kind:card?'transfer':'expense',accountId:source,amount:'',description:'Платіж: '+account.name,status:planned?'planned':'completed',...(card?{counterAccountId:account.id}:{loanAccountId:account.id})});setForm(true)
@@ -80,7 +80,7 @@ function LoanSettings({account,accounts,profile}:{account:Account;accounts:Accou
   try{await action.mutateAsync({name:'finance_save_loan',args:{p_account:account.id,p_values:{...profile,tracking_start_date:profile?.tracking_start_date||account.balanceAnchorDate||localDay(),payment_account_id:source||null,...(card?{card_due_date:due||null,card_minimum:amount}:{})}}});toast.success('Налаштування збережено')}catch(e){toast.error('Не вдалося зберегти',e)}
  }
  return <Card><details><summary className="cursor-pointer font-semibold">Налаштування платежів</summary><form onSubmit={save} className="mt-4 space-y-3">
-  <Select label="Рахунок для нових платежів" value={source} onChange={e=>setSource(e.target.value)} options={[{value:'',label:'Обирати під час оплати'},...accounts.filter(a=>!isLoanDestination(a)&&a.id!==account.id&&a.currency===account.currency).map(a=>({value:a.id,label:a.name}))]}/>
+  <Select label="Рахунок для нових платежів" value={source} onChange={e=>setSource(e.target.value)} options={[{value:'',label:'Обирати під час оплати'},...accounts.filter(a=>isPaymentAccount(a)&&a.id!==account.id&&a.currency===account.currency).map(a=>({value:a.id,label:a.name}))]}/>
   {card&&<><Input label="Мінімальний платіж за випискою" inputMode="decimal" value={minimum} onChange={e=>setMinimum(e.target.value)}/><Input label="Сплатити до" type="date" value={due} onChange={e=>setDue(e.target.value)}/><p className="text-sm text-muted">Ці дані не створюють план автоматично. Для прогнозу натисніть «Запланувати».</p></>}
   <Button type="submit" disabled={!can('account.manage')||action.isPending}>Зберегти</Button>
  </form></details></Card>
@@ -96,7 +96,7 @@ function ScheduleReference({account,profile,rows}:{account:Account;profile?:Loan
  }catch(e){toast.error('Не вдалося імпортувати графік',e)}}
  return <Card><details><summary className="cursor-pointer font-semibold">Графік банку · довідково ({rows.length})</summary>
   <p className="my-3 text-sm text-muted">Не змінює борг, статистику чи прогноз. Ваші оплати та плани показані вище.</p>
-  <div className="max-h-80 overflow-auto"><table className="w-full text-left text-sm"><thead><tr><th className="p-2">Дата</th><th className="p-2">Платіж</th><th className="p-2">Тіло</th><th className="p-2">Обслуговування</th></tr></thead><tbody>{rows.filter(r=>r.status!=='superseded').map(r=><tr key={r.id} className="border-t border-primary"><td className="whitespace-nowrap p-2">{r.payment_date}</td><td className="whitespace-nowrap p-2">{formatMoney(r.payment_total,account.currency)}</td><td className="whitespace-nowrap p-2">{formatMoney(r.principal,account.currency)}</td><td className="whitespace-nowrap p-2">{formatMoney(r.payment_total-r.principal,account.currency)}</td></tr>)}</tbody></table></div>
+  <div className="max-h-80 overflow-auto"><table className="w-full text-left text-sm"><thead><tr><th className="p-2">Дата</th><th className="p-2">Платіж</th><th className="p-2">Тіло</th><th className="p-2">Обслуговування</th></tr></thead><tbody>{rows.filter(r=>r.status!=='superseded').sort((a,b)=>a.payment_date.localeCompare(b.payment_date)).map(r=><tr key={r.id} className="border-t border-primary"><td className="whitespace-nowrap p-2">{r.payment_date}</td><td className="whitespace-nowrap p-2">{formatMoney(r.payment_total,account.currency)}</td><td className="whitespace-nowrap p-2">{formatMoney(r.principal,account.currency)}</td><td className="whitespace-nowrap p-2">{formatMoney(r.payment_total-r.principal,account.currency)}</td></tr>)}</tbody></table></div>
   {can('account.manage')&&<details className="mt-4"><summary className="cursor-pointer">Імпортувати графік</summary><div className="mt-3 space-y-3">
    <input aria-label="Файл графіка CSV" type="file" accept=".csv,text/csv" onChange={async e=>{const f=e.target.files?.[0];if(!f)return;if(f.size>5*1024*1024){toast.error('Файл має бути до 5 МБ');return}setCsv(await f.text())}}/>
    <textarea aria-label="Графік CSV" className="form-input h-40 w-full font-mono" value={csv} onChange={e=>setCsv(e.target.value)}/>

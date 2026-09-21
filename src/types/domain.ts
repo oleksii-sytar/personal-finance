@@ -175,7 +175,7 @@ export interface CategoryRule {
   categoryId: string
   isActive: boolean
   /** Limit the rule to one side of transactions (income/expense). */
-  kind?: 'income' | 'expense'
+  kind?: 'income' | 'expense' | null
   /** Optional minimum amount in transaction currency after converting manually if needed. */
   minAmount?: number | null
   /** Optional maximum amount in transaction currency after converting manually if needed. */

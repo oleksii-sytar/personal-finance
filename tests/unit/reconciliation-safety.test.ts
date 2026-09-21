@@ -18,7 +18,7 @@ describe('Independent review and bank confirmation',()=>{
  it('uncategorized expenses still need review even with legacy reconciled flag',()=>expect(needsReview({...t,kind:'expense',clearedStatus:'reconciled'})).toBe(true))
  it('one leg confirmation leaves the other pending',()=>{const x={...t,accountVerifiedAt:'2026-09-10T10:00:00Z'};expect(pendingForAccount(x,'a')).toBe(false);expect(pendingForAccount(x,'b')).toBe(true);expect(verificationLabel(x)).toContain('1 із 2')})
  it('planned movements are not pending actual balances',()=>expect(pendingForAccount({...t,status:'planned'},'a')).toBe(false))
- it('loan principal side is independently confirmed',()=>expect(pendingForAccount({...t,kind:'expense',loanAccountId:'loan',accountVerifiedAt:'now'},'loan')).toBe(true))
+ it('a manual loan link is not an unconfirmed bank movement',()=>expect(pendingForAccount({...t,kind:'expense',loanAccountId:'loan',accountVerifiedAt:'now'},'loan')).toBe(false))
  it('financial changes differ from notes',()=>{expect(financialChange(t,{notes:'test'})).toBe(false);expect(financialChange(t,{amount:1001})).toBe(true)})
 })
 describe('Transfer matching in either import order',()=>{
@@ -36,3 +36,4 @@ describe('Honest forecast',()=>{
  it('uses the shared model confidence rather than a second day gate',()=>expect(reliableTrend({confidence:'history'})).toBe(true))
  it('known-plan forecast includes salary but not credit limit',()=>{const a=account('a',14000),card={...account('c',-40000),type:'credit_card',creditLimit:100000} as Account;const income={...t,id:'salary',kind:'income',accountId:'a',counterAccountId:null,status:'planned',transactionDate:'2026-09-11',amount:20000} as Transaction;const result=liquidityForecast([a,card],[income],'UAH','2026-09-11',new Date(2026,8,10),0);expect(result.opening).toBe(14000);expect(result.points.at(-1)?.balance).toBe(34000)})
 })
+it('future completed legacy rows do not make today pending',()=>expect(pendingForAccount({...t,transactionDate:'2999-01-01'},'a')).toBe(false))

@@ -1,4 +1,5 @@
 'use client'
+import {isPaymentAccount} from '@/lib/loans/destination'
 import {useEffect,useState} from 'react'
 import {Dialog,DialogActions} from '@/components/ui/dialog'
 import {Select} from '@/components/ui/select'
@@ -13,7 +14,7 @@ export function BulkActionDialog({action,transactions,accounts,onClose}:{action:
  const mutation=useBulkTransactions(),toast=useToast()
  const {data:categories=[]}=useCategories()
  useEffect(()=>{setAccountId('');setCategoryId('');setError('')},[action])
- const candidates=accounts.filter(a=>!a.archivedAt&&transactions.every(t=>t.currency===a.currency&&t.counterAccountId!==a.id))
+ const candidates=accounts.filter(a=>isPaymentAccount(a)&&transactions.every(t=>t.currency===a.currency&&t.counterAccountId!==a.id))
  const categoryCandidates=categories.filter(c=>transactions.every(t=>!t.deletedAt&&t.kind===c.type))
  const close=()=>{if(!mutation.isPending)onClose()}
  async function apply(){

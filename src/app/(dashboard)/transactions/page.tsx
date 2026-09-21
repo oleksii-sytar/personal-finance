@@ -23,7 +23,7 @@ import {RecurringManager} from '@/components/transactions/recurring-manager'
 import type {Transaction,RecurringTransaction} from '@/types/domain'
 export default function TransactionsPage(){return <Suspense fallback={<p>Завантажуємо транзакції…</p>}><Ledger/></Suspense>}
 function Ledger(){
- const router=useRouter(),params=useSearchParams(),{data:accounts=[]}=useAccounts(),{data:categories=[]}=useCategories(),{data:recurring=[]}=useRecurring(),{role}=useWorkspaceContext()
+ const router=useRouter(),params=useSearchParams(),{data:accounts=[]}=useAccounts(),{data:categories=[]}=useCategories(),{data:recurring=[]}=useRecurring(),{role,can}=useWorkspaceContext()
  const canBulk=role==='owner'||role==='manager'
  const purpose=params.get('purpose')==='reserve'?'reserve':'forecast',spending=useDailySpending(purpose)
  const [spendingView,setSpendingView]=useState(params.get('spending')||'')
@@ -65,7 +65,7 @@ function Ledger(){
   setForm(false)
   if(params.has('edit')||params.has('newLoan')){const next=new URLSearchParams(params.toString());next.delete('edit');next.delete('newLoan');router.replace('/transactions'+(next.size?'?'+next.toString():''),{scroll:false})}
  }
- return <><header className="mb-3 space-y-3 ledger-page-heading"><h1 className="font-space-grotesk text-2xl font-bold">Транзакції</h1><div className="flex gap-2"><Button onClick={()=>{setEditing(null);setSeries(null);setRepeatFrom(null);setForm(true)}} className="min-w-0 flex-1"><Plus className="mr-1 h-4 w-4 shrink-0"/>Додати транзакцію</Button><Button variant="secondary" onClick={()=>setImporting(true)}><Upload className="mr-1 h-4 w-4"/>Імпорт</Button></div></header>
+ return <><header className="mb-3 space-y-3 ledger-page-heading"><h1 className="font-space-grotesk text-2xl font-bold">Транзакції</h1>{can('transaction.create')&&<div className="flex gap-2"><Button onClick={()=>{setEditing(null);setSeries(null);setRepeatFrom(null);setForm(true)}} className="min-w-0 flex-1"><Plus className="mr-1 h-4 w-4 shrink-0"/>Додати транзакцію</Button>{canBulk&&<Button variant="secondary" onClick={()=>setImporting(true)}><Upload className="mr-1 h-4 w-4"/>Імпорт</Button>}</div>}</header>
  {(spendingView||params.has('edit'))&&<div className="mb-3 space-y-2 rounded-xl border border-primary p-3"><Link className="finance-link" href={purpose==='reserve'?'/settings#reserve-categories':'/forecast'}>Повернутися до розрахунку</Link><p className="text-sm">{purpose==='reserve'?'Резерв':'Щоденні витрати'} · {spending.trend.from} - {spending.trend.to}</p>{spendingView==='review'&&<p className="text-sm">Ці витрати зараз враховані. Відкрийте потрібну, щоб залишити її, позначити разовою або пов’язати з планом.</p>}</div>}
  <SegmentedControl aria-label="Список транзакцій" className="ledger-tabs mb-3 w-full" value={view} onChange={setView} options={[{value:'all',label:'Виконані'},{value:'review',label:'Перевірити',count:reviewCount},{value:'planned',label:'Плани'}]}/>
  {view==='planned'&&<div className="plans-toolbar"><span>Найближчі спочатку</span><Button variant="secondary" size="sm" onClick={()=>setSeriesOpen(true)}><Repeat size={15} className="mr-1"/>Повторення{recurring.length?' · '+recurring.length:''}</Button></div>}

@@ -1,7 +1,8 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Pencil, Plus, Save, Trash2 } from 'lucide-react'
+import { useWorkspaceContext } from '@/contexts/workspace-context'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/Button'
 import { Card, CardTitle } from '@/components/ui/Card'
@@ -38,6 +39,8 @@ const INITIAL_FORM: FormState = {
 }
 
 export function CategoryRulesManager() {
+  const { can } = useWorkspaceContext()
+  const canManage = can('category.manage')
   const { data: rules = [] } = useCategoryRules()
   const { data: categories = [] } = useCategories()
   const createRule = useCreateCategoryRule()
@@ -49,6 +52,7 @@ export function CategoryRulesManager() {
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({})
   const sortedRules = useMemo(() => [...rules].sort((a, b) => a.priority - b.priority), [rules])
   const isEditing = form.id.length > 0
+  const saving = useRef(false)
 
   const categoryName = (id: string) => categories.find((c) => c.id === id)?.name ?? "Невідомо"
 
@@ -58,6 +62,7 @@ export function CategoryRulesManager() {
   }
 
   function editRule(rule: CategoryRule) {
+    if (!canManage) return
     setErrors({})
     setForm({
       id: rule.id,
@@ -80,12 +85,12 @@ export function CategoryRulesManager() {
 
     const min = form.minAmount === '' ? null : Number(form.minAmount)
     const max = form.maxAmount === '' ? null : Number(form.maxAmount)
-    if (min != null && Number.isNaN(min)) next.minAmount = "Введіть число"
-    if (max != null && Number.isNaN(max)) next.maxAmount = "Введіть число"
+    if (min != null && !Number.isFinite(min)) next.minAmount = "Введіть число"
+    if (max != null && !Number.isFinite(max)) next.maxAmount = "Введіть число"
     if (min != null && min < 0) next.minAmount = "Значення не може бути від’ємним"
     if (max != null && max < 0) next.maxAmount = "Значення не може бути від’ємним"
     if (min != null && max != null && min > max) next.maxAmount = "Максимум має бути не меншим за мінімум"
-    if (form.priority && Number.isNaN(Number(form.priority))) next.priority = "Пріоритет має бути числом"
+    if (form.priority && (!Number.isSafeInteger(Number(form.priority)) || Math.abs(Number(form.priority)) > 2147483647)) next.priority = "Укажіть ціле число від -2147483647 до 2147483647"
 
     setErrors(next)
     return Object.keys(next).length === 0
@@ -93,18 +98,20 @@ export function CategoryRulesManager() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
+    if (!canManage || saving.current) return
     if (!validate()) return
     const payload = {
       name: form.name.trim(),
       categoryId: form.categoryId,
       descriptionContains: form.descriptionContains.trim(),
-      kind: form.kind || undefined,
+      kind: form.kind || null,
       minAmount: form.minAmount === '' ? null : Number(form.minAmount),
       maxAmount: form.maxAmount === '' ? null : Number(form.maxAmount),
       priority: form.priority === '' ? 100 : Number(form.priority),
       isActive: form.isActive,
     }
 
+    saving.current = true
     try {
       if (isEditing) {
         await updateRule.mutateAsync({ id: form.id, patch: payload as UpdateCategoryRuleInput })
@@ -116,10 +123,11 @@ export function CategoryRulesManager() {
       resetForm()
     } catch (error) {
       toast.error("Не вдалося зберегти правило",error)
-    }
+    } finally { saving.current = false }
   }
 
   async function handleDelete(rule: CategoryRule) {
+    if (!canManage) return
     if (!window.confirm(`Видалити правило «${rule.name}»?`)) return
     try {
       await deleteRule.mutateAsync(rule.id)
@@ -134,7 +142,8 @@ export function CategoryRulesManager() {
     <Card>
       <CardTitle className="mb-3">Правила автоматичної категоризації</CardTitle>
 
-      <form onSubmit={submit} className="grid gap-3">
+      {!canManage && <p className="text-sm text-muted">Правила може змінювати власник або фінансовий менеджер сім’ї.</p>}
+      {canManage && <form onSubmit={submit} className="grid gap-3">
         <div className="grid gap-3 md:grid-cols-2">
           <Input
             label="Назва правила"
@@ -225,11 +234,11 @@ export function CategoryRulesManager() {
             {isEditing ? "Зберегти правило" : "Додати правило"}
           </Button>
         </div>
-      </form>
+      </form>}
 
       <div className="mt-6 space-y-3">
         {sortedRules.length === 0 ? (
-          <p className="text-sm text-muted">Правил ще немає. Додайте перше для автоматичної категоризації.</p>
+          <p className="text-sm text-muted">Правил автоматичної категоризації ще немає.</p>
         ) : (
           sortedRules.map((rule) => (
             <div key={rule.id} className="rounded-xl border border-glass bg-glass p-3">
@@ -247,7 +256,7 @@ export function CategoryRulesManager() {
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge tone={rule.isActive ? 'success' : 'neutral'}>{rule.isActive ? 'активне' : 'призупинено'}</Badge>
-                  <button
+                  {canManage && <><button
                     type="button"
                     onClick={() => editRule(rule)}
                     className="rounded-pill border border-glass px-3 py-1.5 text-sm text-secondary hover:text-primary"
@@ -262,7 +271,7 @@ export function CategoryRulesManager() {
                     aria-label={`Видалити ${rule.name}`}
                   >
                     <Trash2 className="mr-1 inline h-3.5 w-3.5" /> Видалити
-                  </button>
+                  </button></>}
                 </div>
               </div>
             </div>
