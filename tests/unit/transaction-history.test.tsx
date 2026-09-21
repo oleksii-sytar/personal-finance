@@ -5,6 +5,7 @@ import {TransactionHistory} from '@/components/transactions/transaction-history'
 import {RecentActivity} from '@/components/dashboard/recent-activity'
 import {makeAccount,makeTxn} from './_factories'
 
+vi.mock('@/hooks/use-daily-spending',()=>({useDailySpending:()=>({statuses:new Map(),transactions:[],isLoading:false,isError:false})}))
 const today='2026-09-15'
 const actual=()=>Array.from({length:15},(_,i)=>makeTxn({id:'actual-'+i,accountId:'a',description:'Факт '+i,transactionDate:'2026-09-'+String(i+1).padStart(2,'0'),createdAt:'2026-09-10T12:00:00Z'}))
 const future=()=>Array.from({length:30},(_,i)=>makeTxn({id:'plan-'+i,accountId:'a',description:'План '+i,status:'planned',transactionDate:'2026-12-25'}))

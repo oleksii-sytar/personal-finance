@@ -4,7 +4,7 @@ import {ReservePreview} from '@/components/settings/user-settings-form'
 import {MobileTabBar} from '@/components/layout/mobile-tab-bar'
 import {ImportReminderCard} from '@/components/settings/import-reminders'
 import {formatMoney} from '@/lib/money/format'
-import type {automaticSpending} from '@/lib/calculations/liquidity'
+import {automaticSpending} from '@/lib/calculations/liquidity'
 
 const state=vi.hoisted(()=>({settings:{userId:'test-user',importReminderEnabled:true,importReminderWeekday:1},path:'/reports',save:vi.fn().mockResolvedValue(undefined),rpc:vi.fn(),permission:vi.fn()}))
 vi.mock('@/contexts/workspace-context',()=>({useWorkspaceContext:()=>({can:()=>true})}))
@@ -12,7 +12,7 @@ vi.mock('next/navigation',()=>({usePathname:()=>state.path}))
 vi.mock('@/hooks/use-finance',()=>({useSettings:()=>({data:state.settings}),useUpdateSettings:()=>({mutateAsync:state.save,isPending:false}),useAccounts:()=>({data:[]}),useTransactions:()=>({data:[]}),useImportBatches:()=>({data:[]})}))
 vi.mock('@/lib/supabase/client',()=>({createClient:()=>({rpc:state.rpc})}))
 vi.mock('@/components/ui/toast',()=>({useToast:()=>({success:vi.fn(),error:vi.fn()})}))
-const trend=(over:Partial<ReturnType<typeof automaticSpending>>={}):ReturnType<typeof automaticSpending>=>({daily:100,cashDaily:100,cashDailyBase:100,essentialDaily:100,baseEssential:100,essentialDiscounts:{},monthlyDiscounts:{},canEstimate:true,confidence:'history',method:'mean',lowDaily:50,highDaily:150,missingCoverage:[],missingFx:0,streams:[],excludedOneOff:0,scheduledHistory:0,comparison:{folds:3,baselineMAE:0,smoothingMAE:0,horizon:7},longComparison:{folds:3,baselineMAE:0,smoothingMAE:0,horizon:14},days:30,sampleCount:10,hasHistory:true,provisional:false,partialDay:false,unknownAccounts:0,recurringStreams:0,from:'2026-06-01',to:'2026-09-10',...over})
+const trend=(over:Partial<ReturnType<typeof automaticSpending>>={}):ReturnType<typeof automaticSpending>=>({...automaticSpending([],[],'UAH','2026-09-30',new Date('2026-09-21T12:00:00Z'),{purpose:'reserve'}),daily:100,cashDaily:100,cashDailyBase:100,essentialDaily:100,baseEssential:100,essentialDiscounts:{},monthlyDiscounts:{},canEstimate:true,confidence:'history',method:'mean',lowDaily:50,highDaily:150,missingCoverage:[],missingFx:0,streams:[],excludedOneOff:0,scheduledHistory:0,comparison:{folds:3,baselineMAE:0,smoothingMAE:0,horizon:7},longComparison:{folds:3,baselineMAE:0,smoothingMAE:0,horizon:14},days:30,sampleCount:10,hasHistory:true,provisional:false,partialDay:false,unknownAccounts:0,recurringStreams:0,from:'2026-06-01',to:'2026-09-10',...over})
 beforeEach(()=>{
  vi.clearAllMocks();state.path='/reports'
  vi.stubGlobal('matchMedia',vi.fn(()=>({matches:false})))

@@ -46,7 +46,8 @@ describe('Dashboard keeps compact, consistent summaries',()=>{
   state.transactions=[makeTxn({kind:'income',amount:10000,transactionDate:'2026-09-10'}),makeTxn({amount:9060,loanAccountId:'loan',loanPrincipal:5000,loanBasis:'confirmed',transactionDate:'2026-09-10'}),planned({amount:100000})]
   render(<DashboardPage/>)
   const summary=screen.getByRole('region',{name:'Результат місяця'})
-  expect(summary.textContent?.replace(/[\s\u00a0\u202f]/g,'')).toContain('5940')
+  expect(summary.textContent?.replace(/[\s\u00a0\u202f]/g,'')).toContain('+940')
+  expect(summary.textContent?.replace(/[\s\u00a0\u202f]/g,'')).toContain('9060')
   expect(within(summary).getByRole('link',{name:'Статистика'})).toHaveAttribute('href','/reports')
   expect(within(summary).queryByText('Гроші зараз')).toBeNull()
   expect(state.loanReads).not.toHaveBeenCalled()
