@@ -12,7 +12,7 @@ export default defineConfig({
     // Autonomous test configuration - no interactive prompts
     watch: false,
     reporter: ['verbose'],
-    bail: 1, // Stop on first failure for faster feedback
+    bail: 0, // Stop on first failure for faster feedback
     // Exclude E2E tests from Vitest (they should run with Playwright)
     exclude: [
       '**/node_modules/**',

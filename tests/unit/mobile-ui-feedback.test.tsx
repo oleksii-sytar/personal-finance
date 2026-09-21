@@ -74,10 +74,23 @@ describe('Loan overview navigation',()=>{
   expect(screen.getByText('Кредитів поки немає')).toBeVisible()
   expect(screen.queryByRole('link',{name:/Archived/})).not.toBeInTheDocument()
  })
- it('shows schedule rows only on the relevant loan and excludes completed payments',()=>{
+ it('shows only explicit plans for this loan, not future bank schedule rows',()=>{
   const row=(id:string,date:string):LoanInstallment=>({id,workspace_id:'ws',account_id:'loan',import_id:'import',sequence:1,payment_date:date,principal:100,interest:10,fees:0,insurance:0,other:0,payment_total:110,principal_balance_after:null,source_page:null,status:'scheduled',created_at:'2026-09-01'})
-  render(<LoanOverview {...base} accounts={[makeAccount({id:'loan',name:'Loan',type:'bank_loan',currentBalance:-200})]} rows={[row('paid','2026-09-10'),row('next','2026-10-10')]} transactions={[makeTxn({loanInstallmentId:'paid'})]}/>)
-  expect(screen.getByText('10 жовтня 2026 р.')).toBeVisible()
-  expect(screen.queryByText('10 вересня 2026 р.')).not.toBeInTheDocument()
+  const accounts=[makeAccount({id:'loan',name:'Loan',type:'bank_loan',currentBalance:-200})]
+  const rows=[row('paid','2026-09-10'),row('bank-only','2026-10-10')]
+  const view=render(<LoanOverview {...base} accounts={accounts} rows={rows} transactions={[makeTxn({loanAccountId:'loan',loanInstallmentId:'paid'})]}/>)
+  expect(screen.getByText('Запланованих платежів немає')).toBeVisible()
+  expect(screen.queryByText('10 жовтня 2026 р.')).toBeNull()
+  view.rerender(<LoanOverview {...base} accounts={accounts} rows={rows} transactions={[
+   makeTxn({loanAccountId:'loan',status:'planned',transactionDate:'2026-10-11',amount:110}),
+   makeTxn({loanAccountId:'other',status:'planned',transactionDate:'2026-10-01'}),
+   makeTxn({loanAccountId:'loan',status:'completed',transactionDate:'2026-09-10'}),
+   makeTxn({loanAccountId:'loan',status:'planned',transactionDate:'2026-10-02',deletedAt:'2026-09-21'}),
+   makeTxn({loanAccountId:'loan',status:'planned',transactionDate:'2026-10-03',recurrenceSuspended:true}),
+  ]}/>)
+  expect(screen.getByText('11 жовтня 2026 р.')).toBeVisible()
+  expect(screen.queryByText('10 жовтня 2026 р.')).toBeNull()
+  expect(screen.queryByText('10 вересня 2026 р.')).toBeNull()
  })
+
 })
