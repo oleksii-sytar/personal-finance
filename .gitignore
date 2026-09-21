@@ -58,3 +58,6 @@ UX_ANALYSIS_*.md
 *_SUMMARY.md
 !RELEASE_v*.md
 Untitled.md
+
+# Isolated local verification data and credentials
+/.forma-audit/
