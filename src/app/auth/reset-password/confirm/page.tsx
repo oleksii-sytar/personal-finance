@@ -4,8 +4,8 @@ import { FormLoadingSkeleton } from '@/components/shared/form-loading-skeleton'
 import Link from 'next/link'
 
 export const metadata = {
-  title: 'Confirm Password Reset | Forma',
-  description: 'Set your new Forma account password',
+  title: "Новий пароль | Forma",
+  description: "Установіть новий пароль для Forma",
 }
 
 function ResetPasswordConfirmContent() {
@@ -37,7 +37,7 @@ export default function ResetPasswordConfirmPage() {
         <Suspense fallback={
           <div className="w-full max-w-md mx-auto p-8 text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--accent-primary)] mx-auto"></div>
-            <p className="text-secondary mt-4">Loading...</p>
+            <p className="text-secondary mt-4">Завантаження…</p>
           </div>
         }>
           <ResetPasswordConfirmContent />

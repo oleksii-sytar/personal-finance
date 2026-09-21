@@ -4,7 +4,7 @@
  * Requirements: 7.3, 8.3, 12.1, 12.2
  */
 
-const VALID_RETURN_URL_PATTERNS = [/^\/dashboard/]
+const VALID_RETURN_URL_PATTERNS = [/^\/(?:dashboard|accounts|transactions|reconcile|reports|categories|settings)(?:[/?#]|$)/]
 
 const INVALID_RETURN_URL_PATTERNS = [
   /^\/auth/,
@@ -89,7 +89,7 @@ export function captureReturnUrl(
     }
   }
 
-  return encodeURIComponent(fullUrl)
+  return fullUrl
 }
 
 /**

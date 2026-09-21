@@ -1,36 +1,44 @@
-/**
- * Basic middleware validation tests
- * Following the testing standards from testing.md
- */
-
-import { describe, it, expect } from 'vitest'
+// @vitest-environment node
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { NextRequest } from 'next/server'
 
-// Mock the middleware function for testing
-const mockMiddleware = async (request: NextRequest) => {
-  // Basic validation that middleware can be imported and has expected structure
-  const middleware = await import('../../middleware')
-  return typeof middleware.middleware === 'function'
-}
+const { getUser, createServerClient } = vi.hoisted(() => ({ getUser: vi.fn(), createServerClient: vi.fn() }))
+vi.mock('@supabase/ssr', () => ({ createServerClient }))
+vi.mock('@/lib/auth/preview', () => ({ PREVIEW_NO_AUTH: false }))
+import { middleware } from '../middleware'
 
-describe('Authentication Middleware', () => {
-  it('should export middleware function', async () => {
-    const middleware = await import('../../middleware')
-    expect(typeof middleware.middleware).toBe('function')
+beforeEach(() => {
+  getUser.mockReset().mockResolvedValue({ data: { user: null }, error: null })
+  createServerClient.mockReset().mockReturnValue({ auth: { getUser } })
+})
+
+describe('server authentication boundary', () => {
+  it.each(['/dashboard', '/accounts', '/accounts/test/edit', '/transactions', '/transactions/import', '/reconcile', '/reports', '/categories', '/settings'])(
+    'requires login for %s', async (pathname) => {
+      const response = await middleware(new NextRequest(`https://forma.test${pathname}?month=2026-09`))
+      expect(response.status).toBe(307)
+      const destination = new URL(response.headers.get('location')!)
+      expect(destination.pathname).toBe('/auth/login')
+      expect(destination.searchParams.get('returnUrl')).toBe(`${pathname}?month=2026-09`)
+    }
+  )
+
+  it('allows authenticated users through', async () => {
+    getUser.mockResolvedValue({ data: { user: { id: 'test-user' } }, error: null })
+    const response = await middleware(new NextRequest('https://forma.test/accounts'))
+    expect(response.headers.get('x-middleware-next')).toBe('1')
   })
 
-  it('should export config object', async () => {
-    const middleware = await import('../../middleware')
-    expect(middleware.config).toBeDefined()
-    expect(middleware.config.matcher).toBeDefined()
-    expect(Array.isArray(middleware.config.matcher)).toBe(true)
-  })
+  it.each(['/manifest.webmanifest', '/sw.js', '/offline.html'])(
+    'serves the public PWA asset %s without authentication', async (pathname) => {
+      const response = await middleware(new NextRequest(`https://forma.test${pathname}`))
+      expect(response.status).toBe(200)
+      expect(createServerClient).not.toHaveBeenCalled()
+    }
+  )
 
-  it('should have proper matcher configuration', async () => {
-    const middleware = await import('../../middleware')
-    const matcher = middleware.config.matcher
-    
-    // Should exclude static files and Next.js internals
-    expect(matcher).toContain('/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)')
+  it('leaves the login page accessible', async () => {
+    const response = await middleware(new NextRequest('https://forma.test/auth/login'))
+    expect(response.headers.get('x-middleware-next')).toBe('1')
   })
 })

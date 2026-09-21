@@ -15,7 +15,7 @@ interface FormaLogoLoaderProps {
 export function FormaLogoLoader({ 
   size = 'lg', 
   className,
-  message = 'Loading...'
+  message = "Завантаження…"
 }: FormaLogoLoaderProps) {
   const sizeClasses = {
     sm: 'w-16 h-16',

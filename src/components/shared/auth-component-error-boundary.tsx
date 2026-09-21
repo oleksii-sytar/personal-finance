@@ -73,11 +73,11 @@ export class AuthComponentErrorBoundary extends Component<
             </div>
             
             <h3 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">
-              Authentication Error
+              Помилка входу
             </h3>
             
             <p className="text-red-700 dark:text-red-300 text-sm mb-4">
-              Something went wrong with the authentication component. This error has been contained and won't affect other parts of the application.
+              Під час входу сталася помилка. Спробуйте ще раз або оновіть сторінку.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-2 justify-center">
@@ -85,28 +85,28 @@ export class AuthComponentErrorBoundary extends Component<
                 onClick={() => this.setState({ hasError: false })}
                 className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors text-sm font-medium"
               >
-                Try Again
+                Спробувати ще раз
               </button>
               
               <button 
                 onClick={() => window.location.reload()}
                 className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors text-sm font-medium"
               >
-                Refresh Page
+                Оновити сторінку
               </button>
               
               <button 
                 onClick={() => window.location.href = '/auth/login'}
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
               >
-                Go to Login
+                Перейти до входу
               </button>
             </div>
             
             {process.env.NODE_ENV === 'development' && this.state.error && (
               <details className="mt-4 text-left">
                 <summary className="text-xs text-red-600 dark:text-red-400 cursor-pointer">
-                  Error Details (Development)
+                  Деталі помилки (режим розробки)
                 </summary>
                 <pre className="mt-2 text-xs text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900/20 p-2 rounded overflow-auto">
                   {this.state.error.message}

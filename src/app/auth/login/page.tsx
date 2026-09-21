@@ -6,8 +6,8 @@ import { AuthComponentErrorBoundary } from '@/components/shared/auth-component-e
 import Link from 'next/link'
 
 export const metadata = {
-  title: 'Sign In | Forma',
-  description: 'Sign in to your Forma account',
+  title: "Вхід | Forma",
+  description: "Увійдіть у свій обліковий запис Forma",
 }
 
 export default function LoginPage() {

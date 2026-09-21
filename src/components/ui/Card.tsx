@@ -11,12 +11,12 @@ export function Card({
   children, 
   ...props 
 }: CardProps) {
-  const baseClasses = 'transition-all'
+  const baseClasses = 'min-w-0 max-w-full transition-all'
   
   const variantClasses = {
-    glass: 'glass-card p-6',
-    solid: 'bg-secondary border border-primary rounded-3xl p-6',
-    elevated: 'glass-card-elevated p-6',
+    glass: 'glass-card p-4 sm:p-5',
+    solid: 'bg-secondary border border-primary rounded-3xl p-4 sm:p-5',
+    elevated: 'glass-card-elevated p-4 sm:p-5',
   }
 
   return (

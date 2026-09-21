@@ -12,7 +12,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     const errorId = error ? `${inputId}-error` : undefined
 
     return (
-      <div className="space-y-2">
+      <div className="min-w-0 space-y-2">
         {label && (
           <label 
             htmlFor={inputId}
@@ -24,7 +24,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         <input
           id={inputId}
           aria-describedby={errorId}
-          className={`form-input w-full ${error ? 'border-[var(--accent-error)]/50 focus:ring-[var(--accent-error)]/20 focus:border-[var(--accent-error)]' : ''} ${className}`}
+          className={`form-input min-w-0 max-w-full w-full ${error ? 'border-[var(--accent-error)]/50 focus:ring-[var(--accent-error)]/20 focus:border-[var(--accent-error)]' : ''} ${className}`}
           ref={ref}
           {...props}
         />

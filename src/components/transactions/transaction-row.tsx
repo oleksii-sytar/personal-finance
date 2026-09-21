@@ -1,0 +1,15 @@
+'use client'
+import {SpendingBadge} from './spending-badge'
+import type {SpendingMembership} from '@/lib/calculations/spending-membership'
+import {ArrowDownLeft,ArrowUpRight,ArrowLeftRight,Check,Clock,AlertCircle,Repeat} from 'lucide-react'
+import {needsReview,transactionBalanceStatus} from '@/lib/reconciliation/model'
+import {Money} from '@/components/ui/finance-visuals'
+import {plannedAmount} from '@/lib/planning/model'
+import {formatMoney} from '@/lib/money/format'
+import type {Transaction} from '@/types/domain'
+interface TransactionRowProps{spending?:SpendingMembership;spendingPurpose?:'forecast'|'reserve';transaction:Transaction;counterAccountName?:string;loanAccountName?:string;accountName?:string;categoryName?:string;onSelect?:(transaction:Transaction)=>void}
+const KIND_ICON={income:ArrowDownLeft,expense:ArrowUpRight,transfer:ArrowLeftRight}
+export function TransactionRow({transaction:t,accountName,counterAccountName,loanAccountName,categoryName,onSelect,spending,spendingPurpose}:TransactionRowProps){
+ const Icon=KIND_ICON[t.kind],planned=t.status==='planned',foreignPlan=planned&&!!t.planExchangeMode&&!!t.originalCurrency&&t.originalCurrency!==t.currency,review=needsReview(t),verification=transactionBalanceStatus(t,{accountName,counterAccountName,loanAccountName}),meta=[categoryName,t.loanAccountId?(accountName?accountName+' → ':'')+(loanAccountName||'Кредит'):t.kind==='transfer'?accountName+' → '+(counterAccountName||'Власний рахунок'):accountName].filter(Boolean).join(' · ')
+ return <button type="button" onClick={()=>onSelect?.(t)} className={'ledger-row '+(planned?'ledger-row--planned':'')}><span className={'transaction-type-icon '+(t.kind==='income'?'transaction-type-icon--income':'')}><Icon size={17}/></span><span className="ledger-row-content"><span className="ledger-row-top"><strong title={t.description}>{t.description}</strong><span className={t.kind==='income'?'money-good':''}>{t.kind==='expense'?'−':''}<Money value={foreignPlan?t.originalAmount!:t.amount} currency={foreignPlan?t.originalCurrency!:t.currency} signed={t.kind==='income'}/></span></span><span className="ledger-row-meta" title={meta}>{meta}</span>{foreignPlan&&<span className="ledger-plan-estimate">≈ {formatMoney(plannedAmount(t),t.currency)} · {t.planExchangeMode==='manual'?'ваш курс':'поточний курс НБУ'}</span>}<span className="ledger-row-status">{planned?<><span><Clock size={12}/>{t.plannedTime?'О '+t.plannedTime+' · Київ':'Заплановано'}</span>{t.recurringTransactionId&&<span><Repeat size={12}/>Повторення</span>}</>:<><span className={review?'ledger-status-warning':'ledger-status-good'}>{review?<AlertCircle size={12}/>:t.kind==='transfer'?<ArrowLeftRight size={12}/>:<Check size={12}/>}<span>{review?'Перевірити':t.kind==='transfer'?'Власний переказ':'Перевірено'}</span></span><span className="ledger-balance-status" title={verification.description} aria-label={verification.description}>{verification.verified?<Check size={12}/>:<Clock size={12}/>}<span>{verification.label}</span></span></>}</span>{!planned&&t.kind==='expense'&&<SpendingBadge value={spending} purpose={spendingPurpose}/>}</span></button>
+}

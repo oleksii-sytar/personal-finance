@@ -90,7 +90,8 @@ function ResetPasswordFormContent() {
   const handleChange = (field: keyof PasswordResetRequestInput) => (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
-    setFormData(prev => ({ ...prev, [field]: e.target.value }))
+    const value = e.target.value
+    setFormData(prev => ({ ...prev, [field]: value }))
     
     // Clear field error when user starts typing
     if (errors[field]) {
@@ -149,7 +150,7 @@ function ResetPasswordFormContent() {
       }
     } catch (error) {
       console.error('Password reset error:', error)
-      setErrors({ email: 'An unexpected error occurred. Please try again.' })
+      setErrors({ email: "Сталася непередбачена помилка. Спробуйте ще раз." })
     } finally {
       setIsLoading(false)
     }
@@ -161,7 +162,7 @@ function ResetPasswordFormContent() {
       <Card className="w-full max-w-md mx-auto">
         <CardHeader>
           <CardTitle as="h1" className="text-center text-2xl">
-            Check Your Email
+            Перевірте електронну пошту
           </CardTitle>
         </CardHeader>
         
@@ -184,11 +185,11 @@ function ResetPasswordFormContent() {
             </div>
             
             <p className="text-[var(--text-primary)]">
-              If an account with that email exists, you will receive a password reset link.
+              Якщо обліковий запис із цією адресою існує, ви отримаєте посилання для відновлення пароля.
             </p>
             
             <p className="text-[var(--text-secondary)] text-sm">
-              Check your email and follow the instructions to reset your password.
+              Перевірте пошту та виконайте інструкції для відновлення пароля.
             </p>
             
             <div className="pt-4">
@@ -196,7 +197,7 @@ function ResetPasswordFormContent() {
                 href="/auth/login"
                 className="text-[var(--accent-primary)] hover:text-[#F4B76D] transition-colors text-sm"
               >
-                ← Back to Sign In
+                ← До входу
               </Link>
             </div>
           </div>
@@ -209,10 +210,10 @@ function ResetPasswordFormContent() {
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
         <CardTitle as="h1" className="text-center text-2xl">
-          Reset Password
+          Відновлення пароля
         </CardTitle>
         <p className="text-center text-[var(--text-secondary)] mt-2">
-          Enter your email address and we'll send you a link to reset your password
+          Введіть електронну адресу, щоб отримати посилання для відновлення пароля
         </p>
       </CardHeader>
       
@@ -220,12 +221,12 @@ function ResetPasswordFormContent() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Email Field - Requirements 3.2 */}
           <Input
-            label="Email Address"
+            label="Електронна пошта"
             type="email"
             value={formData.email}
             onChange={handleChange('email')}
             error={errors.email}
-            placeholder="Enter your email address"
+            placeholder="Введіть електронну адресу"
             disabled={isLoading}
             required
           />
@@ -237,7 +238,7 @@ function ResetPasswordFormContent() {
             disabled={isLoading}
             size="lg"
           >
-            {isLoading ? 'Sending Reset Link...' : 'Send Reset Link'}
+            {isLoading ? "Надсилаємо посилання…" : "Надіслати посилання"}
           </Button>
         </form>
         
@@ -247,7 +248,7 @@ function ResetPasswordFormContent() {
             href="/auth/login"
             className="text-[var(--accent-primary)] hover:text-[#F4B76D] transition-colors text-sm"
           >
-            ← Back to Sign In
+            ← До входу
           </Link>
         </div>
       </CardContent>

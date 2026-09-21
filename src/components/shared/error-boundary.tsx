@@ -86,10 +86,10 @@ export class ErrorBoundary extends Component<Props, State> {
                 </svg>
               </div>
               <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-2">
-                Something went wrong
+                Сталася помилка
               </h2>
               <p className="text-[var(--text-secondary)] text-sm">
-                We encountered an unexpected error. Please try again or contact support if the problem persists.
+                Сталася непередбачена помилка. Спробуйте ще раз або зверніться до підтримки, якщо вона повторюється.
               </p>
             </div>
             
@@ -98,21 +98,21 @@ export class ErrorBoundary extends Component<Props, State> {
                 onClick={this.handleRetry}
                 className="w-full"
               >
-                Try Again
+                Спробувати ще раз
               </Button>
               <Button 
                 variant="secondary"
                 onClick={() => window.location.reload()}
                 className="w-full"
               >
-                Reload Page
+                Перезавантажити сторінку
               </Button>
             </div>
             
             {process.env.NODE_ENV === 'development' && this.state.error && (
               <details className="mt-4 text-left">
                 <summary className="text-sm text-[var(--text-secondary)] cursor-pointer">
-                  Error Details (Development)
+                  Деталі помилки (режим розробки)
                 </summary>
                 <pre className="mt-2 text-xs text-[var(--accent-error)] bg-[var(--accent-error)]/10 p-3 rounded overflow-auto">
                   {this.state.error.stack}
@@ -148,11 +148,11 @@ export function FeatureErrorBoundary({ children, featureName }: FeatureErrorBoun
           </svg>
         </div>
         <h3 className="text-sm font-medium text-[var(--accent-error)]">
-          {featureName} Unavailable
+          {featureName} Недоступно
         </h3>
       </div>
       <p className="text-sm text-[var(--text-secondary)]">
-        Unable to load {featureName}. Please try refreshing the page.
+        Не вдалося завантажити {featureName}. Спробуйте оновити сторінку.
       </p>
     </div>
   )

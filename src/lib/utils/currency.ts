@@ -19,7 +19,7 @@ export function formatCurrency(
   locale?: string
 ): string {
   // Auto-detect appropriate locale based on currency
-  const detectedLocale = locale || (currency === 'UAH' ? 'uk-UA' : 'en-US')
+  const detectedLocale = locale || 'uk-UA'
   
   try {
     return new Intl.NumberFormat(detectedLocale, {
@@ -71,11 +71,11 @@ export function getSupportedCurrencies(): Array<{
   symbol: string
 }> {
   return [
-    { code: 'UAH', name: 'Ukrainian Hryvnia', symbol: '₴' },
-    { code: 'USD', name: 'US Dollar', symbol: '$' },
-    { code: 'EUR', name: 'Euro', symbol: '€' },
-    { code: 'GBP', name: 'British Pound', symbol: '£' },
-    { code: 'PLN', name: 'Polish Zloty', symbol: 'zł' },
+    { code: 'UAH', name: "Українська гривня", symbol: '₴' },
+    { code: 'USD', name: "Долар США", symbol: '$' },
+    { code: 'EUR', name: "Євро", symbol: '€' },
+    { code: 'GBP', name: "Британський фунт", symbol: '£' },
+    { code: 'PLN', name: "Польський злотий", symbol: 'zł' },
   ]
 }
 

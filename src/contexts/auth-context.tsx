@@ -1,236 +1,78 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import type { User, Session, AuthError } from '@supabase/supabase-js'
+import {familyAccess} from '@/lib/auth/family-access'
 import { createClient } from '@/lib/supabase/client'
+import { resetRepository } from '@/lib/data'
 import { sessionManager } from '@/lib/session/session-manager'
-import type { User, Session } from '@supabase/supabase-js'
 import type { SignInInput, SignUpInput } from '@/lib/validations/auth'
 
-/**
- * Authentication context types following the design document specifications
- * State-only context without navigation side effects
- * Requirements: 6.1, 6.2, 6.3, 6.4, 6.5
- */
+interface AuthResult { data?: any; error?: string }
 interface AuthContextType {
-  // State access only - no navigation side effects
-  user: User | null
-  session: Session | null
-  loading: boolean
-  isAuthenticated: boolean
-  
-  // Actions that don't trigger automatic redirects
-  signIn: (credentials: SignInInput) => Promise<AuthResult>
-  signUp: (credentials: SignUpInput) => Promise<AuthResult>
-  signOut: () => Promise<void>
-  resetPassword: (email: string) => Promise<AuthResult>
-  
-  // Session validation without side effects
-  validateSession: () => Promise<boolean>
+  user:User|null; session:Session|null; loading:boolean; isAuthenticated:boolean
+  signIn:(input:SignInInput)=>Promise<AuthResult>
+  signUp:(input:SignUpInput)=>Promise<AuthResult>
+  signOut:()=>Promise<void>
+  resetPassword:(email:string)=>Promise<AuthResult>
+  validateSession:()=>Promise<boolean>
 }
-
-interface AuthResult {
-  data?: any
-  error?: string
+const AuthContext=createContext<AuthContextType|undefined>(undefined)
+function authMessage(error:AuthError):string {
+  if(error.status===0 || (error.status || 0)>=500 || /fetch|network|timeout/i.test(error.message)) return 'Сервіс входу тимчасово недоступний. Перевірте інтернет і спробуйте ще раз.'
+  if(error.code==='email_not_confirmed') return 'Доступ ще не активовано. Зверніться до власника сім’ї.'
+  if(error.status===429 || /rate limit/i.test(error.message)) return 'Забагато спроб. Зачекайте кілька хвилин і повторіть.'
+  if(error.code==='invalid_credentials') return 'Неправильна електронна адреса або пароль.'
+  if(error.code==='user_already_exists') return 'Обліковий запис уже існує. Увійдіть зі своїм паролем.'
+  return 'Не вдалося виконати запит. Спробуйте ще раз.'
 }
-
-interface AuthProviderProps {
-  children: ReactNode
+export function AuthProvider({children}:{children:ReactNode}) {
+  const db=createClient()
+  const qc=useQueryClient()
+  const [session,setSession]=useState<Session|null>(null)
+  const [loading,setLoading]=useState(true)
+  const userId=useRef<string|null>(null)
+  const accept=useCallback((next:Session|null)=>{
+    const nextId=next?.user.id || null
+    if(userId.current!==nextId) { qc.clear(); resetRepository(); userId.current=nextId }
+    setSession(next); setLoading(false); sessionManager.setSession(next)
+  },[qc])
+  useEffect(()=>{
+    let mounted=true
+    const {data:{subscription}}=db.auth.onAuthStateChange((_event,next)=>{if(mounted) accept(next)})
+    db.auth.getSession().then(({data})=>{if(mounted) accept(data.session)}).catch(()=>{if(mounted) accept(null)})
+    return ()=>{mounted=false;subscription.unsubscribe()}
+  },[db.auth,accept])
+  const validateSession=useCallback(async()=>{
+    const {data,error}=await db.auth.getSession()
+    if(error){if(error.status && error.status<500) accept(null);return false}
+    accept(data.session);return !!data.session
+  },[db.auth,accept])
+  async function signIn(input:SignInInput):Promise<AuthResult> {
+    try {
+      const {data,error}=await db.auth.signInWithPassword({email:input.email.trim(),password:input.password})
+      if(error) return {error:authMessage(error)}
+      accept(data.session);return {data}
+    } catch {return {error:'Немає з’єднання із сервісом входу. Спробуйте ще раз.'}}
+  }
+  async function signUp(input:SignUpInput):Promise<AuthResult> {
+    try {
+      if(!input.invitationToken)return {error:'Потрібне приватне запрошення від власника сім’ї.'}
+      await familyAccess({action:'register',token:input.invitationToken,email:input.email,fullName:input.fullName,password:input.password})
+      return signIn({email:input.email,password:input.password,rememberMe:false})
+    }catch(e){return {error:e instanceof Error?e.message:'Не вдалося приєднатися.'}}
+  }
+  const signOut=useCallback(async()=>{
+    try{await db.auth.signOut()}finally{accept(null);qc.clear();resetRepository()}
+  },[db.auth,accept,qc])
+  async function resetPassword(_email:string):Promise<AuthResult> {
+    return {error:'Листи для відновлення вимкнені. Використайте збережений пароль або зверніться до власника сім’ї.'}
+  }
+  return <AuthContext.Provider value={{user:session?.user || null,session,loading,isAuthenticated:!!session,signIn,signUp,signOut,resetPassword,validateSession}}>{children}</AuthContext.Provider>
 }
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
-
-/**
- * AuthProvider component that manages authentication state
- * Provides authentication state without navigation side effects
- * Requirements: 6.1, 6.2, 6.3, 6.4, 6.5
- */
-export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<User | null>(null)
-  const [session, setSession] = useState<Session | null>(null)
-  const [loading, setLoading] = useState(true)
-  
-  const supabase = createClient()
-
-  // Session validation without automatic redirects
-  const validateSession = useCallback(async () => {
-    const isValid = await sessionManager.validateSession()
-    const state = sessionManager.getState()
-    
-    setSession(state.session)
-    setUser(state.user)
-    setLoading(false)
-    
-    return isValid
-  }, [])
-
-  // Initialize session on mount without redirects
-  useEffect(() => {
-    validateSession()
-  }, [validateSession])
-
-  useEffect(() => {
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session)
-        setUser(session?.user ?? null)
-        setLoading(false)
-        
-        // Update session manager state
-        if (session) {
-          sessionManager.getState().session = session
-          sessionManager.getState().user = session.user
-          sessionManager.getState().isValid = true
-          sessionManager.getState().lastValidated = new Date()
-        } else {
-          sessionManager.clearSession()
-        }
-      }
-    )
-
-    return () => subscription.unsubscribe()
-  }, [supabase.auth])
-
-  /**
-   * Sign in with email and password
-   * Returns result without triggering navigation
-   * Requirements: 6.1, 6.2, 6.3
-   */
-  const signIn = async (credentials: SignInInput): Promise<AuthResult> => {
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: credentials.email,
-        password: credentials.password,
-      })
-
-      if (error) {
-        // Return generic error message for security
-        return { error: 'Invalid email or password' }
-      }
-
-      return { data }
-    } catch (error) {
-      console.error('Sign in error:', error)
-      return { error: 'An unexpected error occurred' }
-    }
-  }
-
-  /**
-   * Sign up with email, password, and full name
-   * Returns result without triggering navigation
-   * Requirements: 6.1, 6.2, 6.3
-   */
-  const signUp = async (credentials: SignUpInput): Promise<AuthResult> => {
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email: credentials.email,
-        password: credentials.password,
-        options: {
-          data: {
-            full_name: credentials.fullName,
-          },
-        },
-      })
-
-      if (error) {
-        // Handle specific signup errors
-        if (error.message.includes('already registered')) {
-          return { error: 'An account with this email already exists' }
-        }
-        return { error: error.message }
-      }
-
-      return { 
-        data: { 
-          message: 'Check your email for verification link',
-          user: data.user 
-        } 
-      }
-    } catch (error) {
-      console.error('Sign up error:', error)
-      return { error: 'An unexpected error occurred' }
-    }
-  }
-
-  /**
-   * Sign out current user without automatic redirect
-   * Navigation should be handled by components that call this
-   * Requirements: 6.1, 6.2, 6.4
-   */
-  const signOut = async (): Promise<void> => {
-    try {
-      const { error } = await supabase.auth.signOut()
-      if (error) {
-        console.error('Sign out error:', error)
-      }
-      
-      // Clear session manager state
-      sessionManager.clearSession()
-      
-      // No automatic redirect - let calling components handle navigation
-    } catch (error) {
-      console.error('Sign out error:', error)
-      // Even if there's an error, clear the session state
-      sessionManager.clearSession()
-    }
-  }
-
-  /**
-   * Request password reset without navigation side effects
-   * Requirements: 6.1, 6.2, 6.3
-   */
-  const resetPassword = async (email: string): Promise<AuthResult> => {
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/reset-password/confirm`,
-      })
-
-      if (error) {
-        console.error('Password reset error:', error)
-      }
-
-      // Always return success message for security
-      return { 
-        data: { 
-          message: 'If an account with that email exists, you will receive a password reset link.' 
-        } 
-      }
-    } catch (error) {
-      console.error('Password reset error:', error)
-      return { error: 'An unexpected error occurred' }
-    }
-  }
-
-  const value: AuthContextType = {
-    user,
-    session,
-    loading,
-    isAuthenticated: !!session,
-    signIn,
-    signUp,
-    signOut,
-    resetPassword,
-    validateSession,
-  }
-
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  )
-}
-
-/**
- * Hook to consume authentication context
- * Provides authentication state without navigation side effects
- * Requirements: 6.1, 6.2, 6.3, 6.4, 6.5
- */
-export function useAuth(): AuthContextType {
-  const context = useContext(AuthContext)
-  
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider')
-  }
-  
-  return context
+export function useAuth(){
+  const value=useContext(AuthContext)
+  if(!value) throw new Error('useAuth must be used within AuthProvider')
+  return value
 }
