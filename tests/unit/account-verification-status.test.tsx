@@ -31,9 +31,9 @@ describe('One account verification status across all screens',()=>{
  it('uses the counter-account confirmation independently of the source',()=>{
   expect(accountVerificationStatus(source(),[{...incoming(),counterVerifiedAt:stamp}])).toMatchObject({confirmed:true,pendingCount:0})
  })
- it('checks the loan account independently of the cash payment',()=>{
+ it('preserves a manual debt confirmation after a linked expense',()=>{
   const loan=makeAccount({id:'loan',lastReconciledAt:stamp,type:'mortgage'})
-  expect(accountVerificationStatus(loan,[makeTxn({accountId:'a',loanAccountId:'loan',accountVerifiedAt:stamp})]).pendingCount).toBe(1)
+  expect(accountVerificationStatus(loan,[makeTxn({accountId:'a',loanAccountId:'loan',accountVerifiedAt:stamp})]).pendingCount).toBe(0)
  })
  it('ignores planned, deleted and unrelated transactions',()=>{
   const tx=incoming();expect(accountVerificationStatus(source(),[{...tx,status:'planned'},{...tx,deletedAt:stamp},makeTxn({accountId:'other'})]).confirmed).toBe(true)

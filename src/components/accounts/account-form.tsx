@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Input } from '@/components/ui/Input'
 import { Select } from '@/components/ui/select'
@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/spinner'
 import { useToast } from '@/components/ui/toast'
 import { useCreateAccount, useUpdateAccount, useMembers, useCurrentUser } from '@/hooks/use-finance'
+import {isPaymentAccount} from '@/lib/loans/destination'
 import { accountFormSchema } from '@/lib/validations/finance'
 import { ACCOUNT_TYPE_META, ASSET_TYPES, LIABILITY_TYPES } from '@/lib/constants/accounts'
 import { SUPPORTED_CURRENCIES } from '@/lib/constants/currencies'
@@ -50,6 +51,8 @@ export function AccountForm({ account, onDone }: AccountFormProps) {
   const [isSavings,setIsSavings]=useState(account?.isSavings??account?.type==='savings')
   const [isDefault, setIsDefault] = useState(account?.isDefault ?? false)
   const [errors, setErrors] = useState<Errors>({})
+  const saving = useRef(false)
+  const canBeDefault = isPaymentAccount({type})
 
   const submitting = createAccount.isPending || updateAccount.isPending
   const showInstitution = INSTITUTION_TYPES.includes(type)
@@ -60,24 +63,27 @@ export function AccountForm({ account, onDone }: AccountFormProps) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (saving.current || submitting || (owner === 'self' && !currentUser)) return
+    setErrors({})
     const parsed = accountFormSchema.safeParse({
       name,
       type,
       currency,
-      openingBalance,
-      institution,
-      counterparty,
-      principal: principal || undefined,
-      interestRate: interestRate || undefined,
-      creditLimit: creditLimit || undefined,
-      dueDate,
-      isDefault,
+      openingBalance: isEdit ? account!.openingBalance : openingBalance,
+      institution: showInstitution ? institution : undefined,
+      counterparty: showCounterparty ? counterparty : undefined,
+      principal: isLoan ? principal || undefined : undefined,
+      interestRate: isLoan || isCreditCard ? interestRate || undefined : undefined,
+      creditLimit: isCreditCard ? creditLimit || undefined : undefined,
+      dueDate: isLoan ? dueDate : undefined,
+      isDefault: canBeDefault && isDefault,
     })
     if (!parsed.success) {
       setErrors(parsed.error.flatten().fieldErrors)
       return
     }
     const v = parsed.data
+    saving.current = true
     try {
       if (isEdit && account) {
         await updateAccount.mutateAsync({
@@ -116,11 +122,11 @@ export function AccountForm({ account, onDone }: AccountFormProps) {
       onDone ? onDone() : router.push('/accounts')
     } catch (error) {
       toast.error("Не вдалося зберегти рахунок", error)
-    }
+    } finally { saving.current = false }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form noValidate onSubmit={handleSubmit} className="space-y-5">
       <Input
         label="Назва"
         value={name}
@@ -136,7 +142,7 @@ export function AccountForm({ account, onDone }: AccountFormProps) {
       <Select
         label="Тип"
         value={type}
-        onChange={(e) => setType(e.target.value as AccountType)}
+        onChange={(e) => { setType(e.target.value as AccountType); setErrors({}) }}
         disabled={isEdit}
         error={errors.type?.[0]}
       >
@@ -168,9 +174,8 @@ export function AccountForm({ account, onDone }: AccountFormProps) {
         />
         {!isEdit && (
           <Input
-            label={isCreditCard&&cardBalanceKind==='own'?"Власні кошти на картці":isLiabilityType ? isLoan ? "Залишок тіла зараз" : "Поточна сума боргу" : "Залишок зараз"}
-            type="number"
-            step="0.01"
+            label={isCreditCard&&cardBalanceKind==='own'?"Власні кошти на картці":isLiabilityType ? isLoan ? "Сума до повного погашення" : "Поточна сума боргу" : "Залишок зараз"}
+            type="text"
             inputMode="decimal"
             value={openingBalance}
             onChange={(e) => setOpeningBalance(e.target.value)}
@@ -188,6 +193,7 @@ export function AccountForm({ account, onDone }: AccountFormProps) {
           value={institution ?? ''}
           onChange={(e) => setInstitution(e.target.value)}
           placeholder="Наприклад, monobank, ПриватБанк"
+          error={errors.institution?.[0]}
         />
       )}
 
@@ -197,6 +203,7 @@ export function AccountForm({ account, onDone }: AccountFormProps) {
           value={counterparty ?? ''}
           onChange={(e) => setCounterparty(e.target.value)}
           placeholder="Кому ви винні або хто винен вам?"
+          error={errors.counterparty?.[0]}
         />
       )}
 
@@ -208,6 +215,8 @@ export function AccountForm({ account, onDone }: AccountFormProps) {
             step="0.01"
             inputMode="decimal"
             value={creditLimit}
+            error={errors.creditLimit?.[0]}
+            min="0"
             onChange={(e) => setCreditLimit(e.target.value)}
             placeholder="50000"
           />
@@ -216,6 +225,7 @@ export function AccountForm({ account, onDone }: AccountFormProps) {
             type="number"
             step="0.1"
             value={interestRate}
+            error={errors.interestRate?.[0]}
             onChange={(e) => setInterestRate(e.target.value)}
             placeholder="0"
           />
@@ -229,6 +239,7 @@ export function AccountForm({ account, onDone }: AccountFormProps) {
             type="number"
             step="0.01"
             value={principal}
+            error={errors.principal?.[0]}
             onChange={(e) => setPrincipal(e.target.value)}
             placeholder="0.00"
           />
@@ -237,27 +248,28 @@ export function AccountForm({ account, onDone }: AccountFormProps) {
             type="number"
             step="0.1"
             value={interestRate}
+            error={errors.interestRate?.[0]}
             onChange={(e) => setInterestRate(e.target.value)}
             placeholder="0"
           />
-          <Input label="Строк погашення" type="date" value={dueDate ?? ''} onChange={(e) => setDueDate(e.target.value)} />
+          <Input error={errors.dueDate?.[0]} label="Строк погашення" type="date" value={dueDate ?? ''} onChange={(e) => setDueDate(e.target.value)} />
         </div>
       )}
 
-      <div className="rounded-xl border border-glass bg-glass p-4">
+      {canBeDefault && <div className="rounded-xl border border-glass bg-glass p-4">
         <Switch
           checked={isDefault}
           onChange={setIsDefault}
           label="Мій основний рахунок"
           description="Обирається лише для ваших нових операцій. Налаштування інших учасників не зміняться."
         />
-      </div>
+      </div>}
 
       <div className="flex items-center justify-end gap-3 pt-2">
         <Button type="button" variant="secondary" onClick={() => (onDone ? onDone() : router.back())}>
           Скасувати
         </Button>
-        <Button type="submit" variant="primary" disabled={submitting}>
+        <Button type="submit" variant="primary" disabled={submitting || (owner === 'self' && !currentUser)}>
           {submitting && <Spinner className="mr-2" />}
           {isEdit ? "Зберегти зміни" : "Створити рахунок"}
         </Button>

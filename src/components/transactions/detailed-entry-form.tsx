@@ -8,7 +8,8 @@ import {TransferDialog} from './transfer-dialog'
 import {SpendingBadge} from './spending-badge'
 import {CompletePlanButton} from './complete-plan-button'
 import {useDailySpending} from '@/hooks/use-daily-spending'
-import {LOAN_PAYMENT_CATEGORY,isLoanDestination,transactionDestination,emptyDestination,destinationPatch,destinationChanged,type LoanDestination} from '@/lib/loans/destination'
+import {LOAN_PAYMENT_CATEGORY,isLoanDestination,isPaymentAccount,transactionDestination,emptyDestination,destinationPatch,destinationChanged,type LoanDestination} from '@/lib/loans/destination'
+import {localDay} from '@/lib/calculations/dates'
 import {financialChange,hasConfirmation} from '@/lib/reconciliation/model'
 import {parseEntryAmount,accountOwner} from '@/lib/money/entry'
 import {convert,FX_STATUS} from '@/lib/money/fx'
@@ -33,11 +34,13 @@ interface DetailedEntryFormProps{
  initialValues?:EntryDraft;open:boolean;onClose:()=>void;transaction?:Transaction|null
  repeatFrom?:Transaction|null;series?:RecurringTransaction|null;onRepeat?:(transaction:Transaction)=>void
 }
-const today=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
+const today=localDay
 const currencies:CurrencyCode[]=['UAH','USD','EUR','GBP','PLN']
 
 export function DetailedEntryForm({open,onClose,transaction,initialValues,repeatFrom,series,onRepeat}:DetailedEntryFormProps){
- const {can}=useWorkspaceContext()
+ const {can,currentUser}=useWorkspaceContext()
+ const editable=can('transaction.manageAll')||can('transaction.create')&&(!transaction||transaction.createdBy===currentUser?.id)&&(!series||series.createdBy===currentUser?.id)
+ const saving=useRef(false)
  const spending=useDailySpending()
  const [forecastPlanId,setForecastPlanId]=useState('')
  const {data:members=[]}=useMembers(),{data:accounts=[]}=useAccounts(),{data:categories=[]}=useCategories()
@@ -65,7 +68,8 @@ export function DetailedEntryForm({open,onClose,transaction,initialValues,repeat
   setLoanDestination(linkedId?{accountId:linkedId,installmentId:transaction?.loanAccountId===linkedId?transaction.loanInstallmentId||null:null}:null)
    setAccountingClass(basis?.accountingClass||'ordinary');setForecastBehavior(basis?.forecastBehavior||'auto');setFlowKey(basis?.flowKey||'')
   const planned=!!series||!!repeatFrom||transaction?.status==='planned'||!transaction&&initialValues?.status==='planned'
-  const def=accounts.find(a=>a.isDefault)||accounts[0]
+  const paymentAccounts=accounts.filter(isPaymentAccount)
+  const def=paymentAccounts.find(a=>a.isDefault)||paymentAccounts[0]
   setStatus(planned?'planned':'completed');setKind(linkedId?'expense':basis?.kind||initialValues?.kind||'expense')
   setAccountId(basis?.accountId||initialValues?.accountId||def?.id||'')
   setCounterAccountId(linkedId?'':transaction?.counterAccountId||initialValues?.counterAccountId||'');setCounterAmount(transaction?.counterAmount!=null?String(transaction.counterAmount):'')
@@ -94,7 +98,7 @@ export function DetailedEntryForm({open,onClose,transaction,initialValues,repeat
   setLoanDestination(value?value===transaction?.loanAccountId?transactionDestination(transaction):emptyDestination(value):null)
   if(value){setKind('expense');setCounterAccountId('');setCounterAmount('');if(!categoryId)setCategoryId(categories.find(c=>c.type==='expense'&&c.name===LOAN_PAYMENT_CATEGORY)?.id||'')}
  }
- function requestClose(){if(dirty.current&&!discard){setDiscard(true);return}onClose()}
+ function requestClose(){if(saving.current)return;if(dirty.current&&!discard){setDiscard(true);return}onClose()}
  function changeStatus(planned:boolean){
   markDirty()
   if(!planned&&foreign&&estimated!=null){setAmount(String(estimated));setPlanCurrency(currency)}
@@ -102,7 +106,7 @@ export function DetailedEntryForm({open,onClose,transaction,initialValues,repeat
   if(!planned&&date>today())setDate(today())
  }
  async function submit(e:React.FormEvent){
-  e.preventDefault();setErrors({})
+  e.preventDefault();if(saving.current||!editable)return;setErrors({})
   if(foreign&&(!ratesReady||rate==null||rate<=0)){setErrors({rate:[ratesReady?'Введіть коректний курс':'Курс НБУ ще недоступний. Зачекайте або вкажіть власний курс.']});return}
   if(recurring&&(!validDay(date)||(!series||date!==series.startDate)&&date<today()||!Number.isInteger(Number(interval))||Number(interval)<1||Number(interval)>120||(endDate&&(!validDay(endDate)||endDate<date)))){
    setErrors({recurrence:['Перевірте дати й інтервал повторення (від 1 до 120). Новий початок не може бути в минулому.']});return
@@ -127,6 +131,7 @@ export function DetailedEntryForm({open,onClose,transaction,initialValues,repeat
   if(!parsed.success){setErrors(parsed.error.flatten().fieldErrors);return}
   const v=parsed.data
   if(transaction?.status==='completed'&&changed&&!confirmedFinancial){setErrors({financial:['Підтвердьте фінансові зміни нижче.']});return}
+  saving.current=true
   try{
    if(recurring){
     await saveSeries.mutateAsync({
@@ -143,29 +148,31 @@ export function DetailedEntryForm({open,onClose,transaction,initialValues,repeat
     await create.mutateAsync(v);toast.success(isPlanned?'План додано':'Операцію додано')
    }
    onClose()
-  }catch(error){toast.error('Не вдалося зберегти',error)}
+  }catch(error){toast.error('Не вдалося зберегти',error)}finally{saving.current=false}
  }
  async function handleDelete(){
-  if(!transaction)return
+  if(!transaction||!editable||saving.current)return
   if(!confirmDelete){setConfirmDelete(true);return}
+  saving.current=true
   try{await update.mutateAsync({id:transaction.id,patch:{deletedAt:new Date().toISOString(),expectedUpdatedAt:transaction.updatedAt,confirmedFinancialEdit:true}});toast.success('Операцію видалено');onClose()}
-  catch(error){toast.error('Не вдалося видалити',error)}
+  catch(error){toast.error('Не вдалося видалити',error)}finally{saving.current=false}
  }
  const submitting=create.isPending||update.isPending||saveSeries.isPending
- const accountOptions=accounts.filter(a=>!isLoanDestination(a)).map(a=>({value:a.id,label:a.name+' · '+a.currency+' · '+accountOwner(a,members)}))
+ const accountOptions=accounts.filter(isPaymentAccount).map(a=>({value:a.id,label:a.name+' · '+a.currency+' · '+accountOwner(a,members)}))
  return <><Dialog open={open&&!transferOpen} onClose={requestClose} title={series?'Налаштувати повторення':repeatFrom?'Зробити повторюваною':isEdit?'Редагувати транзакцію':'Додати транзакцію'} footer={<DialogActions>
-  {isEdit&&<Button type="button" variant="ghost" onClick={handleDelete} disabled={submitting||del.isPending} className="text-[var(--accent-error)] sm:mr-auto"><Trash2 className="mr-1.5 h-4 w-4"/>{confirmDelete?'Підтвердити видалення?':'Видалити'}</Button>}
+  {isEdit&&editable&&<Button type="button" variant="ghost" onClick={handleDelete} disabled={submitting||del.isPending} className="text-[var(--accent-error)] sm:mr-auto"><Trash2 className="mr-1.5 h-4 w-4"/>{confirmDelete?'Підтвердити видалення?':'Видалити'}</Button>}
   <Button type="button" variant="secondary" onClick={requestClose} disabled={submitting}>{discard?'Відкинути зміни?':'Скасувати'}</Button>
-  <Button type="submit" form={formId} disabled={submitting}>{submitting&&<Spinner className="mr-2"/>}{recurring?'Зберегти повторення':isPlanned?'Зберегти план':isEdit?'Зберегти':'Додати'}</Button>
+  {editable&&<Button type="submit" form={formId} disabled={submitting}>{submitting&&<Spinner className="mr-2"/>}{recurring?'Зберегти повторення':isPlanned?'Зберегти план':isEdit?'Зберегти':'Додати'}</Button>}
  </DialogActions>}>
  <form id={formId} onSubmit={submit} onChange={markDirty} className="space-y-4">
-  {transaction?.status==='planned'&&!dirty.current&&<div className="flex items-center justify-between gap-3 rounded-xl border border-primary p-3"><span className="text-sm">Оплата вже відбулась?</span><CompletePlanButton transaction={transaction} onCompleted={onClose}/></div>}
+  {editable&&transaction?.status==='planned'&&!dirty.current&&<div className="flex items-center justify-between gap-3 rounded-xl border border-primary p-3"><span className="text-sm">Оплата вже відбулась?</span><CompletePlanButton transaction={transaction} onCompleted={onClose}/></div>}
   {discard&&<p role="alert" className="text-sm text-[var(--accent-warning)]">Є незбережені дані. Натисніть «Відкинути зміни?» ще раз або продовжуйте редагування.</p>}
-  {transaction&&onRepeat&&transaction.kind!=='transfer'&&<Button type="button" variant="secondary" className="w-full" onClick={()=>onRepeat(transaction)}><Repeat size={16} className="mr-2"/>{transaction.recurringTransactionId?'Налаштувати всю серію':'Зробити повторюваною'}</Button>}
+  {editable&&transaction&&onRepeat&&transaction.kind!=='transfer'&&<Button type="button" variant="secondary" className="w-full" onClick={()=>onRepeat(transaction)}><Repeat size={16} className="mr-2"/>{transaction.recurringTransactionId?'Налаштувати всю серію':'Зробити повторюваною'}</Button>}
   {transaction?.recurringTransactionId&&<p className="plan-inline-note">Тут змінюється лише ця операція. Налаштування серії та інші повторення залишаться без змін.</p>}
-  {transaction&&!wasLoanPayment&&!isLoanPayment&&transaction.status==='completed'&&<Button type="button" variant="secondary" className="w-full" onClick={()=>setTransferOpen(true)}>{transaction.kind==='transfer'?'Перевірити другий запис переказу':'Власний переказ / зняття готівки'}</Button>}
+  {editable&&transaction&&!wasLoanPayment&&!isLoanPayment&&transaction.status==='completed'&&<Button type="button" variant="secondary" className="w-full" onClick={()=>setTransferOpen(true)}>{transaction.kind==='transfer'?'Перевірити другий запис переказу':'Власний переказ / зняття готівки'}</Button>}
   {isLoanPayment&&<Link className="finance-link text-sm" href={'/loans/'+loanDestination!.accountId} onClick={onClose}>Деталі кредиту</Link>}
-  <fieldset className="min-w-0 space-y-4">
+  {!editable&&<p role="status" className="finance-caption">Лише перегляд. Ви можете змінювати тільки транзакції, доступні для вашої ролі.</p>}
+  <fieldset disabled={!editable||submitting} className="min-w-0 space-y-4">
    {<SegmentedControl aria-label="Тип транзакції" value={kind} onChange={v=>{if(v==='transfer'&&transaction&&transaction.kind!=='transfer'){setTransferOpen(true);return}markDirty();setKind(v);setCategoryId('');setLoanDestination(null);if(v==='transfer')setFrequency('once')}} className="w-full" options={[{value:'expense',label:'Витрата'},{value:'income',label:'Дохід'},...(!series&&!repeatFrom?[{value:'transfer' as const,label:'Переказ'}]:[])]}/>}
    <Input label={(transaction?.status==='planned'&&!isPlanned?'Фактична сума':'Сума')+' ('+getCurrencySymbol(enteredCurrency)+')'} type="text" inputMode="decimal" className="amount-input" autoComplete="off" value={amount} onChange={e=>setAmount(e.target.value)} error={errors.amount?.[0]} autoFocus/>
    {isPlanned&&kind!=='transfer'&&<Select label="Валюта плану" value={enteredCurrency} onChange={e=>{setPlanCurrency(e.target.value as CurrencyCode);setExchangeMode('nbu');setManualRate('')}} options={currencies.map(c=>({value:c,label:c+' · '+getCurrencySymbol(c)}))}/>}
@@ -182,7 +189,7 @@ export function DetailedEntryForm({open,onClose,transaction,initialValues,repeat
    {loanDestination&&<p className="finance-caption">Повна сума увійде у витрати. Борг підтверджується окремо за даними банку.</p>}
    {transaction?.kind==='transfer'&&loanDestination&&<p role="status" className="finance-caption">Переказ стане оплатою кредиту. Повторного списання з рахунку не буде.</p>}
    {wasLoanPayment&&!loanDestination&&<p className="finance-caption" role="status">Зв’язок із кредитом буде прибрано. Списання залишиться.</p>}
-   {errors.loan&&<p role="alert" className="text-sm text-[var(--accent-error)]">{errors.loan[0]}</p>}
+   {(errors.loan||errors.loanAccountId||errors.loanInstallmentId)&&<p role="alert" className="text-sm text-[var(--accent-error)]">{(errors.loan||errors.loanAccountId||errors.loanInstallmentId)![0]}</p>}
    <Input label="Опис (необов’язково)" value={description} onChange={e=>setDescription(e.target.value)} placeholder={kind==='income'?'Наприклад, зарплата':'Наприклад, продукти в Сільпо'} error={errors.description?.[0]}/>
    {isExchange&&<Input label={'Фактично отримано, '+destination?.currency} type="text" inputMode="decimal" value={counterAmount} onChange={e=>setCounterAmount(e.target.value)} error={errors.counterAmount?.[0]} required/>}
    {!series&&!repeatFrom&&<Checkbox checked={isPlanned} onChange={e=>changeStatus(e.target.checked)}>Запланована операція, ще не виконана</Checkbox>}

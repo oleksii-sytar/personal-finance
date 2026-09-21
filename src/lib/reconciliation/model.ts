@@ -1,3 +1,4 @@
+import {localDay} from '@/lib/calculations/dates'
 import type {Account,Transaction} from '@/types/domain'
 export function parseSignedBalance(value:unknown):number|null {
  if(typeof value!=='string'&&typeof value!=='number')return null
@@ -8,7 +9,8 @@ export function parseSignedBalance(value:unknown):number|null {
 export const needsReview=(t:Transaction)=>!t.deletedAt&&t.status==='completed'&&(t.reviewRequired===true||(t.kind!=='transfer'&&!t.categoryId))
 export function verifiedAt(t:Transaction,accountId:string):string|null{return (t.accountId===accountId?t.accountVerifiedAt:t.counterAccountId===accountId?t.counterVerifiedAt:t.loanAccountId===accountId?t.loanVerifiedAt:null)||null}
 export const touchesAccount=(t:Transaction,id:string)=>t.accountId===id||t.counterAccountId===id||t.loanAccountId===id
-export const pendingForAccount=(t:Transaction,id:string)=>!t.deletedAt&&t.status==='completed'&&touchesAccount(t,id)&&!verifiedAt(t,id)
+/** A linked manual debt is not a second bank movement. */
+export const pendingForAccount=(t:Transaction,id:string)=>!t.deletedAt&&t.status==='completed'&&t.transactionDate<=localDay()&&(t.accountId===id||t.kind==='transfer'&&t.counterAccountId===id)&&!verifiedAt(t,id)
 export const hasConfirmation=(t:Transaction)=>!!(t.accountVerifiedAt||t.counterVerifiedAt||t.loanVerifiedAt)
 export interface VerificationAccountNames {accountName?:string;counterAccountName?:string;loanAccountName?:string}
 /** Bank confirmation belongs to each affected account, not to execution or categorization. */

@@ -1,4 +1,5 @@
 'use client'
+import {isPaymentAccount} from '@/lib/loans/destination'
 import {useMemo,useRef,useState} from 'react'
 import Link from 'next/link'
 import {StatementImportPrompt} from '@/components/settings/statement-import-prompt'
@@ -21,7 +22,7 @@ export function ImportWorkflow({onDone}:{onDone:(batchId:string)=>void}){
  const toast=useToast(),{data:accounts=[]}=useAccounts(),{data:members=[]}=useMembers(),{data:existing=[]}=useTransactions(),importer=useImportTransactions()
  const [accountId,setAccountId]=useState(''),[text,setText]=useState(''),[fileName,setFileName]=useState('Вставлений CSV'),[mapping,setMapping]=useState<ColumnMapping|null>(null),[choices,setChoices]=useState<Record<number,string>>({}),[newActivity,setNewActivity]=useState<Record<number,boolean>>({})
  const fileRef=useRef<HTMLInputElement>(null),nonce=useRef(crypto.randomUUID()),request=useRef<{signature:string;id:string}>()
- const account=accounts.find(a=>a.id===accountId),parsed=useMemo(()=>parseDelimited(text),[text]),map=mapping||guessColumns(parsed.headers)
+ const account=accounts.find(a=>a.id===accountId&&isPaymentAccount(a)),parsed=useMemo(()=>parseDelimited(text),[text]),map=mapping||guessColumns(parsed.headers)
  const rows=useMemo(()=>toParsedRows(parsed.rows,map),[parsed,map.date,map.description,map.amount])
  const importedKeys=new Set(existing.flatMap(t=>[...(t.accountId===accountId&&t.importKey?[t.importKey]:[]),...(t.counterAccountId===accountId&&t.counterImportKey?[t.counterImportKey]:[])]))
  const currencyColumn=parsed.headers.findIndex(h=>/^(currency|валюта)$/i.test(h.trim()))
@@ -46,7 +47,7 @@ export function ImportWorkflow({onDone}:{onDone:(batchId:string)=>void}){
  async function run(){if(!account?.balanceAnchorAt||!included.length||unresolved||repeatedMatches)return;const inputs:CreateTransactionInput[]=included.map(r=>({accountId:account.id,kind:r.amount<0?'expense':'income',amount:Math.abs(r.amount),currency:account.currency,description:r.description.slice(0,120),transactionDate:r.date,occurredAt:r.occurredAt,notes:'Імпортовано з виписки',balanceTreatment:newActivity[r.index]?'new_activity':'auto',importAnchorAt:account.balanceAnchorAt,matchedTransactionId:r.matched?.id,matchUpdatedAt:r.matched?.updatedAt,importKeyOverride:r.duplicate&&r.choice==='new'?r.key+'|separate:'+nonce.current:r.key}));try{const signature=JSON.stringify({inputs,fileName});if(request.current?.signature!==signature)request.current={signature,id:crypto.randomUUID()};const result=await importer.mutateAsync({inputs,fileName,requestId:request.current!.id});toast.success('Оброблено операцій: '+result.length,'Підтверджені збіги оновлено без другого списання.');onDone(request.current!.id)}catch(e){toast.error('Імпорт не виконано',e)}}
  const options=parsed.headers.map((h,i)=>({value:String(i),label:h||'Колонка '+(i+1)}))
  return <div className="min-w-0">
- <section className="import-source mb-5 min-w-0 space-y-4"><Select label="Рахунок для імпорту" value={accountId} onChange={e=>{setAccountId(e.target.value);setChoices({});setNewActivity({})}} options={[{value:'',label:'Оберіть рахунок для цієї виписки'},...accounts.map(a=>({value:a.id,label:a.name+' · '+a.currency+' · '+accountOwner(a,members)}))]}/>{!accounts.length&&<Link href="/accounts/new" className="underline">Додати перший рахунок</Link>}
+ <section className="import-source mb-5 min-w-0 space-y-4"><Select label="Рахунок для імпорту" value={accountId} onChange={e=>{setAccountId(e.target.value);setChoices({});setNewActivity({})}} options={[{value:'',label:'Оберіть рахунок для цієї виписки'},...accounts.filter(isPaymentAccount).map(a=>({value:a.id,label:a.name+' · '+a.currency+' · '+accountOwner(a,members)}))]}/>{!accounts.length&&<Link href="/accounts/new" className="underline">Додати перший рахунок</Link>}
  <p className="text-sm text-secondary">Стара історія не змінює зафіксований залишок. Для дня звірки позначте лише ті операції, які ще не були враховані в залишку.</p><Button variant="secondary" onClick={()=>fileRef.current?.click()}>Завантажити CSV</Button><input ref={fileRef} type="file" accept=".csv,text/csv,text/plain" onChange={onFile} className="hidden"/>
  <details><summary className="cursor-pointer py-2 text-sm underline">Або вставити CSV текстом</summary><textarea aria-label="Виписка CSV" className="form-input h-36 w-full font-mono" placeholder="Date;Description;Amount" value={text} onChange={e=>{setText(e.target.value);setFileName('Вставлений CSV');reset()}}/></details>
  <Link className="inline-flex min-h-11 items-center text-sm underline" href="/transactions/imports">Історія імпортів і скасування</Link>

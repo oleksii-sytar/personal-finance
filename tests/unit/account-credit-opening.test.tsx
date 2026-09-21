@@ -10,7 +10,7 @@ beforeEach(()=>vi.clearAllMocks())
 function newCard(){render(<AccountForm/>);fireEvent.change(screen.getByLabelText('Назва'),{target:{value:'Test card'}});fireEvent.change(screen.getByLabelText('Тип'),{target:{value:'credit_card'}})}
 describe('Credit limit and initial own funds have distinct meanings',()=>{
  it('does not put a new 100000 credit limit into the opening balance',async()=>{
-  newCard();fireEvent.change(screen.getByLabelText('Кредитний ліміт'),{target:{value:'100000'}})
+  newCard();fireEvent.change(screen.getByLabelText('Поточна сума боргу'),{target:{value:'0'}});fireEvent.change(screen.getByLabelText('Кредитний ліміт'),{target:{value:'100000'}})
   fireEvent.click(screen.getByRole('button',{name:'Створити рахунок'}))
   await waitFor(()=>expect(state.create).toHaveBeenCalledWith(expect.objectContaining({type:'credit_card',creditLimit:100000,openingBalance:0})))
  })
@@ -34,5 +34,58 @@ describe('Credit limit and initial own funds have distinct meanings',()=>{
   expect(patch.creditLimit).toBe(40000)
   expect(patch).not.toHaveProperty('openingBalance');expect(patch).not.toHaveProperty('currentBalance')
   expect(state.create).not.toHaveBeenCalled()
+ })
+})
+describe('Account input regressions found in the real browser',()=>{
+ it('requires an explicit opening balance, including explicit zero',()=>{
+  render(<AccountForm/>);fireEvent.change(screen.getByLabelText('Назва'),{target:{value:'Empty balance'}})
+  fireEvent.click(screen.getByRole('button',{name:'Створити рахунок'}))
+  expect(state.create).not.toHaveBeenCalled();expect(screen.getByText(/Якщо коштів немає, вкажіть 0/)).toBeVisible()
+ })
+ it('accepts a Ukrainian amount with spaces and a decimal comma',async()=>{
+  render(<AccountForm/>);fireEvent.change(screen.getByLabelText('Назва'),{target:{value:'Cash'}})
+  fireEvent.change(screen.getByLabelText('Залишок зараз'),{target:{value:'3 000,25'}})
+  fireEvent.click(screen.getByRole('button',{name:'Створити рахунок'}))
+  await waitFor(()=>expect(state.create).toHaveBeenCalledWith(expect.objectContaining({openingBalance:3000.25})))
+ })
+ it('shows the negative credit limit error beside the field',()=>{
+  newCard();fireEvent.change(screen.getByLabelText('Поточна сума боргу'),{target:{value:'0'}})
+  fireEvent.change(screen.getByLabelText('Кредитний ліміт'),{target:{value:'-1'}})
+  fireEvent.click(screen.getByRole('button',{name:'Створити рахунок'}))
+  expect(state.create).not.toHaveBeenCalled();expect(screen.getByText('Ліміт не може бути від’ємним')).toBeVisible()
+ })
+ it('does not validate stale hidden credit fields after switching to cash',async()=>{
+  newCard();fireEvent.change(screen.getByLabelText('Поточна сума боргу'),{target:{value:'100'}})
+  fireEvent.change(screen.getByLabelText('Кредитний ліміт'),{target:{value:'-1'}})
+  fireEvent.change(screen.getByLabelText('Відсоткова ставка, %'),{target:{value:'1500'}})
+  fireEvent.change(screen.getByLabelText('Тип'),{target:{value:'cash'}})
+  fireEvent.click(screen.getByRole('button',{name:'Створити рахунок'}))
+  await waitFor(()=>expect(state.create).toHaveBeenCalledWith(expect.objectContaining({type:'cash',openingBalance:100,creditLimit:null,interestRate:null})))
+ })
+ it('shows an out-of-range interest rate error',()=>{
+  newCard();fireEvent.change(screen.getByLabelText('Поточна сума боргу'),{target:{value:'0'}})
+  fireEvent.change(screen.getByLabelText('Відсоткова ставка, %'),{target:{value:'1001'}})
+  fireEvent.click(screen.getByRole('button',{name:'Створити рахунок'}))
+  expect(screen.getByText('Ставка має бути не більшою за 1000%')).toBeVisible()
+ })
+ it('shows an overlong institution error',()=>{
+  render(<AccountForm/>);fireEvent.change(screen.getByLabelText('Назва'),{target:{value:'Bank'}})
+  fireEvent.change(screen.getByLabelText('Залишок зараз'),{target:{value:'0'}})
+  fireEvent.change(screen.getByLabelText('Фінансова установа'),{target:{value:'x'.repeat(81)}})
+  fireEvent.click(screen.getByRole('button',{name:'Створити рахунок'}))
+  expect(screen.getByText('Не більше ніж 80 символів')).toBeVisible();expect(state.create).not.toHaveBeenCalled()
+ })
+ it('does not offer a manually tracked loan as the default payment account',()=>{
+  render(<AccountForm/>);fireEvent.change(screen.getByLabelText('Тип'),{target:{value:'bank_loan'}})
+  expect(screen.getByLabelText('Сума до повного погашення')).toBeVisible()
+  expect(screen.queryByRole('switch',{name:/Мій основний рахунок/})).toBeNull()
+ })
+ it('blocks duplicate submissions while the first write is pending',async()=>{
+  let finish!:(value:unknown)=>void;state.create.mockImplementationOnce(()=>new Promise(resolve=>{finish=resolve}))
+  render(<AccountForm/>);fireEvent.change(screen.getByLabelText('Назва'),{target:{value:'Once'}})
+  fireEvent.change(screen.getByLabelText('Залишок зараз'),{target:{value:'0'}})
+  const button=screen.getByRole('button',{name:'Створити рахунок'})
+  fireEvent.click(button);fireEvent.click(button);expect(state.create).toHaveBeenCalledTimes(1)
+  finish({});await waitFor(()=>expect(state.push).toHaveBeenCalled())
  })
 })

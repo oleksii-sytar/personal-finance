@@ -148,7 +148,7 @@ export interface CreateCategoryRuleInput {
   categoryId: string
   descriptionContains: string
   isActive?: boolean
-  kind?: 'income' | 'expense'
+  kind?: 'income' | 'expense' | null
   minAmount?: number | null
   maxAmount?: number | null
   accountId?: string | null
