@@ -5,6 +5,7 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { FullScreenLoading } from '@/components/shared/full-screen-loading'
 import { createLoginUrlWithReturn } from '@/lib/utils/return-url'
+import { PREVIEW_NO_AUTH } from '@/lib/auth/preview'
 
 interface SmartRouteGuardProps {
   children: React.ReactNode
@@ -26,6 +27,7 @@ function SmartRouteGuardInternal({
   const [isRedirecting, setIsRedirecting] = useState(false)
 
   useEffect(() => {
+    if (PREVIEW_NO_AUTH) return
     if (loading || isRedirecting) return
 
     if (requireAuth && !isAuthenticated) {
@@ -52,6 +54,10 @@ function SmartRouteGuardInternal({
     router,
     isRedirecting,
   ])
+
+  if (PREVIEW_NO_AUTH) {
+    return <>{children}</>
+  }
 
   if (loading || isRedirecting) {
     return <LoadingComponent />

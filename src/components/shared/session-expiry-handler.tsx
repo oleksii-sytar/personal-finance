@@ -22,14 +22,14 @@ export function SessionExpiryHandler() {
       if (wasOffline) {
         // Session expired while offline - show warning
         warning(
-          'Session Expired While Offline',
-          'Your session expired while you were offline. Please log in again when you\'re ready to continue.'
+          "Сесія завершилася без з’єднання",
+          "Поки ви були без інтернету, строк дії сесії минув. Увійдіть знову, щоб продовжити."
         )
       } else {
         // Regular session expiry - show error
         error(
-          'Session Expired',
-          message || 'Your session has expired. Please log in again to continue.'
+          "Сесію завершено",
+          message || "Строк дії сесії минув. Увійдіть знову, щоб продовжити."
         )
       }
     }

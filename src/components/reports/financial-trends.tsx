@@ -1,0 +1,17 @@
+'use client'
+import {useState} from 'react'
+import {useFinancialModel,useHistoricalRates} from '@/hooks/use-financial-model'
+import {positionHistory,forecastEvaluations} from '@/lib/calculations/household'
+import {Money,Disclosure} from '@/components/ui/finance-visuals'
+import {SegmentedControl} from '@/components/ui/segmented'
+import type {CurrencyCode,Transaction} from '@/types/domain'
+export function FinancialTrends({currency}:{currency:CurrencyCode}){
+ const model=useFinancialModel(),[metric,setMetric]=useState<'debt'|'savings'|'net'>('debt'),snapshots=model.data?.positions||[]
+ const valuations=snapshots.flatMap(p=>p.accounts.map(a=>({currency:a.currency,status:'completed',transactionDate:p.date} as Transaction))),fx=useHistoricalRates(valuations,currency)
+ const allPoints=positionHistory(model.data||{coverage:[],positions:[],forecasts:[]},currency,fx.data||[]),points=[...new Map(allPoints.map(p=>[p.date.slice(0,7),p])).values()],evaluations=forecastEvaluations({...(model.data||{coverage:[],positions:[],forecasts:[]}),forecasts:(model.data?.forecasts||[]).filter(f=>f.currency===currency)},fx.data||[]),label={debt:'Борги',savings:'Заощадження',net:'Чисті активи'}[metric]
+ const usable=points.filter(p=>p[metric]!==null),low=Math.min(0,...usable.map(p=>p[metric]!)),high=Math.max(1,...usable.map(p=>p[metric]!)),range=high-low
+ const path=usable.map((p,i)=>(i?'L':'M')+(16+i*568/Math.max(1,usable.length-1))+','+(144-(p[metric]!-low)/range*128)).join(' ')
+ return <section className="finance-surface mt-5" aria-label="Динаміка фінансового стану"><div className="finance-card-heading"><h2>Фінансовий стан у часі</h2></div><SegmentedControl aria-label="Показник динаміки" value={metric} onChange={setMetric} options={[{value:'debt',label:'Борги'},{value:'savings',label:'Заощадження'},{value:'net',label:'Чисті активи'}]}/>
+ {model.isLoading||fx.isLoading?<p role="status" className="finance-caption mt-4">Завантажуємо історію…</p>:model.isError?<p role="alert">Історія тимчасово недоступна.</p>:<>{usable.length>1&&<svg viewBox="0 0 600 160" className="position-trend-chart" role="img" aria-label={label+' за збереженими датами'}><path d={path} fill="none" stroke="var(--accent-primary)" strokeWidth="3" vectorEffect="non-scaling-stroke"/></svg>}<div className="position-history">{points.map(p=><div key={p.date}><time dateTime={p.date}>{p.date}</time>{p[metric]===null?<span>Немає курсу на дату</span>:<Money value={p[metric]!} currency={currency}/>}</div>)}</div><p className="finance-caption mt-3">{usable.length<2?'Зміни з’являться після накопичення історії. ':''}Лише збережені стани на зазначені дати. Відсутня історія не дорівнює нулю; валютна переоцінка також змінює статки.</p></>}
+ <Disclosure title="Точність збережених прогнозів">{evaluations.length?evaluations.map(s=><p key={s.id}>{s.asOf}: середнє відхилення <Money value={s.score!.mae} currency={s.currency}/> за {s.score!.count} збережених днів. {s.score!.shortfallMissed?'Був непрогнозований дефіцит.':''}</p>):<p>Ще немає завершених днів для порівняння. Початкові прогнози зберігаються незмінними; пропущені дні не підставляємо як нуль.</p>}<p>Порівнюємо з останнім збереженим станом кожного дня, не з банківським закриттям. Нові плани, курси та виправлення обліку також впливають на різницю.</p></Disclosure></section>
+}

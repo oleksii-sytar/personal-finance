@@ -1,4 +1,5 @@
 import { createBrowserClient } from '@supabase/ssr'
+import { SUPABASE_URL, SUPABASE_PUBLIC_KEY } from '@/config/backend'
 
 /**
  * Creates a Supabase client for browser-side operations
@@ -6,8 +7,8 @@ import { createBrowserClient } from '@supabase/ssr'
  * Following the authentication-workspace design specifications
  */
 export function createClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const supabaseUrl = SUPABASE_URL
+  const supabaseAnonKey = SUPABASE_PUBLIC_KEY
 
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error('Missing Supabase environment variables')

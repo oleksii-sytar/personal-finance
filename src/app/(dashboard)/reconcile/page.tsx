@@ -1,0 +1,2 @@
+import {redirect} from 'next/navigation'
+export default async function LegacyReconcile({searchParams}:{searchParams:Promise<{tab?:string}>}){const {tab}=await searchParams;redirect(tab==='balances'?'/accounts':'/transactions?view=review')}

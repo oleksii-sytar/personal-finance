@@ -142,6 +142,9 @@ function updateCSSCustomProperties(resolvedTheme: ResolvedTheme): void {
       
       // Set data-theme attribute for CSS theme switching
       root.setAttribute('data-theme', resolvedTheme)
+      const color=resolvedTheme==='dark'?'#1c1917':'#f5f5f4'
+      document.querySelector('meta[name="theme-color"]')?.setAttribute('content',color)
+      root.style.colorScheme=resolvedTheme
       
       if (resolvedTheme === 'dark') {
         // Dark mode colors (Night Cockpit)

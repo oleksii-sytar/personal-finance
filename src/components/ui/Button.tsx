@@ -14,7 +14,7 @@ function buttonVariants({
   variant?: ButtonProps['variant']
   size?: ButtonProps['size'] 
 } = {}) {
-  const baseClasses = 'inline-flex items-center justify-center font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]/20 disabled:pointer-events-none disabled:opacity-50'
+  const baseClasses = 'inline-flex min-w-0 max-w-full items-center justify-center whitespace-normal break-words text-center [&>svg]:shrink-0 font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-primary)]/20 disabled:pointer-events-none disabled:opacity-50'
   
   const variantClasses = {
     primary: 'btn-primary',
@@ -24,9 +24,9 @@ function buttonVariants({
   }
   
   const sizeClasses = {
-    sm: 'h-8 px-4 text-sm',
-    md: 'h-12 px-6',
-    lg: 'h-14 px-8 text-lg',
+    sm: 'min-h-11 px-4 py-2 text-sm',
+    md: 'min-h-12 px-6 py-2',
+    lg: 'min-h-14 px-8 py-3 text-lg',
     input: 'min-h-[44px] px-4 text-sm', // Match form input height for accessibility
   }
 

@@ -68,7 +68,7 @@ function LoginFormContent() {
         setErrors({ email: result.error })
       }
     } catch {
-      setErrors({ email: 'An unexpected error occurred. Please try again.' })
+      setErrors({ email: "Сталася непередбачена помилка. Спробуйте ще раз." })
     } finally {
       setIsLoading(false)
     }
@@ -78,34 +78,34 @@ function LoginFormContent() {
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
         <CardTitle as="h1" className="text-center text-2xl">
-          Welcome Back
+          Вітаємо
         </CardTitle>
         <p className="text-center text-[var(--text-secondary)] mt-2">
-          Sign in to your Forma account
+          Приватні фінанси вашої сім’ї
         </p>
       </CardHeader>
 
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
-            label="Email Address"
+            label="Електронна пошта"
             type="email"
             value={formData.email}
             onChange={handleChange('email')}
             error={errors.email}
-            placeholder="Enter your email"
+            placeholder="Введіть електронну адресу"
             autoComplete="email"
             disabled={isLoading}
             required
           />
 
           <Input
-            label="Password"
+            label="Пароль"
             type="password"
             value={formData.password}
             onChange={handleChange('password')}
             error={errors.password}
-            placeholder="Enter your password"
+            placeholder="Введіть пароль"
             autoComplete="current-password"
             disabled={isLoading}
             required
@@ -120,29 +120,24 @@ function LoginFormContent() {
                 disabled={isLoading}
                 className="w-4 h-4 text-[var(--accent-primary)] bg-[var(--bg-glass)] border-[var(--glass-border)] rounded focus:ring-[var(--accent-primary)]/20"
               />
-              <span className="ml-2 text-sm text-[var(--text-secondary)]">Remember me</span>
+              <span className="ml-2 text-sm text-[var(--text-secondary)]">Запам’ятати мене</span>
             </label>
-            <Link
-              href="/auth/reset-password"
-              className="text-sm text-[var(--accent-primary)] hover:text-[#F4B76D] transition-colors"
-            >
-              Forgot password?
-            </Link>
+
           </div>
 
           <Button type="submit" className="w-full" disabled={isLoading} size="lg">
-            {isLoading ? 'Signing In...' : 'Sign In'}
+            {isLoading ? "Входимо…" : "Увійти"}
           </Button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-[var(--text-secondary)] text-sm">
-            Don&apos;t have an account?{' '}
+            Маєте запрошення?{' '}
             <Link
               href="/auth/signup"
               className="text-[var(--accent-primary)] hover:text-[#F4B76D] transition-colors"
             >
-              Create one here
+              Приєднатися до сім’ї
             </Link>
           </p>
         </div>

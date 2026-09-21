@@ -37,17 +37,17 @@ export function UserProfile() {
           <User className="w-4 h-4 text-[var(--text-secondary)]" />
         </div>
         <div className="flex-1 min-w-0 overflow-hidden">
-          <p className="text-sm font-medium text-[var(--text-primary)] truncate" title={user?.user_metadata?.full_name || user?.email || 'User'}>
-            {user?.user_metadata?.full_name || user?.email || 'User'}
+          <p className="text-sm font-medium text-[var(--text-primary)] truncate" title={user?.user_metadata?.full_name || user?.email || "Користувач"}>
+            {user?.user_metadata?.full_name || user?.email || "Користувач"}
           </p>
-          <p className="text-xs text-[var(--text-secondary)] truncate">Forma Account</p>
+          <p className="text-xs text-[var(--text-secondary)] truncate">Обліковий запис Forma</p>
         </div>
         <button 
           onClick={handleSignOut}
           disabled={isSigningOut}
           className="flex-shrink-0 p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-glass)] rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-          title={isSigningOut ? "Signing out..." : "Sign Out"}
-          aria-label={isSigningOut ? "Signing out..." : "Sign Out"}
+          title={isSigningOut ? "Виходимо…" : "Вийти"}
+          aria-label={isSigningOut ? "Виходимо…" : "Вийти"}
         >
           {isSigningOut ? (
             <Loader2 className="h-4 w-4 animate-spin" />

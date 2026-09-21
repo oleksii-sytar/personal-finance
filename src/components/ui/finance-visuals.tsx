@@ -1,0 +1,24 @@
+'use client'
+import {useId,useState} from 'react'
+import {createPortal} from 'react-dom'
+import {Info,ChevronRight} from 'lucide-react'
+import {Dialog} from '@/components/ui/dialog'
+import {formatMoney} from '@/lib/money/format'
+import type {CurrencyCode} from '@/types/domain'
+export function Money({value,currency,className='',signed=false}:{value:number;currency:CurrencyCode;className?:string;signed?:boolean}){
+ const amount=Math.abs(value)<0.005?0:value,parts=new Intl.NumberFormat('uk-UA',{style:'currency',currency,minimumFractionDigits:2,maximumFractionDigits:2}).formatToParts(amount)
+ return <span className={'money-value '+className}>{signed&&amount>0?'+':''}{parts.filter(p=>['integer','group','minusSign'].includes(p.type)).map(p=>p.value).join('')}<span className="money-fraction">{parts.filter(p=>['decimal','fraction'].includes(p.type)).map(p=>p.value).join('')}</span><span className="money-currency">{parts.find(p=>p.type==='currency')?.value}</span></span>
+}
+export function InfoButton({title,children}:{title:string;children:React.ReactNode}){
+ const [open,setOpen]=useState(false)
+ return <><button type="button" className="finance-icon-button" aria-label={title} onClick={()=>setOpen(true)}><Info size={17}/></button>{open&&createPortal(<Dialog open onClose={()=>setOpen(false)} title={title} variant="sheet"><div className="finance-explanation">{children}</div></Dialog>,document.body)}</>
+}
+export function StatusPill({children,tone='neutral'}:{children:React.ReactNode;tone?:'neutral'|'good'|'warning'}){return <span className={'status-pill status-pill--'+tone}><span aria-hidden="true" className="status-dot"/>{children}</span>}
+export function Disclosure({title,children,className=''}:{title:string;children:React.ReactNode;className?:string}){return <details className={'finance-disclosure '+className}><summary><span>{title}</span><ChevronRight size={17} aria-hidden="true"/></summary><div className="finance-explanation pb-3">{children}</div></details>}
+export type ChartPoint={date:string;balance:number;lower?:number;upper?:number}
+export function BalanceChart({points,currency,activeIndex,height=140}:{points:ChartPoint[];currency:CurrencyCode;activeIndex?:number;height?:number}){
+ const uid=useId().replace(/:/g,'');if(!points.length)return <div className="finance-empty">Немає даних для графіка</div>
+ const low=Math.min(0,...points.map(p=>p.lower??p.balance)),high=Math.max(1,...points.map(p=>p.upper??p.balance)),span=high-low,x=(i:number)=>12+576*i/Math.max(1,points.length-1),y=(value:number)=>158-(value-low)/span*142,coords=points.map((p,i)=>({x:x(i),y:y(p.balance)})),line=coords.map((p,i)=>i?'H'+p.x+'V'+p.y:'M'+p.x+','+p.y).join(' '),area=line+' L'+coords[coords.length-1].x+',174 L'+coords[0].x+',174 Z',active=activeIndex===undefined?points.length-1:Math.max(0,Math.min(points.length-1,activeIndex)),short=(date:string)=>new Date(date+'T12:00:00').toLocaleDateString('uk-UA',{day:'numeric',month:'short'})
+ const band=points.map((p,i)=>(i?'L':'M')+x(i)+','+y(p.upper??p.balance)).join(' ')+[...points].reverse().map((p,i)=>'L'+x(points.length-1-i)+','+y(p.lower??p.balance)).join(' ')+' Z'
+ return <div className="balance-chart"><div className="chart-scale"><span>{formatMoney(high,currency,{compact:true})}</span><span>{formatMoney(low,currency,{compact:true})}</span></div><svg viewBox="0 0 600 180" preserveAspectRatio="none" style={{height}} role="img" aria-label={'Прогноз залишку від '+short(points[0].date)+' до '+short(points[points.length-1].date)+'. Наприкінці '+formatMoney(points[points.length-1].balance,currency)}><defs><linearGradient id={'forecast'+uid} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="var(--accent-primary)" stopOpacity=".23"/><stop offset="100%" stopColor="var(--accent-primary)" stopOpacity=".01"/></linearGradient></defs>{[30,94,158].map(v=><line key={v} x1="12" x2="588" y1={v} y2={v} stroke="var(--border-glass)" strokeDasharray="3 6"/>)}{low<0&&<line x1="12" x2="588" y1={y(0)} y2={y(0)} stroke="var(--accent-error)" strokeDasharray="4 4"/>}<path d={band} fill="var(--accent-primary)" opacity=".09"/><path d={area} fill={'url(#forecast'+uid+')'}/><path d={line} fill="none" stroke="var(--accent-primary)" strokeWidth="2.5" vectorEffect="non-scaling-stroke" strokeLinejoin="round"/><line x1={coords[active].x} x2={coords[active].x} y1="8" y2="174" stroke="var(--accent-primary)" strokeOpacity=".25" strokeDasharray="3 4"/><circle cx={coords[active].x} cy={coords[active].y} r="4" fill="var(--accent-primary)" stroke="var(--bg-primary)" strokeWidth="2"/></svg><div className="chart-dates"><span>{short(points[0].date)}</span><span>{short(points[points.length-1].date)}</span></div></div>
+}
