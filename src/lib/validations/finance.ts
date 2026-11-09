@@ -3,6 +3,7 @@
  * `.flatten()` gives field-keyed errors for forms.
  */
 
+import {hasVisibleText,labelText} from '@/lib/integrity/text'
 import { z } from 'zod'
 import {validDay} from '@/lib/planning/model'
 import {parseSignedBalance} from '@/lib/reconciliation/model'
@@ -24,7 +25,7 @@ export const accountTypeEnum = z.enum([
 ])
 
 export const accountFormSchema = z.object({
-  name: z.string().trim().min(1, "Укажіть назву").max(60, "Назва задовга"),
+  name: z.string().transform(labelText).pipe(z.string().min(1, "Укажіть назву").max(60, "Назва задовга").refine(hasVisibleText,"Укажіть видиму назву")),
   type: accountTypeEnum,
   currency: currencyEnum,
   openingBalance: z.preprocess(v=>parseSignedBalance(v)??NaN,z.number({invalid_type_error:"Введіть залишок. Якщо коштів немає, вкажіть 0."}).finite("Введіть коректну суму")),
@@ -35,7 +36,7 @@ export const accountFormSchema = z.object({
   creditLimit: z.coerce.number({invalid_type_error:"Введіть коректний ліміт"}).finite("Введіть коректний ліміт").nonnegative("Ліміт не може бути від’ємним").lt(1e12,"Завеликий ліміт").optional(),
   dueDate: z.string().refine(v=>!v||validDay(v),"Оберіть коректну дату").optional(),
   isDefault: z.boolean().optional(),
-})
+}).refine(v=>v.type!=='cash'||v.openingBalance>=0,{path:['openingBalance'],message:'Готівковий залишок не може бути від’ємним'})
 export type AccountFormValues = z.infer<typeof accountFormSchema>
 
 export const transactionKindEnum = z.enum(['income', 'expense', 'transfer'])
@@ -61,7 +62,7 @@ export const transactionSchema = z
     currency: currencyEnum,
     originalAmount: z.coerce.number().positive().optional().nullable(),
     originalCurrency: currencyEnum.optional().nullable(),
-    description: z.string().trim().min(1, "Додайте короткий опис").max(120),
+    description: z.string().trim().min(1, "Додайте короткий опис").max(120,"Опис має містити до 120 символів").refine(hasVisibleText,"Додайте видимий опис"),
     notes: z.string().trim().max(8000, "Примітка має містити до 8 000 символів").optional().nullable(),
     transactionDate: z.string().refine(validDay, "Оберіть коректну дату"),
     status: z.enum(['completed', 'planned']).optional(),
@@ -83,7 +84,7 @@ export const quickEntrySchema = z.object({
 export type QuickEntryValues = z.infer<typeof quickEntrySchema>
 
 export const categorySchema = z.object({
-  name: z.string().trim().min(1, "Укажіть назву").max(40),
+  name: z.string().transform(labelText).pipe(z.string().min(1, "Укажіть назву").max(40,"Не більше ніж 40 символів").refine(hasVisibleText,"Укажіть видиму назву")),
   type: z.enum(['income', 'expense']),
   color: z.string().regex(/^#([0-9a-fA-F]{6})$/, "Оберіть колір"),
   icon: z.string().min(1),

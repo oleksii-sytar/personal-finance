@@ -1,3 +1,4 @@
+import {roundMoney} from './decimal'
 /**
  * Foreign-exchange conversion.
  *
@@ -33,7 +34,7 @@ export function convert(amount: number, from: CurrencyCode, to: CurrencyCode): n
 
 /** Convert and round to 2 decimals (use for display, not for storage). */
 export function convertRounded(amount: number, from: CurrencyCode, to: CurrencyCode): number {
-  return Math.round(convert(amount, from, to) * 100) / 100
+  return roundMoney(convert(amount, from, to))
 }
 
 let revision=0

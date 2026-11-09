@@ -1,8 +1,9 @@
+import {moneyCents} from '@/lib/money/decimal'
 import type {Account,Transaction} from '@/types/domain'
 import {bankLegAmount} from '@/lib/reconciliation/model'
 import {isAfterBalanceAnchor,transactionEffect} from '@/lib/money/balances'
 const day=(s:string)=>Date.parse(s.slice(0,10)+'T00:00:00Z')/86400000
-const cents=(n:number)=>Math.round(n*100)
+const cents=moneyCents
 const words=(s:string)=>new Set(s.toLocaleLowerCase('uk').split(/[^\p{L}\p{N}]+/u).filter(w=>w.length>2))
 export interface MatchCandidate {transaction:Transaction;reasons:string[];score:number}
 export function manualCandidates(row:{date:string;amount:number;description:string;occurredAt?:string|null},accountId:string,currency:string,existing:Transaction[]):MatchCandidate[]{

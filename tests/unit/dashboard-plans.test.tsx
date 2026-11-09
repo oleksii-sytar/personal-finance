@@ -31,7 +31,7 @@ beforeEach(()=>{
  state.accounts=[makeAccount({currentBalance:3000})]
  state.transactions=[]
 })
-afterEach(()=>vi.useRealTimers())
+afterEach(()=>{vi.useRealTimers()})
 
 describe('Dashboard keeps compact, consistent summaries',()=>{
  it('groups forecast, month result and family wealth in a spaced stack',()=>{

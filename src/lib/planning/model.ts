@@ -1,3 +1,4 @@
+import {roundMoney} from '@/lib/money/decimal'
 import type {Category,RecurringFrequency,RecurringTransaction,Transaction} from '@/types/domain'
 import {convert} from '@/lib/money/fx'
 
@@ -49,7 +50,7 @@ export function nextRepeatDate(sourceDate:string,today:string):string{
   return dates.find(date=>date>sourceDate)||recurrenceDate(today,'monthly',1,1)
 }
 export function parsePlanRate(value:string):number|null{
- const text=value.replace(/\s/g,'').replace(',','.')
+ const text=value.trim().replace(',','.')
  if(!/^\d{1,6}(\.\d{1,8})?$/.test(text))return null
  const number=Number(text)
  return Number.isFinite(number)&&number>0&&number<1000000?number:null
@@ -59,7 +60,7 @@ export function plannedAmount(transaction:Transaction):number{
   const value=transaction.planExchangeMode==='manual'
     ?transaction.originalAmount*(transaction.planExchangeRate||0)
     :convert(transaction.originalAmount,transaction.originalCurrency,transaction.currency)
-  return Number.isFinite(value)&&value>0?Math.round(value*100)/100:transaction.amount
+  return Number.isFinite(value)&&value>0?roundMoney(value):transaction.amount
 }
 export const isVisiblePlan=(t:Transaction)=>t.status!=='planned'||!t.recurrenceSuspended
 export function recurrenceLabel(series:Pick<RecurringTransaction,'frequency'|'intervalCount'>):string{

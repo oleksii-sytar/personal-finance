@@ -1,4 +1,5 @@
 'use client'
+import {sumMoney} from '@/lib/money/decimal'
 import {isLoanDestination} from '@/lib/loans/destination'
 import {useEffect,useRef,useState} from 'react'
 import Link from 'next/link'
@@ -20,7 +21,7 @@ export function UpdateBalanceDialog({account,calculated,open,onClose}:{account:A
  const [value,setValue]=useState(''),[note,setNote]=useState(''),[confirmed,setConfirmed]=useState(false),[error,setError]=useState('')
  const action=useFinanceAction(),toast=useToast(),{data:transactions=[]}=useTransactions({accountId:account.id})
  useEffect(()=>{if(!open){initialized.current=false;return}if(initialized.current)return;initialized.current=true;snapshot.current={account,calculated};setValue(String(isLoanDestination(account)?Math.abs(account.currentBalance):account.currentBalance));setNote('');setConfirmed(false);setError('')},[open,account,calculated])
- const a=snapshot.current.account,manualDebt=isLoanDestination(a),parsedValue=parseSignedBalance(value),n=parsedValue===null?null:manualDebt?-Math.abs(parsedValue):parsedValue,diff=n===null?null:Math.round((n-snapshot.current.calculated)*100)/100,hints=reconciliationHints(a,transactions,diff??0)
+ const a=snapshot.current.account,manualDebt=isLoanDestination(a),parsedValue=parseSignedBalance(value),n=parsedValue===null?null:manualDebt?-Math.abs(parsedValue):parsedValue,diff=n===null?null:sumMoney([n,-snapshot.current.calculated]),hints=reconciliationHints(a,transactions,diff??0)
  const debt=value.trim().startsWith('-')||value.trim().startsWith('−')
  function change(v:string){setValue(v);setConfirmed(false);setError('')}
  function close(){if(!action.isPending)onClose()}

@@ -18,7 +18,7 @@ beforeEach(()=>{
  vi.stubGlobal('matchMedia',vi.fn(()=>({matches:false})))
  vi.stubGlobal('Notification',{permission:'default',requestPermission:state.permission})
 })
-afterEach(()=>vi.unstubAllGlobals())
+afterEach(()=>{vi.unstubAllGlobals()})
 describe('Consistent reserve confidence',()=>{
  it.each([{hasHistory:false,canEstimate:false,confidence:'plans_only' as const,sampleCount:0,days:0},{canEstimate:false,confidence:'plans_only' as const,missingFx:1}])('does not invent a reserve without usable history: %o',over=>{
   render(<ReservePreview trend={trend(over)} currency="UAH" days={30}/>)
@@ -44,14 +44,14 @@ describe('Mobile home navigation',()=>{
   render(<MobileTabBar/>)
   const nav=screen.getByRole('navigation',{name:'Основна навігація'})
   expect(Array.from(nav.querySelectorAll(':scope > div > a')).map(a=>a.getAttribute('href'))).toEqual(['/reports','/transactions','/dashboard','/accounts'])
-  expect(within(nav).getByRole('link',{name:'Статистика',exact:true})).toHaveAttribute('aria-current','page')
-  expect(within(nav).getByRole('link',{name:'Огляд',exact:true})).toHaveClass('mobile-navigation-home')
+  expect(within(nav).getByRole('link',{name:'Статистика'})).toHaveAttribute('aria-current','page')
+  expect(within(nav).getByRole('link',{name:'Огляд'})).toHaveClass('mobile-navigation-home')
   expect(within(nav).queryByRole('button',{name:/Швидко/})).not.toBeInTheDocument()
  })
  it('marks the home destination, not reports, on the dashboard',()=>{
   state.path='/dashboard';render(<MobileTabBar/>)
-  expect(screen.getByRole('link',{name:'Огляд',exact:true})).toHaveAttribute('aria-current','page')
-  expect(screen.getByRole('link',{name:'Статистика',exact:true})).not.toHaveAttribute('aria-current')
+  expect(screen.getByRole('link',{name:'Огляд'})).toHaveAttribute('aria-current','page')
+  expect(screen.getByRole('link',{name:'Статистика'})).not.toHaveAttribute('aria-current')
  })
 })
 it('saves the reminder day without asking for push permission or connecting a device',async()=>{

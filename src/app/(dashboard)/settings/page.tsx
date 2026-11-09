@@ -1,5 +1,6 @@
 'use client'
 
+import {DataIntegrity} from '@/components/settings/data-integrity'
 import {HistoryCoverage} from '@/components/settings/history-coverage'
 import {ReserveCategories,ForecastCategories} from '@/components/settings/reserve-categories'
 import {AiConnectionsLink} from '@/components/settings/ai-connections'
@@ -67,6 +68,7 @@ export default function SettingsPage() {
         <div id="reserve-categories" className="scroll-mt-6"><Card><CardTitle className="mb-4">Базові потреби для резерву</CardTitle><ReserveCategories/></Card></div>
         <AiConnectionsLink/>
         <ImportReminderCard/>
+        <DataIntegrity/>
         <CategoryRulesManager />
         <StatementImportPrompt />
 

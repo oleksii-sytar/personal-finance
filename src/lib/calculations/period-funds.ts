@@ -1,10 +1,11 @@
+import {roundMoney} from '@/lib/money/decimal'
 import type {Account, CurrencyCode, Transaction} from '@/types/domain'
 import type {BalanceContext, BalanceSnapshot} from '@/lib/data/repository'
 import {localDay} from './liquidity'
 import {isAfterBalanceAnchor, transactionEffect} from '@/lib/money/balances'
 import {convert} from '@/lib/money/fx'
 
-const round=(n:number)=>Math.round(n*100)/100
+const round=roundMoney
 const spending=(a:Account)=>['cash','bank_debit','credit_card'].includes(a.type)
 const activeOn=(a:Account,date:string)=>!a.archivedAt||localDay(new Date(a.archivedAt))>date
 const valid=(s:BalanceSnapshot)=>Number.isFinite(s.amount)&&/^\d{4}-\d{2}-\d{2}$/.test(s.date)&&Number.isFinite(Date.parse(s.at))

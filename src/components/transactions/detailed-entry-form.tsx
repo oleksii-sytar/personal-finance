@@ -1,5 +1,6 @@
 'use client'
 
+import {roundMoney} from '@/lib/money/decimal'
 import {useEffect,useMemo,useState,useRef,useId} from 'react'
 import Link from 'next/link'
 import {useWorkspaceContext} from '@/contexts/workspace-context'
@@ -31,13 +32,13 @@ import type {Transaction,TransactionKind,CurrencyCode,RecurringTransaction,Recur
 
 export interface EntryDraft {kind?:TransactionKind;amount?:string;accountId?:string;categoryId?:string;transactionDate?:string;description?:string;notes?:string;status?:'completed'|'planned';loanAccountId?:string;counterAccountId?:string}
 interface DetailedEntryFormProps{
- initialValues?:EntryDraft;open:boolean;onClose:()=>void;transaction?:Transaction|null
+ initialValues?:EntryDraft;open:boolean;onClose:()=>void;onSaved?:()=>void;transaction?:Transaction|null
  repeatFrom?:Transaction|null;series?:RecurringTransaction|null;onRepeat?:(transaction:Transaction)=>void
 }
 const today=localDay
 const currencies:CurrencyCode[]=['UAH','USD','EUR','GBP','PLN']
 
-export function DetailedEntryForm({open,onClose,transaction,initialValues,repeatFrom,series,onRepeat}:DetailedEntryFormProps){
+export function DetailedEntryForm({open,onClose,transaction,initialValues,repeatFrom,series,onRepeat,onSaved}:DetailedEntryFormProps){
  const {can,currentUser}=useWorkspaceContext()
  const editable=can('transaction.manageAll')||can('transaction.create')&&(!transaction||transaction.createdBy===currentUser?.id)&&(!series||series.createdBy===currentUser?.id)
  const saving=useRef(false)
@@ -71,7 +72,7 @@ export function DetailedEntryForm({open,onClose,transaction,initialValues,repeat
   const paymentAccounts=accounts.filter(isPaymentAccount)
   const def=paymentAccounts.find(a=>a.isDefault)||paymentAccounts[0]
   setStatus(planned?'planned':'completed');setKind(linkedId?'expense':basis?.kind||initialValues?.kind||'expense')
-  setAccountId(basis?.accountId||initialValues?.accountId||def?.id||'')
+  setAccountId(basis?.accountId||paymentAccounts.find(a=>a.id===initialValues?.accountId)?.id||def?.id||'')
   setCounterAccountId(linkedId?'':transaction?.counterAccountId||initialValues?.counterAccountId||'');setCounterAmount(transaction?.counterAmount!=null?String(transaction.counterAmount):'')
   setAmount(basis?String(planned&&basis.planExchangeMode&&basis.originalAmount?basis.originalAmount:basis.amount):initialValues?.amount||'')
   setCategoryId(basis?.categoryId||initialValues?.categoryId||(linkedId?categories.find(c=>c.name===LOAN_PAYMENT_CATEGORY)?.id:'')||'')
@@ -80,12 +81,12 @@ export function DetailedEntryForm({open,onClose,transaction,initialValues,repeat
   setPlanCurrency(planned&&basis?.planExchangeMode?basis.originalCurrency||null:basis?.currency||null)
   setExchangeMode(basis?.planExchangeMode||'nbu');setManualRate(basis?.planExchangeRate!=null?String(basis.planExchangeRate):'')
   setPlannedTime(basis?.plannedTime||'');setFrequency(series?.frequency||(repeatFrom?'monthly':'once'));setInterval(String(series?.intervalCount||1));setEndDate(series?.endDate||'')
- },[open,key,accounts,transaction,repeatFrom,series,initialValues])
+ },[open,key,accounts,categories,transaction,repeatFrom,series,initialValues])
 
  const account=accounts.find(a=>a.id===accountId),currency=account?.currency||'UAH',isPlanned=status==='planned'
  const enteredCurrency=isPlanned&&kind!=='transfer'?(planCurrency||currency):currency,foreign=isPlanned&&kind!=='transfer'&&enteredCurrency!==currency
  const rate=exchangeMode==='manual'?parsePlanRate(manualRate):convert(1,enteredCurrency,currency)
- const parsedAmount=parseEntryAmount(amount),estimated=foreign&&parsedAmount!=null&&rate!=null?Math.round(parsedAmount*rate*100)/100:parsedAmount
+ const parsedAmount=parseEntryAmount(amount),estimated=foreign&&parsedAmount!=null&&rate!=null?roundMoney(parsedAmount*rate):parsedAmount
  const ratesReady=exchangeMode==='manual'||FX_STATUS.source==='nbu'
  const destination=accounts.find(a=>a.id===counterAccountId),isExchange=kind==='transfer'&&!!destination&&destination.currency!==currency
  const relevantCategories=useMemo(()=>categories.filter(c=>c.type===(kind==='income'?'income':'expense')),[categories,kind])
@@ -106,7 +107,7 @@ export function DetailedEntryForm({open,onClose,transaction,initialValues,repeat
   if(!planned&&date>today())setDate(today())
  }
  async function submit(e:React.FormEvent){
-  e.preventDefault();if(saving.current||!editable)return;setErrors({})
+  e.preventDefault();if(saving.current||!editable)return;setErrors({});if(!account||!isPaymentAccount(account)){setErrors({accountId:['Оберіть доступний платіжний рахунок']});return}
   if(foreign&&(!ratesReady||rate==null||rate<=0)){setErrors({rate:[ratesReady?'Введіть коректний курс':'Курс НБУ ще недоступний. Зачекайте або вкажіть власний курс.']});return}
   if(recurring&&(!validDay(date)||(!series||date!==series.startDate)&&date<today()||!Number.isInteger(Number(interval))||Number(interval)<1||Number(interval)>120||(endDate&&(!validDay(endDate)||endDate<date)))){
    setErrors({recurrence:['Перевірте дати й інтервал повторення (від 1 до 120). Новий початок не може бути в минулому.']});return
@@ -147,7 +148,7 @@ export function DetailedEntryForm({open,onClose,transaction,initialValues,repeat
    }else{
     await create.mutateAsync(v);toast.success(isPlanned?'План додано':'Операцію додано')
    }
-   onClose()
+   onSaved?.();onClose()
   }catch(error){toast.error('Не вдалося зберегти',error)}finally{saving.current=false}
  }
  async function handleDelete(){
@@ -190,6 +191,7 @@ export function DetailedEntryForm({open,onClose,transaction,initialValues,repeat
    {transaction?.kind==='transfer'&&loanDestination&&<p role="status" className="finance-caption">Переказ стане оплатою кредиту. Повторного списання з рахунку не буде.</p>}
    {wasLoanPayment&&!loanDestination&&<p className="finance-caption" role="status">Зв’язок із кредитом буде прибрано. Списання залишиться.</p>}
    {(errors.loan||errors.loanAccountId||errors.loanInstallmentId)&&<p role="alert" className="text-sm text-[var(--accent-error)]">{(errors.loan||errors.loanAccountId||errors.loanInstallmentId)![0]}</p>}
+   {transaction?.sourceDescription&&transaction.sourceDescription!==transaction.description&&<details><summary className="finance-link cursor-pointer">Повний опис у банківській виписці</summary><p className="whitespace-pre-wrap break-words text-sm">{transaction.sourceDescription}</p></details>}
    <Input label="Опис (необов’язково)" value={description} onChange={e=>setDescription(e.target.value)} placeholder={kind==='income'?'Наприклад, зарплата':'Наприклад, продукти в Сільпо'} error={errors.description?.[0]}/>
    {isExchange&&<Input label={'Фактично отримано, '+destination?.currency} type="text" inputMode="decimal" value={counterAmount} onChange={e=>setCounterAmount(e.target.value)} error={errors.counterAmount?.[0]} required/>}
    {!series&&!repeatFrom&&<Checkbox checked={isPlanned} onChange={e=>changeStatus(e.target.checked)}>Запланована операція, ще не виконана</Checkbox>}

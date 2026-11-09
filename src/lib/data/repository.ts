@@ -68,6 +68,8 @@ export type UpdateAccountInput = Partial<
 >
 
 export interface CreateTransactionInput {
+  sourceDescription?:string|null
+  bankReference?:string|null
   loanAccountId?:string|null
   loanInstallmentId?:string|null
   accountingClass?:'ordinary'|'principal'

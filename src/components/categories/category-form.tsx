@@ -1,6 +1,8 @@
 'use client'
+import {useFormDraft} from '@/hooks/use-form-draft'
+import {DraftStatus} from '@/components/shared/draft-status'
 
-import { useEffect, useState, useId } from 'react'
+import { useEffect, useState, useId, useRef } from 'react'
 import { Trash2 } from 'lucide-react'
 import { Dialog, DialogActions } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/Input'
@@ -24,6 +26,7 @@ interface CategoryFormProps {
 export function CategoryForm({ open, onClose, category }: CategoryFormProps) {
   const isEdit = !!category
   const formId = useId()
+  const saving=useRef(false)
   const create = useCreateCategory()
   const update = useUpdateCategory()
   const del = useDeleteCategory()
@@ -53,13 +56,20 @@ export function CategoryForm({ open, onClose, category }: CategoryFormProps) {
     }
   }, [open, category])
 
+  const initial={name:category?.name||'',type:category?.type||'expense',color:category?.color||SWATCHES[0],icon:category?.icon||'tag'}
+  const draft=useFormDraft('category:'+(category?.id||'new'),{name,type,color,icon},initial,value=>{setName(value.name);setType(value.type as CategoryKind);setColor(value.color);setIcon(value.icon)},open)
+  const close=()=>{if(!saving.current&&!del.isPending)draft.close(onClose)}
+
   async function submit(e: React.FormEvent) {
     e.preventDefault()
+    if(saving.current)return
+    setErrors({})
     const parsed = categorySchema.safeParse({ name, type, color, icon })
     if (!parsed.success) {
       setErrors(parsed.error.flatten().fieldErrors)
       return
     }
+    saving.current=true
     try {
       if (isEdit && category) {
         await update.mutateAsync({ id: category.id, patch: parsed.data })
@@ -68,10 +78,10 @@ export function CategoryForm({ open, onClose, category }: CategoryFormProps) {
         await create.mutateAsync(parsed.data)
         toast.success("Категорію створено")
       }
-      onClose()
+      draft.clear();onClose()
     } catch (error) {
       toast.error("Не вдалося зберегти категорію",error)
-    }
+    } finally {saving.current=false}
   }
 
   async function handleDelete() {
@@ -80,7 +90,7 @@ export function CategoryForm({ open, onClose, category }: CategoryFormProps) {
     try {
       await del.mutateAsync(category.id)
       toast.success("Категорію видалено")
-      onClose()
+      draft.clear();onClose()
     } catch (error) {
       toast.error("Не вдалося видалити",error)
     }
@@ -89,13 +99,13 @@ export function CategoryForm({ open, onClose, category }: CategoryFormProps) {
   const submitting = create.isPending || update.isPending
 
   return (
-    <Dialog open={open} onClose={onClose} title={isEdit ? "Редагувати категорію" : "Нова категорія"} footer={
+    <Dialog open={open} onClose={close} title={isEdit ? "Редагувати категорію" : "Нова категорія"} footer={
         <DialogActions>
           {isEdit && <Button type="button" variant="ghost" onClick={handleDelete} disabled={submitting || del.isPending} className="text-[var(--accent-error)] sm:mr-auto">
             {del.isPending ? <Spinner className="mr-2" /> : <Trash2 className="mr-1.5 h-4 w-4" />}
             {confirmDelete ? "Підтвердити?" : "Видалити"}
           </Button>}
-          <Button type="button" variant="secondary" onClick={onClose} disabled={submitting || del.isPending}>Скасувати</Button>
+          <Button type="button" variant="secondary" onClick={close} disabled={submitting || del.isPending}>Скасувати</Button>
           <Button type="submit" form={formId} variant="primary" disabled={submitting || del.isPending}>
             {submitting && <Spinner className="mr-2" />}
             {isEdit ? "Зберегти" : "Створити"}
@@ -103,6 +113,7 @@ export function CategoryForm({ open, onClose, category }: CategoryFormProps) {
         </DialogActions>
       }>
       <form id={formId} onSubmit={submit} className="space-y-4">
+        <DraftStatus draft={draft}/>
         <Input label="Назва" value={name} onChange={(e) => setName(e.target.value)} error={errors.name?.[0]} autoFocus />
         <Select
           label="Тип"

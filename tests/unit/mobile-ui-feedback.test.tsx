@@ -46,7 +46,7 @@ describe('Mobile UI feedback',()=>{
   fireEvent.click(screen.getByRole('button',{name:'Фільтри транзакцій'}))
   fireEvent.change(screen.getByLabelText('Тип транзакції'),{target:{value:'income'}})
   fireEvent.change(screen.getByLabelText('Від дати'),{target:{value:'2026-09-01'}})
-  fireEvent.click(screen.getByRole('button',{name:'Скинути',exact:true}))
+  fireEvent.click(screen.getByRole('button',{name:'Скинути'}))
   expect(state.replace).toHaveBeenCalledWith('/transactions',{scroll:false})
   expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   expect(screen.getByRole('tab',{name:'Виконані'})).toHaveAttribute('aria-selected','true')

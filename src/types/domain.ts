@@ -209,6 +209,9 @@ export type TransactionStatus = 'completed' | 'planned'
 export type ClearedStatus = 'uncleared' | 'cleared' | 'reconciled'
 
 export interface Transaction {
+  sourceDescription?:string|null
+  bankReference?:string|null
+  counterBankReference?:string|null
   accountingClass?: 'ordinary' | 'principal'
   forecastBehavior?: 'auto' | 'scheduled' | 'one_off'
   /** User-defined flow identity; never used to merge or delete ledger entries. */
@@ -229,7 +232,7 @@ export interface Transaction {
   occurredAt?: string | null
   loanAccountId?: string | null
   loanBasis?: 'confirmed' | 'estimated' | 'obligation' | 'unknown' | null
-  loanPrincipal?: number
+  loanPrincipal?: number | null
   loanComponents?: { interest?: number | null; fees?: number | null; insurance?: number | null; other?: number | null } | null
   loanInstallmentId?: string | null
   loanBalancePostedAt?: string | null

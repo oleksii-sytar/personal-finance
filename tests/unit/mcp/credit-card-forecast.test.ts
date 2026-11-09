@@ -21,7 +21,7 @@ beforeEach(()=>{
   return {items,total:items.length,nextOffset:null}
  })
 })
-afterEach(()=>vi.useRealTimers())
+afterEach(()=>{vi.useRealTimers()})
 describe('MCP forecast matches the UI model',()=>{
  it('does not fetch schedules or generate installments from them',async()=>{
   const result=await callTool(ctx,'get_forecast',{through:'2026-10-31',currency:'UAH'})

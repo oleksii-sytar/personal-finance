@@ -16,6 +16,7 @@ import type {
   ReconciliationStatus,
   Transaction,
 } from '@/types/domain'
+import {moneyCents,sumMoney,roundMoney} from './decimal'
 import {pendingForAccount} from '@/lib/reconciliation/model'
 import { isLiability } from '@/lib/constants/accounts'
 import { convert } from '@/lib/money/fx'
@@ -58,11 +59,7 @@ export function isAfterBalanceAnchor(txn:Transaction,account:Account):boolean {
 /** Current snapshot plus actual movements posted after it; history is report-only. */
 export function calculatedBalance(account: Account, transactions: Transaction[]): number {
   if(['bank_loan','microloan','mortgage','personal_debt'].includes(account.type))return account.currentBalance
-  return transactions.reduce((sum, txn) => {
-    if (txn.deletedAt) return sum
-    if (txn.status !== 'completed' || !isAfterBalanceAnchor(txn,account)) return sum
-    return sum + transactionEffect(txn, account)
-  }, account.balanceAnchorAmount ?? account.openingBalance)
+  return sumMoney([account.balanceAnchorAmount ?? account.openingBalance, ...transactions.filter(txn=>!txn.deletedAt&&txn.status==='completed'&&isAfterBalanceAnchor(txn,account)).map(txn=>transactionEffect(txn,account))])
 }
 
 export function gapSeverity(gap: number, reference: number): GapSeverity {
@@ -81,7 +78,7 @@ export function reconciliationStatus(
   transactions: Transaction[]
 ): ReconciliationStatus {
   const calculated = calculatedBalance(account, transactions)
-  const gap = account.currentBalance - calculated
+  const gap = sumMoney([account.currentBalance,-calculated])
   const unclearedCount = transactions.filter(
     (t) => pendingForAccount(t,account.id)
   ).length
@@ -111,14 +108,14 @@ export function netWorthSummary(
   let totalLiabilities = 0
   for (const account of accounts.filter(isActive)) {
     const value = convert(account.currentBalance, account.currency, displayCurrency)
-    if (value >= 0) totalAssets += value
-    else totalLiabilities += -value
+    if (value >= 0) totalAssets = sumMoney([totalAssets,value])
+    else totalLiabilities = sumMoney([totalLiabilities,-value])
   }
   return {
     currency: displayCurrency,
     totalAssets,
     totalLiabilities,
-    netWorth: totalAssets - totalLiabilities,
+    netWorth: sumMoney([totalAssets,-totalLiabilities]),
   }
 }
 
@@ -136,7 +133,7 @@ export interface CreditCardSummary {
   utilization: number
 }
 
-const moneyRound = (value: number) => Math.round(value * 100) / 100
+const moneyRound = roundMoney
 
 export function creditCardSummary(account: Account): CreditCardSummary {
   const limitKnown = account.creditLimit != null
@@ -180,14 +177,14 @@ export function spendingPowerSummary(accounts: Account[], currency: CurrencyCode
     const fx = (amount: number) => convert(amount, account.currency, currency)
     if (account.type === 'credit_card') {
       const card = creditCardSummary(account)
-      ownFunds += fx(card.ownFunds)
-      availableCredit += fx(card.availableCredit)
-      creditLimit += fx(card.limit)
-      creditDebt += fx(card.used)
-      overLimit += fx(card.overLimit)
+      ownFunds = sumMoney([ownFunds,fx(card.ownFunds)])
+      availableCredit = sumMoney([availableCredit,fx(card.availableCredit)])
+      creditLimit = sumMoney([creditLimit,fx(card.limit)])
+      creditDebt = sumMoney([creditDebt,fx(card.used)])
+      overLimit = sumMoney([overLimit,fx(card.overLimit)])
       if (!card.limitKnown) unknownLimitCount++
     } else {
-      ownFunds += fx(Math.max(0, account.currentBalance))
+      ownFunds = sumMoney([ownFunds,fx(Math.max(0, account.currentBalance))])
     }
   }
   const own = moneyRound(ownFunds), credit = moneyRound(availableCredit)

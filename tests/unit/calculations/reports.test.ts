@@ -3,7 +3,7 @@ import { monthlyTotals, spendingByCategory } from '@/lib/calculations/reports'
 import { makeTxn } from '../_factories'
 import type { Category } from '@/types/domain'
 
-const now = new Date()
+const now = new Date('2026-11-30T12:00:00Z')
 const year = now.getFullYear()
 const month0 = now.getMonth()
 const day = (d: number) => `${year}-${String(month0 + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
@@ -21,7 +21,7 @@ describe('monthlyTotals', () => {
       makeTxn({ kind: 'expense', amount: 999, transactionDate: day(15), status: 'planned' }), // excluded
       makeTxn({ kind: 'expense', amount: 50, transactionDate: '2020-01-01' }), // other month
     ]
-    const totals = monthlyTotals(txns, year, month0, 'UAH')
+    const totals = monthlyTotals(txns, year, month0, 'UAH',{reference:now})
     expect(totals.income).toBe(1000)
     expect(totals.expense).toBe(500)
     expect(totals.net).toBe(500)
@@ -35,7 +35,7 @@ describe('spendingByCategory', () => {
       makeTxn({ kind: 'expense', amount: 200, categoryId: null, transactionDate: day(15) }),
       makeTxn({ kind: 'income', amount: 9999, transactionDate: day(15) }), // ignored
     ]
-    const rows = spendingByCategory(txns, categories, year, month0, 'UAH')
+    const rows = spendingByCategory(txns, categories, year, month0, 'UAH',{reference:now})
     expect(rows).toHaveLength(2)
     expect(rows[0]).toMatchObject({ name: 'Groceries', total: 300 })
     expect(rows[0].pct).toBeCloseTo(60, 4)

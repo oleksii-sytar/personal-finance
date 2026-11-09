@@ -12,7 +12,7 @@ const future=()=>Array.from({length:30},(_,i)=>makeTxn({id:'plan-'+i,accountId:'
 const mixed=()=>[...future(),makeTxn({id:'future-actual',accountId:'a',description:'Майбутня фактична',transactionDate:'2026-09-16'}),makeTxn({id:'deleted',accountId:'a',description:'Видалена фактична',transactionDate:today,deletedAt:today}),...actual()]
 const accounts=[makeAccount({id:'a',name:'Основний рахунок'})]
 beforeEach(()=>{vi.useFakeTimers({toFake:['Date']});vi.setSystemTime(new Date('2026-09-15T12:00:00Z'))})
-afterEach(()=>vi.useRealTimers())
+afterEach(()=>{vi.useRealTimers()})
 
 describe('Shared actual-history selection',()=>{
  it('filters and orders before the preview limit, regardless of incoming order',()=>{

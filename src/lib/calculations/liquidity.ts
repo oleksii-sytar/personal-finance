@@ -1,3 +1,4 @@
+import {roundMoney} from '@/lib/money/decimal'
 import type {Account,CurrencyCode,Transaction} from '@/types/domain'
 import {plannedAmount,isVisiblePlan} from '@/lib/planning/model'
 import {convert} from '@/lib/money/fx'
@@ -5,7 +6,7 @@ import {automaticSpending,type SpendingOptions} from './spending-model'
 import {localDay,dayNumber,dayString} from './dates'
 export {automaticSpending} from './spending-model'
 export {localDay} from './dates'
-const round=(n:number)=>Math.round(n*100)/100
+const round=roundMoney
 export const safetyReserve=(daily:number,days:number)=>Math.ceil(Math.max(0,daily)*Math.max(1,Math.min(365,Math.round(days)))*100)/100
 
 export interface CardForecastPayment {

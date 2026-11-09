@@ -1,4 +1,6 @@
 'use client'
+import {useFormDraft} from '@/hooks/use-form-draft'
+import {DraftStatus} from '@/components/shared/draft-status'
 
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -17,6 +19,7 @@ import type { Account, AccountType, CurrencyCode } from '@/types/domain'
 
 interface AccountFormProps {
   account?: Account
+  initialType?: AccountType
   onDone?: () => void
 }
 
@@ -26,7 +29,7 @@ const LOAN_TYPES: AccountType[] = ['bank_loan', 'microloan', 'mortgage']
 const INSTITUTION_TYPES: AccountType[] = ['bank_debit', 'savings', 'credit_card', 'bank_loan', 'microloan', 'mortgage']
 const COUNTERPARTY_TYPES: AccountType[] = ['personal_debt', 'receivable']
 
-export function AccountForm({ account, onDone }: AccountFormProps) {
+export function AccountForm({ account, onDone, initialType='bank_debit' }: AccountFormProps) {
   const {data:members=[]}=useMembers()
   const {data:currentUser}=useCurrentUser()
   const [owner,setOwner]=useState(account?.isShared?'shared':account?.ownerUserId||(account?'unknown':'self'))
@@ -38,7 +41,7 @@ export function AccountForm({ account, onDone }: AccountFormProps) {
   const updateAccount = useUpdateAccount()
 
   const [name, setName] = useState(account?.name ?? '')
-  const [type, setType] = useState<AccountType>(account?.type ?? 'bank_debit')
+  const [type, setType] = useState<AccountType>(account?.type ?? initialType)
   const [currency, setCurrency] = useState<CurrencyCode>(account?.currency ?? 'UAH')
   const [openingBalance, setOpeningBalance] = useState(String(account?.openingBalance ?? ''))
   const [institution, setInstitution] = useState(account?.institution ?? '')
@@ -53,6 +56,11 @@ export function AccountForm({ account, onDone }: AccountFormProps) {
   const [errors, setErrors] = useState<Errors>({})
   const saving = useRef(false)
   const canBeDefault = isPaymentAccount({type})
+
+  const initial={name:account?.name||'',type:account?.type||initialType,currency:account?.currency||'UAH',openingBalance:String(account?.openingBalance??''),institution:account?.institution||'',counterparty:account?.counterparty||'',principal:account?.principal!=null?String(account.principal):'',interestRate:account?.interestRate!=null?String(account.interestRate):'',cardBalanceKind:'debt',creditLimit:account?.creditLimit!=null?String(account.creditLimit):'',dueDate:account?.dueDate||'',isSavings:account?.isSavings??account?.type==='savings',isDefault:account?.isDefault||false,owner:account?.isShared?'shared':account?.ownerUserId||(account?'unknown':'self')}
+  const draft=useFormDraft('account:'+(account?.id||'new:'+initialType),{name,type,currency,openingBalance,institution,counterparty,principal,interestRate,cardBalanceKind,creditLimit,dueDate,isSavings,isDefault,owner},initial,value=>{
+   setName(value.name);setType(value.type as AccountType);setCurrency(value.currency as CurrencyCode);setOpeningBalance(value.openingBalance);setInstitution(value.institution);setCounterparty(value.counterparty);setPrincipal(value.principal);setInterestRate(value.interestRate);setCardBalanceKind(value.cardBalanceKind as 'debt'|'own');setCreditLimit(value.creditLimit);setDueDate(value.dueDate);setIsSavings(value.isSavings);setIsDefault(value.isDefault);setOwner(value.owner)
+  })
 
   const submitting = createAccount.isPending || updateAccount.isPending
   const showInstitution = INSTITUTION_TYPES.includes(type)
@@ -90,7 +98,7 @@ export function AccountForm({ account, onDone }: AccountFormProps) {
           id: account.id,
           patch: {
             name: v.name,
-            ownerUserId,isShared:owner==='shared',isSavings: ['cash','bank_debit','savings'].includes(type)&&isSavings,
+            ownerUserId,isShared:owner==='shared',isSavings:type==='savings'||['cash','bank_debit'].includes(type)&&isSavings,
             institution: showInstitution ? v.institution || null : null,
             counterparty: showCounterparty ? v.counterparty || null : null,
             interestRate: isLoan || isCreditCard ? v.interestRate ?? null : null,
@@ -104,7 +112,7 @@ export function AccountForm({ account, onDone }: AccountFormProps) {
       } else {
         await createAccount.mutateAsync({
           name: v.name,
-          ownerUserId,isShared:owner==='shared',isSavings:['cash','bank_debit','savings'].includes(type)&&isSavings,
+          ownerUserId,isShared:owner==='shared',isSavings:type==='savings'||['cash','bank_debit'].includes(type)&&isSavings,
           type: v.type,
           currency: v.currency,
           // Liabilities are entered as a positive "amount owed" and stored negative.
@@ -119,7 +127,7 @@ export function AccountForm({ account, onDone }: AccountFormProps) {
         })
         toast.success("Рахунок створено", v.name)
       }
-      onDone ? onDone() : router.push('/accounts')
+      draft.clear();onDone ? onDone() : router.push('/accounts')
     } catch (error) {
       toast.error("Не вдалося зберегти рахунок", error)
     } finally { saving.current = false }
@@ -127,6 +135,7 @@ export function AccountForm({ account, onDone }: AccountFormProps) {
 
   return (
     <form noValidate onSubmit={handleSubmit} className="space-y-5">
+      <DraftStatus draft={draft}/>
       <Input
         label="Назва"
         value={name}
@@ -136,7 +145,7 @@ export function AccountForm({ account, onDone }: AccountFormProps) {
         autoFocus
       />
 
-      {['cash','bank_debit','savings'].includes(type)&&<Switch checked={isSavings} onChange={setIsSavings} label="Це заощадження, не кошти для щоденних витрат"/>}
+      {['cash','bank_debit'].includes(type)&&<Switch checked={isSavings} onChange={setIsSavings} label="Це заощадження, не кошти для щоденних витрат"/>}
       <Select label="Кому належить рахунок" value={owner} onChange={e=>setOwner(e.target.value)} options={[{value:'self',label:'Мій рахунок'},{value:'shared',label:'Спільний сімейний'},{value:'unknown',label:'Власника ще не вказано'},...members.map(m=>({value:m.userId,label:m.displayName}))]}/>
       <p className="text-xs text-muted">Власник рахунку не обов’язково є тим, хто додав його в застосунок.</p>
       <Select
@@ -266,7 +275,7 @@ export function AccountForm({ account, onDone }: AccountFormProps) {
       </div>}
 
       <div className="flex items-center justify-end gap-3 pt-2">
-        <Button type="button" variant="secondary" onClick={() => (onDone ? onDone() : router.back())}>
+        <Button type="button" variant="secondary" onClick={() => draft.close(()=>onDone ? onDone() : router.back())}>
           Скасувати
         </Button>
         <Button type="submit" variant="primary" disabled={submitting || (owner === 'self' && !currentUser)}>

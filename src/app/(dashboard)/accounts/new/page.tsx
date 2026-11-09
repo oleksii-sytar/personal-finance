@@ -1,5 +1,6 @@
 'use client'
 
+import {useWorkspaceContext} from '@/contexts/workspace-context'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { PageHeader } from '@/components/layout/page-header'
@@ -7,6 +8,8 @@ import { Card } from '@/components/ui/Card'
 import { AccountForm } from '@/components/accounts/account-form'
 
 export default function NewAccountPage() {
+  const {can}=useWorkspaceContext()
+  if(!can('account.manage'))return <p role="status">Створення рахунків доступне власнику та фінансовому менеджеру сім’ї.</p>
   return (
     <div className="mx-auto max-w-xl">
       <Link

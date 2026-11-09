@@ -18,6 +18,7 @@ import {accountVerificationStatus} from '@/lib/reconciliation/model'
 import {isLoanDestination,isPaymentAccount} from '@/lib/loans/destination'
 import {parseLoanSchedule,loanOcrPrompt,type LoanProfile,type LoanInstallment} from '@/lib/loans/model'
 import {accountOwner} from '@/lib/money/entry'
+import {parseMoney} from '@/lib/money/decimal'
 import {localDay} from '@/lib/calculations/dates'
 import {formatMoney} from '@/lib/money/format'
 import type {Account,Transaction} from '@/types/domain'
@@ -76,7 +77,7 @@ function LoanSettings({account,accounts,profile}:{account:Account;accounts:Accou
  const action=useFinanceAction(),toast=useToast(),{can}=useWorkspaceContext()
  const [source,setSource]=useState(profile?.payment_account_id||''),[due,setDue]=useState(profile?.card_due_date||''),[minimum,setMinimum]=useState(profile?.card_minimum==null?'':String(profile.card_minimum))
  const card=account.type==='credit_card'
- async function save(e:React.FormEvent){e.preventDefault();const amount=minimum.trim()?Number(minimum.replace(',','.')):null;if(amount!==null&&(!Number.isFinite(amount)||amount<0)){toast.error('Перевірте суму мінімального платежу');return}
+ async function save(e:React.FormEvent){e.preventDefault();const amount=minimum.trim()?parseMoney(minimum,{signed:false}):null;if(minimum.trim()&&amount===null){toast.error('Перевірте суму мінімального платежу');return}
   try{await action.mutateAsync({name:'finance_save_loan',args:{p_account:account.id,p_values:{...profile,tracking_start_date:profile?.tracking_start_date||account.balanceAnchorDate||localDay(),payment_account_id:source||null,...(card?{card_due_date:due||null,card_minimum:amount}:{})}}});toast.success('Налаштування збережено')}catch(e){toast.error('Не вдалося зберегти',e)}
  }
  return <Card><details><summary className="cursor-pointer font-semibold">Налаштування платежів</summary><form onSubmit={save} className="mt-4 space-y-3">
@@ -94,7 +95,7 @@ function ScheduleReference({account,profile,rows}:{account:Account;profile?:Loan
   await action.mutateAsync({name:'finance_import_loan_schedule',args:{p_account:account.id,p_rows:parsed.rows,p_filename:'Графік CSV',p_request:request.current.id}})
   setCsv('');toast.success('Довідковий графік збережено')
  }catch(e){toast.error('Не вдалося імпортувати графік',e)}}
- return <Card><details><summary className="cursor-pointer font-semibold">Графік банку · довідково ({rows.length})</summary>
+ return <Card><details><summary className="cursor-pointer font-semibold">Графік банку · довідково ({rows.filter(r=>r.status!=='superseded').length})</summary>
   <p className="my-3 text-sm text-muted">Не змінює борг, статистику чи прогноз. Ваші оплати та плани показані вище.</p>
   <div className="max-h-80 overflow-auto"><table className="w-full text-left text-sm"><thead><tr><th className="p-2">Дата</th><th className="p-2">Платіж</th><th className="p-2">Тіло</th><th className="p-2">Обслуговування</th></tr></thead><tbody>{rows.filter(r=>r.status!=='superseded').sort((a,b)=>a.payment_date.localeCompare(b.payment_date)).map(r=><tr key={r.id} className="border-t border-primary"><td className="whitespace-nowrap p-2">{r.payment_date}</td><td className="whitespace-nowrap p-2">{formatMoney(r.payment_total,account.currency)}</td><td className="whitespace-nowrap p-2">{formatMoney(r.principal,account.currency)}</td><td className="whitespace-nowrap p-2">{formatMoney(r.payment_total-r.principal,account.currency)}</td></tr>)}</tbody></table></div>
   {can('account.manage')&&<details className="mt-4"><summary className="cursor-pointer">Імпортувати графік</summary><div className="mt-3 space-y-3">

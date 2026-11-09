@@ -11,7 +11,7 @@ describe('direct execution and truthful outcomes',()=>{
  it('shows skipped duplicates clearly',()=>expect(actionLabel({status:'completed',result:{status:'duplicate_skipped'}})).toBe('Дубль пропущено'))
  it('does not call an all-duplicate import a new mutation',()=>expect(actionResponse({status:'completed',result:{imported:0,skipped:3,applied:false}}).applied).toBe(false))
  it('does not require approval for ambiguous data',()=>expect(actionResponse({status:'needs_resolution',result:{candidates:[]}})).toMatchObject({applied:false,requires_confirmation:false}))
- it('does not resurrect a legacy request or return approval links',()=>{const r=actionResponse({status:'pending'});expect(r.applied).toBe(false);expect(r).not.toHaveProperty('approval_url');expect(r.message).toContain('старий')})
+ it('does not resurrect a legacy request or return approval links',()=>{const r=actionResponse({status:'pending'});expect(r.applied).toBe(false);expect(r).not.toHaveProperty('approval_url');expect('message' in r&&r.message).toContain('старий')})
  it('never claims rejected actions are applied',()=>expect(actionResponse({status:'rejected'}).applied).toBe(false))
  it('labels legacy pending honestly',()=>expect(actionLabel({status:'pending'})).toBe('Старий запит: не виконано'))
  it('distinguishes an unresolved match',()=>expect(actionLabel({status:'needs_resolution'})).toBe('AI має розібрати збіг'))

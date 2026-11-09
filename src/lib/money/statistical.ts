@@ -1,3 +1,4 @@
+import {sumMoney} from './decimal'
 import type {Transaction,CurrencyCode,ExchangeRate} from '@/types/domain'
 import {convert} from './fx'
 import {localDay} from '@/lib/calculations/dates'
@@ -27,7 +28,7 @@ export function reportQuality(transactions:Transaction[],currency:CurrencyCode,p
   if(!parts.income&&!parts.expense)continue
   const value=historicalValue(parts.expense||parts.income,t.currency,currency,t.transactionDate,options.rates)
   if(value===null){missingRates.push(t.id);continue}
-  if(parts.expense)recognizedExpense+=value
+  if(parts.expense)recognizedExpense=sumMoney([recognizedExpense,value])
  }
  // Preserve the shared presentation contract without inventing allocation gaps.
  return {provisional:missingRates.length>0,incomplete:missingRates.length>0,missingRates,

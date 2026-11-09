@@ -36,7 +36,7 @@ describe('Category report links',()=>{
 describe('Recurring occurrence lifecycle',()=>{
  let repo:InMemoryRepository
  beforeEach(()=>{localStorage.clear();vi.useFakeTimers();vi.setSystemTime(new Date('2026-09-14T12:00:00Z'));repo=new InMemoryRepository()})
- afterEach(()=>vi.useRealTimers())
+ afterEach(()=>{vi.useRealTimers()})
  async function create(source?:Awaited<ReturnType<InMemoryRepository['createTransaction']>>){
   const account=(await repo.listAccounts())[0]
   return repo.saveRecurring({requestId:'new-series',template:{accountId:account.id,kind:'expense',amount:100,currency:account.currency,description:'Recurring test'},frequency:'monthly',intervalCount:1,startDate:'2026-09-30',sourceTransactionId:source?.id,sourceExpectedUpdatedAt:source?.updatedAt})

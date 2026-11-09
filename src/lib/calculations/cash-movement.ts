@@ -1,3 +1,4 @@
+import {roundMoney} from '@/lib/money/decimal'
 import type {Account,CurrencyCode,Transaction} from '@/types/domain'
 import {convert} from '@/lib/money/fx'
 import {plannedAmount,isVisiblePlan} from '@/lib/planning/model'
@@ -6,7 +7,7 @@ import {loanPaymentParts} from '@/lib/loans/accounting'
 import type {liquidityForecast} from '@/lib/calculations/liquidity'
 const cash=(a?:Account)=>!!a&&!a.isSavings&&['cash','bank_debit'].includes(a.type)
 const debt=(a?:Account)=>!!a&&['credit_card','bank_loan','mortgage','microloan','personal_debt'].includes(a.type)
-const round=(n:number)=>Math.round(n*100)/100
+const round=roundMoney
 /** Cash/debit flow is not spending: internal cash exchanges cancel, card funding remains visible. */
 export function cashMovement(accounts:Account[],transactions:Transaction[],currency:CurrencyCode,period:string,options:ReportOptions={}){
  const byId=new Map(accounts.map(a=>[a.id,a]))

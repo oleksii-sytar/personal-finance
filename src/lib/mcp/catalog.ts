@@ -1,3 +1,4 @@
+import {parseMoney} from '@/lib/money/decimal'
 
 export type Schema = {type?:string|string[];properties?:Record<string,Schema>;required?:string[];additionalProperties?:boolean|Schema;items?:Schema;enum?:unknown[];minimum?:number;maximum?:number;minLength?:number;maxLength?:number;minItems?:number;maxItems?:number;pattern?:string;format?:string;description?:string;multipleOf?:number}
 export type Tool = {name:string;title:string;description:string;inputSchema:Schema;readOnly:boolean;operation?:string;resource?:string;destructive?:boolean}
@@ -93,7 +94,7 @@ export function validate(schema:Schema,value:unknown,path='arguments'):void {
   if(schema.format==='date'&&(!/^\d{4}-\d{2}-\d{2}$/.test(s)||!Number.isFinite(Date.parse(s))||new Date(s).toISOString().slice(0,10)!==s))throw new Error(path+': valid calendar date required')
   if(schema.format==='date-time'&&(!/^\d{4}-\d{2}-\d{2}T/.test(s)||!/(Z|[+-]\d{2}:\d{2})$/.test(s)||!Number.isFinite(Date.parse(s))))throw new Error(path+': timestamp with timezone required')
  }
- if(type==='number'||type==='integer'){const n=value as number;if(!Number.isFinite(n)||(schema.minimum!==undefined&&n<schema.minimum)||(schema.maximum!==undefined&&n>schema.maximum))throw new Error(path+': number outside limits');if(schema.multipleOf===0.01&&Math.abs(n*100-Math.round(n*100))>0.001)throw new Error(path+': at most two decimal places')}
+ if(type==='number'||type==='integer'){const n=value as number;if(!Number.isFinite(n)||(schema.minimum!==undefined&&n<schema.minimum)||(schema.maximum!==undefined&&n>schema.maximum))throw new Error(path+': number outside limits');if(schema.multipleOf===0.01&&parseMoney(n)===null)throw new Error(path+': at most two decimal places')}
  if(type==='array'){const a=value as unknown[];if((schema.minItems!==undefined&&a.length<schema.minItems)||(schema.maxItems!==undefined&&a.length>schema.maxItems))throw new Error(path+': invalid number of items');a.forEach((v,i)=>validate(schema.items!,v,path+'['+i+']'))}
  if(type==='object'){
   const o=value as Record<string,unknown>;for(const key of schema.required||[])if(!(key in o))throw new Error(path+'.'+key+': required')

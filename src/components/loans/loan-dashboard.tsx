@@ -38,7 +38,7 @@ export function LoanOverview({accounts,members,profiles,rows,transactions,curren
 }
 export function LoansDashboard(){
  const {data:accounts=[],isLoading:loadingAccounts}=useAccounts(),{data:members=[]}=useMembers(),{data:transactions=[]}=useTransactions(),{data,isLoading,error}=useLoanData(),{displayCurrency,can}=useWorkspaceContext()
- return <div className="finance-page"><header className="collection-heading"><div><h1>Кредити та борги</h1><p>Усі зобов’язання сім’ї в одному місці</p></div>{can('account.manage')&&<Link className="collection-add" href="/accounts/new"><Button><Plus size={17} className="mr-1.5"/>Додати кредит</Button></Link>}</header>
+ return <div className="finance-page"><header className="collection-heading"><div><h1>Кредити та борги</h1><p>Усі зобов’язання сім’ї в одному місці</p></div>{can('account.manage')&&<Link className="collection-add" href="/loans/new"><Button><Plus size={17} className="mr-1.5"/>Додати кредит</Button></Link>}</header>
  {isLoading||loadingAccounts?<p role="status">Завантажуємо кредити…</p>:error?<Card><p role="alert">Не вдалося завантажити кредити. Спробуйте оновити сторінку.</p></Card>:<LoanOverview accounts={accounts} members={members} profiles={data?.profiles||[]} rows={data?.rows||[]} transactions={transactions} currency={displayCurrency}/>}
  </div>
 }

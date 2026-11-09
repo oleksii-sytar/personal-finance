@@ -1,10 +1,8 @@
+import {parseMoney} from '@/lib/money/decimal'
 import {localDay} from '@/lib/calculations/dates'
 import type {Account,Transaction} from '@/types/domain'
 export function parseSignedBalance(value:unknown):number|null {
- if(typeof value!=='string'&&typeof value!=='number')return null
- const s=String(value).replace(/[\s\u00a0\u202f]/g,'').replace(/−/g,'-').replace(',','.')
- if(!/^[+-]?\d+(\.\d{1,2})?$/.test(s))return null
- const n=Number(s);return Number.isFinite(n)&&Math.abs(n)<1e12?n:null
+ return parseMoney(value)
 }
 export const needsReview=(t:Transaction)=>!t.deletedAt&&t.status==='completed'&&(t.reviewRequired===true||(t.kind!=='transfer'&&!t.categoryId))
 export function verifiedAt(t:Transaction,accountId:string):string|null{return (t.accountId===accountId?t.accountVerifiedAt:t.counterAccountId===accountId?t.counterVerifiedAt:t.loanAccountId===accountId?t.loanVerifiedAt:null)||null}

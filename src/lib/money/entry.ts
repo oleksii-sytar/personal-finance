@@ -1,9 +1,8 @@
+import {parseMoney} from './decimal'
 import {statisticalAmounts} from '@/lib/money/statistical'
 import type {Account, UserSettings, WorkspaceMember, Transaction} from '@/types/domain'
 export function parseEntryAmount(value:string):number|null {
- const s=value.trim().replace(/[\s\u00a0\u202f]/g,'').replace(',','.')
- if(!/^\d+(?:\.\d{1,2})?$/.test(s))return null
- const n=Number(s);return Number.isFinite(n)&&n>0&&n<1e12?n:null
+ const n=parseMoney(value,{signed:false});return n!==null&&n>0?n:null
 }
 export function accountOwner(account:Account,members:WorkspaceMember[]):string {
  if(account.isShared)return 'Спільний рахунок'

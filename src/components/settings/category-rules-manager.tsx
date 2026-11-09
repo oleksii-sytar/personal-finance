@@ -1,5 +1,9 @@
 'use client'
+import {useFormDraft} from '@/hooks/use-form-draft'
+import {DraftStatus} from '@/components/shared/draft-status'
 
+import {hasVisibleText} from '@/lib/integrity/text'
+import {parseRuleTokens} from '@/lib/rules/category-rules'
 import { useMemo, useRef, useState } from 'react'
 import { Pencil, Plus, Save, Trash2 } from 'lucide-react'
 import { useWorkspaceContext } from '@/contexts/workspace-context'
@@ -54,15 +58,19 @@ export function CategoryRulesManager() {
   const isEditing = form.id.length > 0
   const saving = useRef(false)
 
+  const draft=useFormDraft('category-rule',{...form},{...INITIAL_FORM},setForm,canManage)
+
   const categoryName = (id: string) => categories.find((c) => c.id === id)?.name ?? "Невідомо"
 
   function resetForm() {
+    draft.clear()
     setForm(INITIAL_FORM)
     setErrors({})
   }
 
   function editRule(rule: CategoryRule) {
     if (!canManage) return
+    if(draft.hasDraft&&!window.confirm('Залишити поточну чернетку й відкрити інше правило?'))return
     setErrors({})
     setForm({
       id: rule.id,
@@ -79,10 +87,14 @@ export function CategoryRulesManager() {
 
   function validate(): boolean {
     const next: Partial<Record<keyof FormState, string>> = {}
-    if (!form.name.trim()) next.name = "Укажіть назву правила"
+    if (!hasVisibleText(form.name)) next.name = "Укажіть назву правила"
     if (!form.categoryId) next.categoryId = "Оберіть категорію"
-    if (!form.descriptionContains.trim()) next.descriptionContains = "Додайте хоча б одне ключове слово"
+    if (!parseRuleTokens(form.descriptionContains).some(hasVisibleText)) next.descriptionContains = "Додайте хоча б одне ключове слово"
 
+    if(form.name.trim().length>80)next.name='Не більше ніж 80 символів'
+    if(form.descriptionContains.trim().length>500)next.descriptionContains='Не більше ніж 500 символів'
+    const category=categories.find(c=>c.id===form.categoryId)
+    if(form.kind&&category&&category.type!==form.kind)next.categoryId='Тип категорії має відповідати типу операції'
     const min = form.minAmount === '' ? null : Number(form.minAmount)
     const max = form.maxAmount === '' ? null : Number(form.maxAmount)
     if (min != null && !Number.isFinite(min)) next.minAmount = "Введіть число"
@@ -104,7 +116,7 @@ export function CategoryRulesManager() {
       name: form.name.trim(),
       categoryId: form.categoryId,
       descriptionContains: form.descriptionContains.trim(),
-      kind: form.kind || null,
+      kind: form.kind || categories.find(c=>c.id===form.categoryId)?.type || null,
       minAmount: form.minAmount === '' ? null : Number(form.minAmount),
       maxAmount: form.maxAmount === '' ? null : Number(form.maxAmount),
       priority: form.priority === '' ? 100 : Number(form.priority),
@@ -144,6 +156,7 @@ export function CategoryRulesManager() {
 
       {!canManage && <p className="text-sm text-muted">Правила може змінювати власник або фінансовий менеджер сім’ї.</p>}
       {canManage && <form onSubmit={submit} className="grid gap-3">
+        <DraftStatus draft={draft}/>
         <div className="grid gap-3 md:grid-cols-2">
           <Input
             label="Назва правила"

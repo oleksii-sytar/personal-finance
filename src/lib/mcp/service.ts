@@ -3,6 +3,9 @@ import {createHash} from 'node:crypto'
 import {tools,validate,type Tool} from './catalog'
 import {actionResponse as actionResult} from './action-results'
 import {rpc,stableHash,McpFailure,MCP_ORIGIN,type McpContext} from './security'
+import {validateStatement} from '@/lib/import/validate-statement'
+import {parseMoney,sumMoney} from '@/lib/money/decimal'
+import {labelText} from '@/lib/integrity/text'
 import {parseDelimited,guessColumns,toParsedRows} from '@/lib/import/parse-statement'
 import {reconciliationHints,transferCandidates} from '@/lib/import/matching'
 import {parseLoanSchedule} from '@/lib/loans/model'
@@ -44,12 +47,14 @@ async function statement(ctx:McpContext,args:Row){
  let rows:Row[]=[],bankIds:string[]=[]
  if(args.csv){
   const parsed=parseDelimited(args.csv.replace(/^\uFEFF/,'')),mapping=args.mapping||guessColumns(parsed.headers)
-  rows=toParsedRows(parsed.rows,mapping).map(r=>({...r,occurred_at:r.occurredAt}))
+  const validation=validateStatement(args.csv,mapping,a.currency,localDay())
+  if(validation.errors.length) return {valid:false,errors:validation.errors,account:a,row_count:validation.rows.length}
+  rows=validation.rows.map(r=>({...r,occurred_at:r.occurredAt}))
   const bankColumn=parsed.headers.findIndex(h=>/^(bank_id|transaction_id|reference_id)$/i.test(h.trim()))
   bankIds=parsed.rows.map(r=>bankColumn>=0?r[bankColumn]?.trim()||'':'')
- }else{rows=args.rows.map((r:Row)=>({...r,valid:!!r.date&&Number.isFinite(r.amount)&&r.amount!==0}));bankIds=rows.map(r=>r.bank_reference?.trim()||'')}
+ }else{rows=args.rows.map((r:Row)=>{const parsed=toParsedRows([[r.date,r.description,String(r.amount)]],{date:0,description:1,amount:2},a.currency)[0];return {...r,valid:parsed.valid&&parsed.date<=localDay()&&parseMoney(r.amount)!==null}});bankIds=rows.map(r=>r.bank_reference?.trim()||'')}
  if(!rows.length||rows.length>5000)throw new McpFailure(422,'Виписка: від 1 до 5000 рядків.')
- const invalid=rows.flatMap((r,i)=>!r.valid||Math.abs(r.amount)>=1e12||Math.abs(r.amount*100-Math.round(r.amount*100))>0.001?[i+1]:[])
+ const invalid=rows.flatMap((r,i)=>!r.valid||parseMoney(r.amount)===null?[i+1]:[])
  if(invalid.length)return {valid:false,invalid_rows:invalid,account:a,row_count:rows.length}
  const decisions=new Map<number,Row>()
  for(const decision of args.resolutions||[]){if(decision.row>rows.length||decisions.has(decision.row))throw new McpFailure(422,'Кожен номер рядка має мати не більше одного рішення.');decisions.set(decision.row,decision)}
@@ -60,7 +65,7 @@ async function statement(ctx:McpContext,args:Row){
   if(bank){const value=JSON.stringify([r.date,r.amount]);if(references.has(bank)&&references.get(bank)!==value)throw new McpFailure(422,'Один банківський ID має різні дати або суми. Перевірте рядок '+(i+1)+'.');references.set(bank,value)}
   const decision=decisions.get(i+1),skip=decision?.choice==='skip'||!!bank&&occurrence>1
   const key=base+(!bank&&occurrence>1?'|occurrence:'+occurrence:'')
-  return {row:i+1,date:r.date,description:r.description,amount:r.amount,skip,decision,import_row:{account_id:a.id,kind:r.amount<0?'expense':'income',amount:Math.abs(r.amount),currency:a.currency,description:r.description,transaction_date:r.date,occurred_at:r.occurred_at||null,import_key:key,import_anchor_at:a.balance_anchor_at,balance_treatment:'auto',source_row:i+1,matched_transaction_id:decision?.choice==='match'?decision.transaction_id:null,match_updated_at:decision?.choice==='match'?decision.expected_updated_at:null,...(decision?.choice==='new'?{duplicate_resolution:{choice:'separate',candidate_version:decision.candidate_version,reason:decision.reason}}:{})}}
+  return {row:i+1,date:r.date,description:r.description,amount:r.amount,skip,decision,import_row:{account_id:a.id,kind:r.amount<0?'expense':'income',amount:Math.abs(r.amount),currency:a.currency,description:labelText(r.description).slice(0,120),source_description:r.description,bank_reference:bank||null,transaction_date:r.date,occurred_at:r.occurred_at||null,import_key:key,import_anchor_at:a.balance_anchor_at,balance_treatment:'auto',source_row:i+1,matched_transaction_id:decision?.choice==='match'?decision.transaction_id:null,match_updated_at:decision?.choice==='match'?decision.expected_updated_at:null,...(decision?.choice==='new'?{duplicate_resolution:{choice:'separate',candidate_version:decision.candidate_version,reason:decision.reason}}:{})}}
  })
  const response=await rpc(ctx.token,'finance_mcp_read',{p_resource:'statement_duplicates',p_filter:{account_id:a.id,rows:normalized.map(r=>r.import_row)}}) as {checks:Row[]}
  const preview=normalized.map((r,i)=>{const checked=response.checks[i];return {row:r.row,date:r.date,description:r.description,amount:r.amount,skip:r.skip||checked.status==='duplicate_skipped',resolved:r.skip||checked.status!=='needs_resolution',possible_duplicate:checked.candidates.length>0,...checked,import_row:r.import_row}})
@@ -107,7 +112,7 @@ async function calculate(ctx:McpContext,name:string,args:Row){
  const filter:Row={};if(name==='get_month_report'){filter.from=args.month+'-01';const [y,m]=args.month.split('-').map(Number);filter.to=localDay(new Date(y,m,0,12))}if(name==='get_year_report'){filter.from=args.year+'-01-01';filter.to=args.year+'-12-31'}if(args.account_id)filter.account_id=args.account_id;if(args.from)filter.from=args.from;if(args.to)filter.to=args.to
  const rows=await all(ctx,'transactions',filter),transactions=rows.map(r=>camel<Transaction>(r))
  if(name==='get_reconciliation')return {review_count:transactions.filter(needsReview).length,review_ids:transactions.filter(needsReview).map(t=>t.id),accounts:accounts.filter(a=>!args.account_id||a.id===args.account_id).map(a=>({id:a.id,name:a.name,currency:a.currency,current_balance:a.currentBalance,ledger_version:a.ledgerVersion,balance_anchor_at:a.balanceAnchorAt,unconfirmed_count:transactions.filter(t=>pendingForAccount(t,a.id)).length,last_reconciled_at:a.lastReconciledAt})),note:'Category review and bank balance confirmation are separate.'}
- if(name==='explain_balance_difference'){const a=accounts.find(a=>a.id===args.account_id);if(!a)throw new McpFailure(404,'Рахунок недоступний');const gap=Math.round((args.actual_balance-a.currentBalance)*100)/100;return {current_balance:a.currentBalance,actual_balance:args.actual_balance,difference:gap,hints:reconciliationHints(a,transactions,gap),note:'Hints are not evidence. No changes were made.'}}
+ if(name==='explain_balance_difference'){const a=accounts.find(a=>a.id===args.account_id);if(!a)throw new McpFailure(404,'Рахунок недоступний');const gap=sumMoney([args.actual_balance,-a.currentBalance]);return {current_balance:a.currentBalance,actual_balance:args.actual_balance,difference:gap,hints:reconciliationHints(a,transactions,gap),note:'Hints are not evidence. No changes were made.'}}
  if(name==='find_transfer_pairs'){if(transactions.length>5000)throw new McpFailure(422,'Звузьте період пошуку до 5000 операцій.');return {pairs:transferCandidates(transactions),note:'Suggestions only. Do not merge automatically.'}}
  const exchange=await rates(),wealth=netWorthSummary(accounts,currency),model=decodeFinancialModel(await rpc(ctx.token,'finance_model_read'))
  const actualDates=transactions.filter(t=>!t.deletedAt&&t.status==='completed'&&t.transactionDate<=localDay(ref)&&(name!=='get_forecast'||Date.parse(t.transactionDate)>=Date.parse(localDay(ref))-90*86400000)).map(t=>t.transactionDate).sort()

@@ -1,3 +1,4 @@
+vi.mock('@/contexts/workspace-context',()=>({useWorkspaceContext:()=>({})}))
 import {beforeEach,describe,it,expect,vi} from 'vitest'
 import {fireEvent,render,screen,waitFor} from '@testing-library/react'
 import {AccountForm} from '@/components/accounts/account-form'
@@ -6,7 +7,7 @@ const state=vi.hoisted(()=>({create:vi.fn().mockResolvedValue({}),update:vi.fn()
 vi.mock('next/navigation',()=>({useRouter:()=>({push:state.push,back:vi.fn()})}))
 vi.mock('@/components/ui/toast',()=>({useToast:()=>({success:vi.fn(),error:vi.fn()})}))
 vi.mock('@/hooks/use-finance',()=>({useMembers:()=>({data:[]}),useCurrentUser:()=>({data:{id:'owner'}}),useCreateAccount:()=>({mutateAsync:state.create,isPending:false}),useUpdateAccount:()=>({mutateAsync:state.update,isPending:false})}))
-beforeEach(()=>vi.clearAllMocks())
+beforeEach(()=>{vi.clearAllMocks()})
 function newCard(){render(<AccountForm/>);fireEvent.change(screen.getByLabelText('Назва'),{target:{value:'Test card'}});fireEvent.change(screen.getByLabelText('Тип'),{target:{value:'credit_card'}})}
 describe('Credit limit and initial own funds have distinct meanings',()=>{
  it('does not put a new 100000 credit limit into the opening balance',async()=>{
@@ -87,5 +88,16 @@ describe('Account input regressions found in the real browser',()=>{
   const button=screen.getByRole('button',{name:'Створити рахунок'})
   fireEvent.click(button);fireEvent.click(button);expect(state.create).toHaveBeenCalledTimes(1)
   finish({});await waitFor(()=>expect(state.push).toHaveBeenCalled())
+ })
+})
+
+
+describe('Loan entry uses a debt type from its first render',()=>{
+ it('defaults the loan flow to a bank loan and stores an entered debt with the correct sign',async()=>{
+  render(<AccountForm initialType="bank_loan"/>);expect(screen.getByLabelText('Тип')).toHaveValue('bank_loan')
+  fireEvent.change(screen.getByLabelText('Назва'),{target:{value:'New loan'}})
+  fireEvent.change(screen.getByLabelText('Сума до повного погашення'),{target:{value:'123.45'}})
+  fireEvent.click(screen.getByRole('button',{name:'Створити рахунок'}))
+  await waitFor(()=>expect(state.create).toHaveBeenCalledWith(expect.objectContaining({type:'bank_loan',openingBalance:-123.45})))
  })
 })

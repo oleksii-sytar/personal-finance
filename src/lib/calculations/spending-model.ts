@@ -1,3 +1,4 @@
+import {roundMoney} from '@/lib/money/decimal'
 import type {Account,Category,CurrencyCode,ExchangeRate,HistoryCoverage,Transaction} from '@/types/domain'
 import {accountObservation,SPENDING_HISTORY_DAYS} from './history'
 import {localDay,dayNumber,dayString,addDays,monthEnd} from './dates'
@@ -7,7 +8,7 @@ import {convert} from '@/lib/money/fx'
 
 export interface SpendingOptions {purpose?:'forecast'|'reserve';includeTodayBudget?:boolean;coverage?:HistoryCoverage[];categories?:Category[];rates?:ExchangeRate[]}
 export const SPENDING_MODEL_VERSION='household-v5-transparent-budget'
-const round=(n:number)=>Math.round(n*100)/100
+const round=roundMoney
 const mean=(a:number[])=>a.length?a.reduce((s,v)=>s+v,0)/a.length:0
 const quantile=(a:number[],p:number)=>{const b=[...a].sort((x,y)=>x-y);if(!b.length)return 0;const x=(b.length-1)*p,i=Math.floor(x);return b[i]+(b[Math.min(i+1,b.length-1)]-b[i])*(x-i)}
 const words=(text:string)=>text.normalize('NFKC').toLocaleLowerCase('uk-UA').replace(/[^\p{L}\p{N}]+/gu,' ').trim().split(/\s+/).filter(Boolean)

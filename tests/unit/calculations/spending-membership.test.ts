@@ -3,7 +3,7 @@ import {spendingMembership,type SpendingTrend} from '@/lib/calculations/spending
 import {automaticSpending} from '@/lib/calculations/spending-model'
 import {makeAccount,makeTxn} from '../_factories'
 const now=new Date('2026-09-21T12:00:00Z')
-afterEach(()=>vi.useRealTimers())
+afterEach(()=>{vi.useRealTimers()})
 describe('daily spending membership explains the exact model rows',()=>{
  it('keeps large-review expenses included and distinguishes model exclusions',()=>{
   vi.useFakeTimers({toFake:['Date']});vi.setSystemTime(now)

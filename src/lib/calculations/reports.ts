@@ -3,6 +3,7 @@
  * a chosen display currency. Planned and deleted rows are excluded.
  */
 
+import {moneyCents,sumMoney} from '@/lib/money/decimal'
 import type { Category, CurrencyCode, Transaction } from '@/types/domain'
 import {historicalValue,statisticalAmounts,countedActual,type ReportOptions} from '@/lib/money/statistical'
 import {localDay} from './dates'
@@ -29,10 +30,11 @@ export function monthlyTotals(
   for (const t of transactions) {
     if (!isCounted(t,options.reference) || !inMonth(t.transactionDate, year, month0)) continue
     const parts=statisticalAmounts(t)
-    income += historicalValue(parts.income,t.currency,displayCurrency,t.transactionDate,options.rates)??0
-    expense += historicalValue(parts.expense,t.currency,displayCurrency,t.transactionDate,options.rates)??0
+    income += moneyCents(historicalValue(parts.income,t.currency,displayCurrency,t.transactionDate,options.rates)??0)
+    expense += moneyCents(historicalValue(parts.expense,t.currency,displayCurrency,t.transactionDate,options.rates)??0)
   }
-  return { income, expense, net: income - expense }
+  if(!Number.isSafeInteger(income)||!Number.isSafeInteger(expense)||!Number.isSafeInteger(income-expense))throw new Error('Загальна сума перевищує точність розрахунку')
+  return { income:income/100, expense:expense/100, net:(income-expense)/100 }
 }
 
 export interface CategorySpend {
@@ -82,9 +84,10 @@ export function spendingByCategory(
     if (!isCounted(t,options.reference) || t.kind !== 'expense' || !inMonth(t.transactionDate, year, month0)) continue
     const value = historicalValue(statisticalAmounts(t).expense,t.currency,displayCurrency,t.transactionDate,options.rates)??0
     const key=t.categoryId??null
-    if(value>0)totals.set(key,(totals.get(key)??0)+value)
+    if(value>0)totals.set(key,(totals.get(key)??0)+moneyCents(value))
   }
   const grand = Array.from(totals.values()).reduce((a, b) => a + b, 0)
+  if(!Number.isSafeInteger(grand))throw new Error('Загальна сума перевищує точність розрахунку')
   return Array.from(totals.entries())
     .map(([categoryId, total]) => {
       const cat = categories.find((c) => c.id === categoryId)
@@ -92,7 +95,7 @@ export function spendingByCategory(
         categoryId,
         name: cat?.name ?? "Без категорії",
         color: cat?.color ?? 'var(--text-muted)',
-        total,
+        total:total/100,
         pct: grand > 0 ? (total / grand) * 100 : 0,
       }
     })

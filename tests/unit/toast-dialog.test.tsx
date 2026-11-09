@@ -8,7 +8,7 @@ function Controls(){
  return <><button onClick={()=>setOpen(true)}>Open form</button><button onClick={()=>toast.success('Saved')}>Success</button><button onClick={()=>toast.error('Не вдалося зберегти',{code:'42501',message:'permission denied for table finance_transactions'})}>Error</button>
  <Dialog open={open} onClose={()=>setOpen(false)} title="Form"><input aria-label="Draft" defaultValue="Keep me"/><button onClick={()=>toast.error('Не вдалося зберегти',new TypeError('Failed to fetch'))}>Fail inside form</button><button onClick={()=>setOpen(false)}>Close form</button></Dialog></>
 }
-afterEach(()=>vi.useRealTimers())
+afterEach(()=>{vi.useRealTimers()})
 describe('Notifications above modals',()=>{
  it('moves alerts into the active dialog without losing the draft and back after closing',async()=>{
   render(<ToastProvider><Controls/></ToastProvider>)

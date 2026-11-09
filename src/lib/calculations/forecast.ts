@@ -1,10 +1,11 @@
+import {roundMoney} from '@/lib/money/decimal'
 import type {Account,CurrencyCode,Transaction} from '@/types/domain'
 import {automaticSpending,liquidityForecast,localDay} from './liquidity'
 import {forecastPaymentRows} from './cash-movement'
 import {reserveTarget,type SpendingOptions} from './spending-model'
 import {plannedAmount,isVisiblePlan} from '@/lib/planning/model'
 import {convert} from '@/lib/money/fx'
-const round=(n:number)=>Math.round(n*100)/100
+const round=roundMoney
 /** UI and MCP share this boundary: schedules are not an input to accounting. */
 export function buildForecast(accounts:Account[],transactions:Transaction[],currency:CurrencyCode,through:string,reference=new Date(),bufferDays=7,options:SpendingOptions={}){
  const from=localDay(reference),trend=automaticSpending(accounts,transactions,currency,through,reference,options),reliable=trend.confidence==='history'
